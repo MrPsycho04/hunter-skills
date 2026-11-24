@@ -1641,3 +1641,179 @@ This requires [prerequisites] and leaves [detection/reversibility].
 - [PayloadsAllTheThings](https://github.com/swisskyrepo/PayloadsAllTheThings) -- Payload reference
 - [Solodit](https://solodit.cyfrin.io) -- 50K+ searchable audit findings (Web3)
 - [ProjectDiscovery Chaos](https://chaos.projectdiscovery.io) -- Free subdomain datasets
+
+## Companion methodology (merged, deduplicated)
+
+Full text of every non-SKILL.md methodology file from the contributing skills — payload banks, technique references, reconnaissance and attack-class guides.
+
+### Companion: hunting / references/payloads.md
+
+# Bug Bounty Master Workflow — Payload reference
+
+Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
+
+---
+
+## Wordlists
+
+- [SecLists](https://github.com/danielmiessler/SecLists) -- Comprehensive wordlists
+
+- [HowToHunt](https://github.com/KathanP19/HowToHunt) -- Step-by-step vuln hunting
+
+- [DefaultCreds](https://github.com/ihebski/DefaultCreds-cheat-sheet) -- Default credentials
+
+
+
+## Payload Databases
+
+- [XSSHunter](https://xsshunter.trufflesecurity.com/) -- Blind XSS detection
+
+- [interactsh](https://app.interactsh.com) -- OOB callback server
+
+
+
+---
+
+
+
+# INSTALLATION (Claude Code Skill)
+
+
+
+To use this as a Claude Code skill, copy this file to your skills directory:
+
+
+
+```bash
+
+# Option A: Clone the repo and link the skill
+
+git clone https://github.com/shuvonsec/claude-bug-bounty.git ~/.claude/skills/bug-bounty
+
+ln -s ~/.claude/skills/bug-bounty/SKILL.md ~/.claude/skills/bug-bounty/SKILL.md
+
+
+
+# Option B: Direct copy
+
+mkdir -p ~/.claude/skills/bug-bounty
+
+curl -s https://raw.githubusercontent.com/shuvonsec/claude-bug-bounty/main/SKILL.md \
+
+  -o ~/.claude/skills/bug-bounty/SKILL.md
+
+```
+
+
+
+Then in Claude Code, this skill loads automatically when you ask about bug bounty, recon, or vulnerability hunting.
+
+
+
+---
+
+### Companion: hunting / references/techniques.md
+
+# Bug Bounty Master Workflow — Technique reference
+
+Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete technique.
+
+---
+
+## FFUF Advanced Techniques
+
+```bash
+
+# THE ONE RULE: Always use -ac (auto-calibrate filters noise automatically)
+
+ffuf -w wordlist.txt -u https://target.com/FUZZ -ac
+
+
+
+# Authenticated raw request file — IDOR testing (save Burp request to req.txt, replace ID with FUZZ)
+
+seq 1 10000 | ffuf --request req.txt -w - -ac
+
+
+
+# Authenticated API endpoint brute
+
+ffuf -u https://TARGET/api/FUZZ -w wordlist.txt -H "Cookie: session=TOKEN" -ac
+
+
+
+# Parameter discovery
+
+ffuf -w ~/wordlists/burp-parameter-names.txt -u "https://target.com/api/endpoint?FUZZ=test" -ac -mc 200
+
+
+
+# Hidden POST parameters
+
+ffuf -w ~/wordlists/burp-parameter-names.txt -X POST -d "FUZZ=test" -u "https://target.com/api/endpoint" -ac
+
+
+
+# Subdomain scan
+
+ffuf -w subs.txt -u https://FUZZ.target.com -ac
+
+
+
+# Filter strategies:
+
+# -fc 404,403          Filter status codes
+
+# -fs 1234             Filter by response size
+
+# -fw 50               Filter by word count
+
+# -fr "not found"      Filter regex in response body
+
+# -rate 5 -t 10        Rate limit + fewer threads for stealth
+
+# -e .php,.bak,.old    Add extensions
+
+# -o results.json      Save output
+
+```
+
+
+
+## Quick Wins Checklist
+
+- [ ] Subdomain takeover (`subjack`, `subzy`)
+
+- [ ] Exposed `.git` (`/.git/config`)
+
+- [ ] Exposed env files (`/.env`, `/.env.local`)
+
+- [ ] Default credentials on admin panels
+
+- [ ] JS secrets (SecretFinder, jsluice)
+
+- [ ] Open redirects (`?redirect=`, `?next=`, `?url=`)
+
+- [ ] CORS misconfig (test `Origin: https://evil.com` + credentials)
+
+- [ ] S3/cloud buckets
+
+- [ ] GraphQL introspection enabled
+
+- [ ] Spring actuators (`/actuator/env`, `/actuator/heapdump`)
+
+- [ ] Firebase open read (`https://TARGET.firebaseio.com/.json`)
+
+
+
+## Framework Quick Wins
+
+
+
+**Laravel**: `/horizon`, `/telescope`, `/.env`, `/storage/logs/laravel.log`
+
+**WordPress**: `/wp-json/wp/v2/users`, `/xmlrpc.php`, `/?author=1`
+
+**Node.js**: `/.env`, `/graphql` (introspection), `/_debug`
+
+**AWS Cognito**: `/oauth2/userInfo` (leaks Pool ID), CORS reflects arbitrary origins

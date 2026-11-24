@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 4 upstream skills across cbh, h1skills, hunting, research and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (337 valid reports, 105 paid / 31%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| internal service / port / container | 131 |
+| public source-code / repo review | 66 |
+| header injection (Host / X-Forwarded / etc.) | 60 |
+| encoding / double-encode / null byte | 60 |
+| Content-Type / body-format switch | 48 |
+| subdomain / DNS / cert-transparency recon | 45 |
+| cloud metadata / IAM abuse | 42 |
+| second-order / stored / blind delivery | 40 |
+| admin / privileged-role context | 39 |
+| WAF / sanitizer / filter bypass | 39 |
+
+### Parameters observed
+
+`url`, `src`, `charset`, `max-age`, `a-4829527691`, `command`, `user_id`, `onerror`, `width`, `height`, `http_only`, `type`, `edit_service`, `text`, `token`
+
+### Case studies (real reports, paid and unpaid)
+
+- [826361](https://hackerone.com/reports/826361) GitLab — SSRF on project import via the remote_attachment_url on a Note ($10000, high)
+- [1960765](https://hackerone.com/reports/1960765) Reddit — Blind SSRF to internal services in matrix preview_link API ($6000, high)
+- [776017](https://hackerone.com/reports/776017) Kubernetes — Half-Blind SSRF found in kube/cloud-controller-manager can be upgraded to complete SSRF (fully crafted HTTP requests) in vendor managed k8s service. ($5000, high)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Inventory every server-side fetcher before probing: create, update, preview, test, import, render, and async job endpoints all count.
@@ -507,6 +538,8 @@ _...and 3 more sections in `references/unified-method.md`._
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 4 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

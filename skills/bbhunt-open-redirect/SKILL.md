@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (360 valid reports, 74 paid / 21%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| redirect chain / Location header | 161 |
+| encoding / double-encode / null byte | 44 |
+| webhook / OAuth / SAML / integration abuse | 36 |
+| header injection (Host / X-Forwarded / etc.) | 35 |
+| subdomain / DNS / cert-transparency recon | 25 |
+| Content-Type / body-format switch | 22 |
+| admin / privileged-role context | 22 |
+| public source-code / repo review | 21 |
+| DOM / HTML source inspection | 20 |
+| WAF / sanitizer / filter bypass | 19 |
+
+### Parameters observed
+
+`name`, `type`, `value`, `target`, `url`, `href`, `charset`, `rel`, `src`, `next`, `return_url`, `class`, `redirect_uri`, `callback_url`, `phone_number`
+
+### Case studies (real reports, paid and unpaid)
+
+- [26962](https://hackerone.com/reports/26962) Internet Bug Bounty — open redirect in rfc6749 ($3000, severity n/a)
+- [1865991](https://hackerone.com/reports/1865991) Internet Bug Bounty — Open Redirect Vulnerability in Action Pack ($2400, medium)
+- [683298](https://hackerone.com/reports/683298) X / xAI — XSS and Open Redirect on MoPub Login ($1540, severity n/a)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Inventory every redirect parameter across login, logout, OAuth, invite and post-action flows.
@@ -371,6 +402,8 @@ Triage every hit by hand: a template match is a lead, not a finding. Update temp
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 4 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

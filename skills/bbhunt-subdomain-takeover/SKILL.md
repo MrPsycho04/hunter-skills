@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (72 valid reports, 12 paid / 17%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| subdomain / DNS / cert-transparency recon | 56 |
+| cache / CDN / unkeyed header | 7 |
+| public source-code / repo review | 6 |
+| webhook / OAuth / SAML / integration abuse | 4 |
+| admin / privileged-role context | 3 |
+| two-account / cross-account replay | 3 |
+| API docs / Swagger / introspection | 3 |
+| file upload / filename / extension | 3 |
+| OAST / DNS / HTTP callback proof | 2 |
+| header injection (Host / X-Forwarded / etc.) | 2 |
+
+### Parameters observed
+
+`summary`, `concept`, `mitigation`, `example`, `cdn.grab.com`
+
+### Case studies (real reports, paid and unpaid)
+
+- [154425](https://hackerone.com/reports/154425) Snapchat — Subdomain takeover on http://fastly.sc-cdn.net/ ($3000, severity n/a)
+- [352869](https://hackerone.com/reports/352869) Grab — Subdomain Takeover Via Insecure CloudFront Distribution cdn.grab.com ($1000, medium)
+- [1474784](https://hackerone.com/reports/1474784) Zenly — Subdomain Takeover of brand.zen.ly ($750, medium)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Collect DNS records for all in-scope hosts, including historical CNAMEs from archives and JS.
@@ -387,6 +418,8 @@ Triage every hit by hand: a template match is a lead, not a finding. Update temp
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

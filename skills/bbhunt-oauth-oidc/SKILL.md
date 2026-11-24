@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (40 valid reports, 8 paid / 20%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| webhook / OAuth / SAML / integration abuse | 15 |
+| admin / privileged-role context | 11 |
+| internal service / port / container | 9 |
+| public source-code / repo review | 7 |
+| two-account / cross-account replay | 6 |
+| redirect chain / Location header | 5 |
+| second-order / stored / blind delivery | 4 |
+| HTTP method / verb tampering | 3 |
+| file upload / filename / extension | 3 |
+| git history / exposed .git | 3 |
+
+### Parameters observed
+
+`realm`, `nonce`, `algorithm`, `domain`, `x01host`, `res`, `code`, `host`, `curlopt_proxyport`, `username`, `uri`, `response`, `redirect_url`, `voice`, `url`
+
+### Case studies (real reports, paid and unpaid)
+
+- [3423013](https://hackerone.com/reports/3423013) LY Corporation — page.line.me Open Redirect Leading to OAuth Authorization Code Exposure and Access Token Compromise ($1000, high)
+- [1700734](https://hackerone.com/reports/1700734) Shopify — Shop App - Attacker is able to intercept authorization code during authentication (OAuth) and is able to get access to Microsoft Outlook email account ($900, low)
+- [107877](https://hackerone.com/reports/107877) VK.com — API: Bug in method auth.signup , дающий возможность бесконечно звонить ($500, severity n/a)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Reconstruct the flow end to end: authorize, consent, code, token exchange, API call, and logout.
@@ -398,6 +429,8 @@ curl https://target.com/.well-known/openid-configuration | python3 -m json.tool
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

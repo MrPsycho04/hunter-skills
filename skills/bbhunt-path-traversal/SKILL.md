@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (300 valid reports, 52 paid / 17%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| public source-code / repo review | 113 |
+| internal service / port / container | 85 |
+| file upload / filename / extension | 68 |
+| admin / privileged-role context | 65 |
+| HTTP method / verb tampering | 62 |
+| WAF / sanitizer / filter bypass | 59 |
+| unauthenticated / removed-cookie test | 43 |
+| encoding / double-encode / null byte | 40 |
+| Content-Type / body-format switch | 35 |
+| header injection (Host / X-Forwarded / etc.) | 34 |
+
+### Parameters observed
+
+`type`, `max-age`, `path`, `url`, `name`, `textdomain`, `lang`, `filename`, `href`, `charset`, `file`, `token`, `result`, `vcs_metadata_dirs`, `version`
+
+### Case studies (real reports, paid and unpaid)
+
+- [1439593](https://hackerone.com/reports/1439593) GitLab — Arbitrary file read  via the bulk imports UploadsPipeline ($29000, critical)
+- [827052](https://hackerone.com/reports/827052) GitLab — Arbitrary file read via the UploadsRewriter when moving and issue ($20000, critical)
+- [1132378](https://hackerone.com/reports/1132378) GitLab — Arbitrary file read during project import ($16000, critical)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Identify the exact filesystem operation: read, include, write, or extract. The exploit differs for each.
@@ -365,6 +396,8 @@ Triage every hit by hand: a template match is a lead, not a finding. Update temp
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 4 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

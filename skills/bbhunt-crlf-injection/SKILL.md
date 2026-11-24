@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 2 upstream skills across h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (115 valid reports, 19 paid / 17%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| internal service / port / container | 31 |
+| encoding / double-encode / null byte | 30 |
+| header injection (Host / X-Forwarded / etc.) | 26 |
+| WAF / sanitizer / filter bypass | 23 |
+| Content-Type / body-format switch | 18 |
+| file upload / filename / extension | 14 |
+| parser confusion / normalization | 14 |
+| cache / CDN / unkeyed header | 13 |
+| public source-code / repo review | 13 |
+| admin / privileged-role context | 11 |
+
+### Parameters observed
+
+`result`, `test`, `domain`, `crlf`, `mycookie`, `max-age`, `session`, `curl`, `headers`, `_ga`, `_gat`, `chrome`, `test2`, `newsletter_signup_email`, `newsletter_signup_zipcode`
+
+### Case studies (real reports, paid and unpaid)
+
+- [1200647](https://hackerone.com/reports/1200647) Aiven Ltd — Grafana RCE via SMTP server parameter injection ($5000, critical)
+- [1878489](https://hackerone.com/reports/1878489) Internet Bug Bounty — CRLF Injection in Nodejs ‘undici’ via host ($600, medium)
+- [409512](https://hackerone.com/reports/409512) Internet Bug Bounty — mod_userdir CRLF injection (CVE-2016-4975) ($500, medium)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Locate reflection into header values rather than bodies; query, path and JSON fields can all reach headers.
@@ -256,6 +287,8 @@ Triage every hit by hand: a template match is a lead, not a finding. Update temp
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 3 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 2 upstream skills across h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (49 valid reports, 14 paid / 29%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| admin / privileged-role context | 8 |
+| file upload / filename / extension | 7 |
+| XML / SOAP / SAML / XXE | 5 |
+| two-account / cross-account replay | 4 |
+| webhook / OAuth / SAML / integration abuse | 4 |
+| cache / CDN / unkeyed header | 3 |
+| encoding / double-encode / null byte | 3 |
+| unauthenticated / removed-cookie test | 2 |
+| HTTP method / verb tampering | 2 |
+| fuzzing / wordlist brute force | 2 |
+
+### Parameters observed
+
+`str4`, `str5`, `localbundle`, `str1`, `str2`, `str3`, `localhttpmethod`, `exported`, `report_id`, `view`, `text_query`, `sort_type`, `sort_direction`, `limit`, `page`
+
+### Case studies (real reports, paid and unpaid)
+
+- [1189162](https://hackerone.com/reports/1189162) Nextcloud — End to end encryption public key is not properly verified on Desktop and Android ($1500, medium)
+- [519059](https://hackerone.com/reports/519059) X / xAI — Protected Tweets setting overridden by Android app ($560, low)
+- [1189168](https://hackerone.com/reports/1189168) Nextcloud — Android app does not clear end to end encryption keys ($100, low)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Acquire the app through authorized channels and document the version/hash.
@@ -257,6 +288,8 @@ Triage every hit by hand: a template match is a lead, not a finding. Update temp
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

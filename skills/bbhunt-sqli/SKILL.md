@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (331 valid reports, 84 paid / 25%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| second-order / stored / blind delivery | 68 |
+| encoding / double-encode / null byte | 61 |
+| header injection (Host / X-Forwarded / etc.) | 52 |
+| admin / privileged-role context | 51 |
+| WAF / sanitizer / filter bypass | 40 |
+| Content-Type / body-format switch | 37 |
+| XML / SOAP / SAML / XXE | 33 |
+| public source-code / repo review | 27 |
+| third-party data / paste / breach reuse | 20 |
+| HTTP method / verb tampering | 20 |
+
+### Parameters observed
+
+`phpsessid`, `pwd`, `level`, `risk`, `data`, `dbms`, `tamper`, `usr`, `action`, `rememail`, `url`, `v1st`, `app_id`, `submit`, `true`
+
+### Case studies (real reports, paid and unpaid)
+
+- [403616](https://hackerone.com/reports/403616) Eternal — [www.zomato.com] SQLi - /php/██████████ - item_id ($4500, critical)
+- [273946](https://hackerone.com/reports/273946) Grab — www.drivegrab.com SQL injection ($4500, high)
+- [2646493](https://hackerone.com/reports/2646493) Internet Bug Bounty — CVE-2024-42005: Potential SQL injection in QuerySet.values() and values_list() ($4263, high)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Build a parameter/type map first: numeric, quoted string, identifier (sort/column), JSON field, and header-derived values are injected differently.
@@ -443,6 +474,8 @@ Triage every hit by hand: a template match is a lead, not a finding. Update temp
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 4 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

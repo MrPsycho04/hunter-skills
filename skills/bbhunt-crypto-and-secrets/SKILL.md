@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 2 upstream skills across h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (562 valid reports, 83 paid / 15%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| public source-code / repo review | 154 |
+| internal service / port / container | 87 |
+| JWT / token / base64 decode | 55 |
+| subdomain / DNS / cert-transparency recon | 54 |
+| race / concurrency / timing | 51 |
+| admin / privileged-role context | 50 |
+| cache / CDN / unkeyed header | 50 |
+| file upload / filename / extension | 49 |
+| encoding / double-encode / null byte | 49 |
+| HTTP method / verb tampering | 44 |
+
+### Parameters observed
+
+`max-age`, `charset`, `domain`, `name`, `path`, `expires`, `samesite`, `duse_apple_sectrust`, `version`, `random`, `result`, `signature`, `name0`, `headers`, `mode`
+
+### Case studies (real reports, paid and unpaid)
+
+- [340431](https://hackerone.com/reports/340431) Uber — Reflected XSS and sensitive data exposure, including payment details, on lioncityrentals.com.sg ($4000, high)
+- [1888803](https://hackerone.com/reports/1888803) Internet Bug Bounty — Use of Cryptographically Weak Pseudo-Random Number Generator in WebCrypto keygen ($4000, high)
+- [113288](https://hackerone.com/reports/113288) Internet Bug Bounty — OpenSSL Key Recovery Attack on DH small subgroups (CVE-2016-0701) ($2500, severity n/a)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Inventory every signed/encrypted artifact and identify algorithm, key source, and verification path.
@@ -298,6 +329,8 @@ injection / SSRF if the key lookup hits a DB / shell /
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

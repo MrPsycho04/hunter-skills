@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (69 valid reports, 20 paid / 29%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| deserialization / gadget chain | 34 |
+| public source-code / repo review | 25 |
+| internal service / port / container | 14 |
+| file upload / filename / extension | 11 |
+| JWT / token / base64 decode | 8 |
+| cache / CDN / unkeyed header | 8 |
+| admin / privileged-role context | 8 |
+| Content-Type / body-format switch | 6 |
+| error message / stack trace probing | 6 |
+| third-party data / paste / breach reuse | 6 |
+
+### Parameters observed
+
+`concept`, `mitigation`, `dashboard`, `keyid`, `settings`, `location`, `enable_xcom_pickling`, `context`, `res`, `publickey`, `data`, `xuw8gddtvu51x3nmfnmmxiq`, `files`, `manager`, `value`
+
+### Case studies (real reports, paid and unpaid)
+
+- [1529790](https://hackerone.com/reports/1529790) Aiven Ltd — Kafka Connect RCE via connector SASL  JAAS JndiLoginModule configuration ($5000, critical)
+- [3031518](https://hackerone.com/reports/3031518) Internet Bug Bounty — CVE-2025-24813: Remote Code Execution and/or Information disclosure and/or malicious content added to uploaded files via write enabled Default Servlet ($4323, high)
+- [3861550](https://hackerone.com/reports/3861550) 8x8 — connect.8x8.com: Deserialization Vulnerability  in Automation Builder via Jint→Newtonsoft serializer coercion (TypeNameHandling) ($3000, critical)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Fingerprint the language/framework and identify the serialization format used for state.
@@ -312,6 +343,8 @@ Triage every hit by hand: a template match is a lead, not a finding. Update temp
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

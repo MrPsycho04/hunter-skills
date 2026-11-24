@@ -8,6 +8,30 @@ agent_created: true
 
 > **Unified skill.** Built from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (7 valid reports, 1 paid / 14%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| admin / privileged-role context | 1 |
+| internal service / port / container | 1 |
+| template injection (SSTI) | 1 |
+
+### Parameters observed
+
+
+
+### Case studies (real reports, paid and unpaid)
+
+- [301406](https://hackerone.com/reports/301406) Ubiquiti Inc. — Unrestricted File System Access via Twig Template Injection on dev-ucrm-billing-demo.ubnt.com (no bounty — still valid, high)
+- [1265344](https://hackerone.com/reports/1265344) Acronis — Self-DoS due to template injection via email field in password reset form on access.acronis.com (no bounty — still valid, none)
+- [301406](https://hackerone.com/reports/301406) Ubiquiti Inc. — Unrestricted File System Access via Twig Template Injection on dev-ucrm-billing-demo.ubnt.com (no bounty — still valid, high)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Detect with a harmless arithmetic expression in the exact context (name, email, subject, template preview).
@@ -322,6 +346,8 @@ Triage every hit by hand: a template match is a lead, not a finding. Update temp
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 3 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

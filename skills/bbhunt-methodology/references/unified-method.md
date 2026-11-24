@@ -2402,3 +2402,241 @@ Before pushing back with "I think we're done because X," do this:
 4. **Only after exhausting 3 new skills' checklists** do you push back, and only with a concrete list of what was tested.
 
 **Lesson from an authorized engagement:** After a first-pass of 5 weak findings the user said "I have 10+, find them." Loading `hunt-auth-bypass` (which had been loaded but not walked through end-to-end) immediately surfaced the `/_vti_bin/Authentication.asmx` legacy SOAP login — the highest-impact bug in the engagement. The user was right; pushback would have been wrong.
+
+## Companion methodology (merged, deduplicated)
+
+Full text of every non-SKILL.md methodology file from the contributing skills — payload banks, technique references, reconnaissance and attack-class guides.
+
+### Companion: hunting / references/payloads.md
+
+# Bug Bounty Master Workflow — Payload reference
+
+Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
+
+---
+
+## Wordlists
+
+- [SecLists](https://github.com/danielmiessler/SecLists) -- Comprehensive wordlists
+
+- [HowToHunt](https://github.com/KathanP19/HowToHunt) -- Step-by-step vuln hunting
+
+- [DefaultCreds](https://github.com/ihebski/DefaultCreds-cheat-sheet) -- Default credentials
+
+
+
+## Payload Databases
+
+- [XSSHunter](https://xsshunter.trufflesecurity.com/) -- Blind XSS detection
+
+- [interactsh](https://app.interactsh.com) -- OOB callback server
+
+
+
+---
+
+
+
+# INSTALLATION (Claude Code Skill)
+
+
+
+To use this as a Claude Code skill, copy this file to your skills directory:
+
+
+
+```bash
+
+# Option A: Clone the repo and link the skill
+
+git clone https://github.com/shuvonsec/claude-bug-bounty.git ~/.claude/skills/bug-bounty
+
+ln -s ~/.claude/skills/bug-bounty/SKILL.md ~/.claude/skills/bug-bounty/SKILL.md
+
+
+
+# Option B: Direct copy
+
+mkdir -p ~/.claude/skills/bug-bounty
+
+curl -s https://raw.githubusercontent.com/shuvonsec/claude-bug-bounty/main/SKILL.md \
+
+  -o ~/.claude/skills/bug-bounty/SKILL.md
+
+```
+
+
+
+Then in Claude Code, this skill loads automatically when you ask about bug bounty, recon, or vulnerability hunting.
+
+
+
+---
+
+### Companion: hunting / references/techniques.md
+
+# Bug Bounty Master Workflow — Technique reference
+
+Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete technique.
+
+---
+
+## FFUF Advanced Techniques
+
+```bash
+
+# THE ONE RULE: Always use -ac (auto-calibrate filters noise automatically)
+
+ffuf -w wordlist.txt -u https://target.com/FUZZ -ac
+
+
+
+# Authenticated raw request file — IDOR testing (save Burp request to req.txt, replace ID with FUZZ)
+
+seq 1 10000 | ffuf --request req.txt -w - -ac
+
+
+
+# Authenticated API endpoint brute
+
+ffuf -u https://TARGET/api/FUZZ -w wordlist.txt -H "Cookie: session=TOKEN" -ac
+
+
+
+# Parameter discovery
+
+ffuf -w ~/wordlists/burp-parameter-names.txt -u "https://target.com/api/endpoint?FUZZ=test" -ac -mc 200
+
+
+
+# Hidden POST parameters
+
+ffuf -w ~/wordlists/burp-parameter-names.txt -X POST -d "FUZZ=test" -u "https://target.com/api/endpoint" -ac
+
+
+
+# Subdomain scan
+
+ffuf -w subs.txt -u https://FUZZ.target.com -ac
+
+
+
+# Filter strategies:
+
+# -fc 404,403          Filter status codes
+
+# -fs 1234             Filter by response size
+
+# -fw 50               Filter by word count
+
+# -fr "not found"      Filter regex in response body
+
+# -rate 5 -t 10        Rate limit + fewer threads for stealth
+
+# -e .php,.bak,.old    Add extensions
+
+# -o results.json      Save output
+
+```
+
+
+
+## Quick Wins Checklist
+
+- [ ] Subdomain takeover (`subjack`, `subzy`)
+
+- [ ] Exposed `.git` (`/.git/config`)
+
+- [ ] Exposed env files (`/.env`, `/.env.local`)
+
+- [ ] Default credentials on admin panels
+
+- [ ] JS secrets (SecretFinder, jsluice)
+
+- [ ] Open redirects (`?redirect=`, `?next=`, `?url=`)
+
+- [ ] CORS misconfig (test `Origin: https://evil.com` + credentials)
+
+- [ ] S3/cloud buckets
+
+- [ ] GraphQL introspection enabled
+
+- [ ] Spring actuators (`/actuator/env`, `/actuator/heapdump`)
+
+- [ ] Firebase open read (`https://TARGET.firebaseio.com/.json`)
+
+
+
+## Framework Quick Wins
+
+
+
+**Laravel**: `/horizon`, `/telescope`, `/.env`, `/storage/logs/laravel.log`
+
+**WordPress**: `/wp-json/wp/v2/users`, `/xmlrpc.php`, `/?author=1`
+
+**Node.js**: `/.env`, `/graphql` (introspection), `/_debug`
+
+**AWS Cognito**: `/oauth2/userInfo` (leaks Pool ID), CORS reflects arbitrary origins
+
+### Companion: hunting / references/payloads.md
+
+# HackerOne hunting corpus — Payload reference
+
+Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
+
+---
+
+## Wordlists & payloads
+
+
+
+Mined paths and parameters plus curated payload banks live in `~/.local/share/hackerone-reports/wordlists/`.
+
+
+
+```sh
+
+W=~/.local/share/hackerone-reports/wordlists
+
+ls $W | head                      # paths/params/payloads per class
+
+ffuf -u https://target/FUZZ -w $W/paths.txt -mc all -fc 404 -fs 0 -rate 40
+
+ffuf -u 'https://target/api?FUZZ=canary' -w $W/params.txt \
+
+     -mr 'canary|error|invalid' -rate 40
+
+```
+
+
+
+Every class skill embeds its own payload bank (XSS/SQLi/SSRF: 80+ each, with WAF-bypass subsets) and links to the matching wordlist files.
+
+
+
+## Nuclei quickstart
+
+
+
+```sh
+
+# Broad known-CVE and exposure sweep first
+
+nuclei -u https://target -tags cve -severity high,critical -rl 40 -o cve.txt
+
+nuclei -u https://target -tags exposure,config,debug,files,keys,tokens \
+
+       -severity info,low,medium,high,critical -rl 40 -o exposure.txt
+
+# Then class-specific fuzzing (see each skill's Nuclei section)
+
+nuclei -u https://target -tags xss -rl 40 -o xss.txt
+
+nuclei -u https://target -t ~/nuclei-templates/dast/vulnerabilities/xss -dast
+
+```
+
+
+
+Template tags and paths are verified against the official `projectdiscovery/nuclei-templates` repository.

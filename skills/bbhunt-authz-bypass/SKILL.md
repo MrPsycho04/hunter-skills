@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 2 upstream skills across h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (1386 valid reports, 337 paid / 24%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| admin / privileged-role context | 514 |
+| public source-code / repo review | 230 |
+| Content-Type / body-format switch | 165 |
+| encoding / double-encode / null byte | 152 |
+| subdomain / DNS / cert-transparency recon | 152 |
+| header injection (Host / X-Forwarded / etc.) | 147 |
+| file upload / filename / extension | 140 |
+| two-account / cross-account replay | 137 |
+| HTTP method / verb tampering | 125 |
+| internal service / port / container | 110 |
+
+### Parameters observed
+
+`charset`, `name`, `action`, `token`, `value`, `type`, `_ga`, `xsrft`, `path`, `message`, `authenticity_token`, `vuid`, `email`, `src`, `_gid`
+
+### Case studies (real reports, paid and unpaid)
+
+- [2293343](https://hackerone.com/reports/2293343) GitLab — Account Takeover via Password Reset without user interactions ($35000, critical)
+- [1685822](https://hackerone.com/reports/1685822) GitLab — RepositoryPipeline allows importing of local git repos ($22300, medium)
+- [391217](https://hackerone.com/reports/391217) Valve — Getting all the CD keys of any game ($20000, critical)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Build a role/permission matrix: anonymous, user, admin, service; map which functions each should reach.
@@ -253,6 +284,8 @@ Triage every hit by hand: a template match is a lead, not a finding. Update temp
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

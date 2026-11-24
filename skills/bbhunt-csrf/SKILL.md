@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (541 valid reports, 93 paid / 17%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| encoding / double-encode / null byte | 83 |
+| Content-Type / body-format switch | 78 |
+| header injection (Host / X-Forwarded / etc.) | 73 |
+| intercept & replay request in Burp | 56 |
+| two-account / cross-account replay | 52 |
+| XML / SOAP / SAML / XXE | 50 |
+| HTTP method / verb tampering | 49 |
+| DOM / HTML source inspection | 46 |
+| admin / privileged-role context | 44 |
+| file upload / filename / extension | 41 |
+
+### Parameters observed
+
+`type`, `name`, `value`, `action`, `class`, `method`, `domain`, `src`, `charset`, `max-age`, `utmcsr`, `utmccn`, `utmcmd`, `__utmz`, `path`
+
+### Case studies (real reports, paid and unpaid)
+
+- [1497169](https://hackerone.com/reports/1497169) GitHub — CSRF protection bypass in GitHub Enterprise management console ($10000, high)
+- [2326194](https://hackerone.com/reports/2326194) Internet Bug Bounty — Argo CD CSRF leads to Kubernetes cluster compromise ($4660, high)
+- [450796](https://hackerone.com/reports/450796) PayPal — XSSI on refer.xoom.com allows stealing email addresses and posting to Twitter on behalf of victim ($3500, medium)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Inventory state-changing endpoints: create, update, delete, invite, email/role change, and unsubscribe.
@@ -415,6 +446,8 @@ grep -r "RelayState" --include="*.js" .
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

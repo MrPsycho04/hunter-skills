@@ -21,14 +21,15 @@ Each skill directory contains:
 
 | File | Contents |
 |---|---|
-| `SKILL.md` | The deduplicated union of all upstream methodologies for that topic, plus the corpus-backed method (for the 34 vulnerability classes) |
-| `references/unified-method.md` | Complete extracted sections from every contributing repo skill, deduplicated by content hash |
+| `SKILL.md` | Corpus evidence snapshot (technique ranking, parameters, case studies), corpus-backed method, and the deduplicated union of every contributing skill's methodology |
+| `references/unified-method.md` | Complete extracted sections from every contributing SKILL.md **and** every companion methodology document (payload banks, technique guides, Cloudflare attack-class docs), deduplicated by content hash |
 | `references/upstream-*.md` | Full, unmodified original SKILL.md from each contributing repo, with source path and attribution |
-| `references/evidence.md` | Corpus technique frequencies, parameters, bypasses, case studies and payload bank (class topics only) |
+| `references/evidence.md` | Corpus technique frequencies, bypasses, impact language, parameters, approach patterns, full case studies and curated payload bank (class topics) |
 | `references/upstream-assets/` | Companion files from each contributing skill: payload/technique references, scripts and fixtures |
+| `references/corpus-wordlists/` | The corpus's mined `paths_*`, `params_*` and `payloads_*` lists for that class |
 | `upstream/` (repo root) | Complete unmodified file trees of all five source repositories — 640 files including docs, validators, schemas, wordlists and research scripts |
 
-Nothing from the source repos was discarded — the merge is additive and traceable. The `SKILL.md` files are deliberately short entry points (about 21k lines total); the substance lives in the union (about 52k lines), the preserved originals (about 80k lines) and the full upstream archive.
+Nothing from the source repos or the corpus was discarded — the merge is additive and traceable. The `SKILL.md` files are entry points (about 22k lines total); the substance lives in the union (about 81k lines), the preserved originals (about 80k lines), the corpus evidence (about 10k lines), the companion assets and wordlists, and the full upstream archive.
 
 ## Sources merged
 

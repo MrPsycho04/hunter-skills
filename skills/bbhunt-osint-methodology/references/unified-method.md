@@ -1648,3 +1648,242 @@ Send an email to a non-existent address at the target. The bounce often reveals 
 When unsure, document the hypothesis in the asset attrs — don't claim origin discovery without ≥2 corroborating signals.
 
 ---
+
+## Companion methodology (merged, deduplicated)
+
+Full text of every non-SKILL.md methodology file from the contributing skills — payload banks, technique references, reconnaissance and attack-class guides.
+
+### Companion: hunting / README.md
+
+# `osint-methodology` skill
+
+The "how to think" reference for external red-team OSINT and bug-bounty reconnaissance.
+
+| Field | Value |
+|---|---|
+| Name | `osint-methodology` |
+| Version | 2.1 |
+| Lines | ~1,700 |
+| Top-level sections | 33 |
+| Subsections | ~125 |
+| Companion skill | [`offensive-osint`](../offensive-osint/) |
+
+## When this skill triggers
+
+Auto-triggers on prompts containing any of ~55 trigger phrases. Common ones:
+
+- `external recon`, `external red team`, `bug bounty recon`, `attack surface management`, `ASM`, `perimeter recon`
+- `OSINT methodology`, `recon methodology`, `target reconnaissance`, `asset discovery`, `attack path`
+- `identity fabric`, `SSO discovery`, `IdP fingerprinting`, `M365 enumeration`
+- `phishing infrastructure`, `pretext development`, `bug bounty submission`, `responsible disclosure`
+- `client report`, `exec summary`, `risk translation`
+- `confidence upgrade`, `time budget`, `engagement profile`, `asset triage`
+- `detection-aware probing`, `back-off strategy`, `persona rotation`
+- `WAF bypass`, `CDN bypass`, `origin discovery`
+- `vulnerability prioritization`, `CVE prioritization`, `EPSS`, `CISA KEV`
+- `threat actor investigation`, `attribution`
+
+Full trigger list in the SKILL.md frontmatter.
+
+## What's in it
+
+See the parent [README's "What's in the box" table](../../README.md#whats-in-the-box) for the full §-by-§ breakdown.
+
+Highlights:
+
+- **§7 — 5-stage recon pipeline** + priority order + time budgeting (1h / 4h / 1d / 1w profiles)
+- **§8 — Asset graph discipline** with 29 typed asset types + 23 typed edges + per-asset-type triage
+- **§9 — Findings rubric** anchored on examples (CRITICAL → INFO + escalation rules)
+- **§11 — Identity fabric mapping** (Entra, Okta, ADFS, Google, SAML, AWS, M365 deep)
+- **§22 — Breach × identity correlation** (HudsonRock + HIBP + DeHashed + IntelX → SSO_EXPOSURE finding)
+- **§27 — WAF/CDN bypass + origin discovery** (8 techniques)
+- **§28 — Vulnerability prioritization** (CVE × EPSS × KEV × Metasploit rubric)
+- **§29 — Phishing infrastructure & pretext development**
+- **§30 — Bug bounty submission templates** (HackerOne, Bugcrowd, Intigriti, etc.)
+- **§31 — Client deliverable templates** (exec summary + risk translation matrix + reporting cadence)
+
+## Loading
+
+```bash
+# Local Claude Code install
+cp SKILL.md ~/.claude/skills/osint-methodology/SKILL.md
+
+# Or attach to a Claude.ai project / Claude API system prompt
+# (paste contents of SKILL.md as project knowledge)
+```
+
+The full content lives in this `SKILL.md` (or in `docs/full-skills/osint-methodology.SKILL.full.md` if this file is the structured-outline variant — see repo root for sync instructions).
+
+## Self-test
+
+Run the prompts in [`../../tests/smoke-test-prompts.md`](../../tests/smoke-test-prompts.md) to verify skill behavior after install. Methodology-targeted prompts are tagged in the test file.
+
+## License
+
+MIT — see [LICENSE](../../LICENSE).
+
+### Companion: hunting / references/techniques.md
+
+# OSINT Methodology — External Red-Team Edition — Technique reference
+
+Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete technique.
+
+---
+
+## 27. WAF / CDN Bypass & Origin Discovery
+
+
+
+Web targets are increasingly behind Cloudflare / Akamai / Fastly / AWS CloudFront. The CDN itself is hard to attack; the **origin server** is often softly defended. Six techniques to find it.
+
+
+
+### 27.1 DNS history pivot
+
+
+
+The target's domain may have pointed directly at the origin IP **before** the CDN was deployed. Query historical passive DNS:
+
+
+
+- **SecurityTrails** — `https://api.securitytrails.com/v1/history/<domain>/dns/a` (paid; the most complete).
+
+- **RiskIQ PassiveTotal** — passive DNS lookups; freemium.
+
+- **DNSDB** (Farsight) — paid; long history.
+
+- **Validin.com** — newer, has free tier.
+
+- **Censys host search** — historical IP-cert mapping.
+
+
+
+What to look for: an IP that resolved 1–5 years ago and is **not** in the current CDN's published IP ranges (Cloudflare / Akamai / etc.). Cross-check the IP's current banner — if it serves the same site without the CDN, you've got the origin.
+
+
+
+### 27.2 Certificate SAN pivot
+
+
+
+Certificates often get re-issued with the same SAN list across origin and CDN. Search CT logs:
+
+
+
+- crt.sh `?q=%.<target.com>&exclude=expired` — find certs with the target's domain in SAN.
+
+- Cross-reference issued certs against current CDN-fronted cert. The "extra" cert (not the CDN one) often points to origin via its CN/SAN.
+
+- Tools like `cero` (`go install github.com/glebarez/cero@latest`) crawl IPs and pull certs; correlate IPs whose certs include the target's hostname.
+
+
+
+### 27.3 Favicon hash + JARM origin clustering
+
+
+
+If the target has a unique favicon, the origin server still serves it (CDNs proxy but don't strip the favicon). Compute the favicon's mmh3 hash and search:
+
+
+
+- Shodan: `http.favicon.hash:<mmh3-hash>`.
+
+- Censys: `services.http.response.favicons.hashes:<mmh3-hash>`.
+
+
+
+Returned IPs that are **not** in CDN ranges are origin candidates.
+
+
+
+JARM (TLS handshake hash) works similarly: compute the target's JARM via `jarm`, search Shodan `ssl.jarm:<jarm-hash>`. Origin servers usually have a different JARM than CDNs.
+
+
+
+### 27.4 Direct IP probe with Host header
+
+
+
+If you have an origin candidate IP from steps 27.1–27.3:
+
+
+
+```bash
+
+curl -sk -H "Host: target.example.com" https://<candidate-IP>/
+
+```
+
+
+
+If the response matches the public site (same title, same body fingerprint) — you've found the origin. CDN-only IPs return generic CDN error pages or 403 to wrong Host.
+
+
+
+### 27.5 mail.* / ftp.* / cpanel.* exception
+
+
+
+Targets often forget to put auxiliary subdomains behind the CDN:
+
+
+
+- `mail.<target>` — often points at the actual mail server, sometimes co-located with web origin.
+
+- `ftp.<target>`, `sftp.<target>` — likewise.
+
+- `cpanel.<target>`, `whm.<target>`, `webmail.<target>` — shared hosting controls; same IP as web origin.
+
+- `direct.<target>`, `origin.<target>`, `direct-connect.<target>`, `noproxy.<target>` — ironic admin labels.
+
+- `dev.<target>`, `staging.<target>` — dev environments often skip CDN.
+
+
+
+Probe each. If any resolves to a non-CDN IP, that IP often hosts the prod origin too.
+
+
+
+### 27.6 Error page / misconfig leakage
+
+
+
+When the CDN throws an error (request triggers WAF, origin is down, configuration mismatch), it sometimes leaks the origin IP in the error body:
+
+
+
+- Cloudflare 5xx error pages historically included a `cf-ray` and sometimes the underlying upstream details.
+
+- 502/504 from CDN tells you the origin exists but is unreachable from the CDN — useful confirmation it's not just NXDOMAIN.
+
+- `X-Cache: MISS from <origin-host>` headers.
+
+- HTTP response with origin headers leaking through (`X-Powered-By`, `Server`, `X-Backend-Server`).
+
+
+
+### 27.7 Email-header bounce trick (for email-server origin)
+
+
+
+Send an email to a non-existent address at the target. The bounce often reveals origin mail server IPs in the `Received:` headers — these mail servers are sometimes on the same IP / netblock as the web origin. (Use a sock-puppet email; never your real engagement persona.)
+
+
+
+### 27.8 Confidence rules
+
+
+
+- Origin IP found via DNS history: **TENTATIVE** until corroborated by direct probe.
+
+- Origin IP corroborated by Host-header probe matching content: **FIRM**.
+
+- Origin IP corroborated by Host-header probe + cert SAN match + favicon match: **CONFIRMED**.
+
+
+
+When unsure, document the hypothesis in the asset attrs — don't claim origin discovery without ≥2 corroborating signals.
+
+
+
+---

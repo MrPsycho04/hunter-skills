@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (30 valid reports, 9 paid / 30%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| cache / CDN / unkeyed header | 21 |
+| header injection (Host / X-Forwarded / etc.) | 13 |
+| encoding / double-encode / null byte | 11 |
+| JS bundle / source-map inspection | 6 |
+| XML / SOAP / SAML / XXE | 6 |
+| intercept & replay request in Burp | 4 |
+| subdomain / DNS / cert-transparency recon | 4 |
+| Content-Type / body-format switch | 4 |
+| two-account / cross-account replay | 4 |
+| second-order / stored / blind delivery | 3 |
+
+### Parameters observed
+
+`token`, `xyzxyz`, `yeettest`, `postrequesttriggeredfirewall.png`, `cachebuster`, `dontpoisoneveryone`
+
+### Case studies (real reports, paid and unpaid)
+
+- [1695604](https://hackerone.com/reports/1695604) Shopify — DoS Vulnerability via Cache Poisoning on cdn.shopify.com and shopify-assets.shopifycdn.com ($3800, medium)
+- [977851](https://hackerone.com/reports/977851) Shopify — Cache poisoning via X-Forwarded-Host in www.shopify.com/partners/blog ($1000, low)
+- [1271944](https://hackerone.com/reports/1271944) Shopify — Shopify.com Web Cache Deception vulnerability leads to personal information and CSRF tokens leakage ($800, low)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Fingerprint the cache: identify cache headers, key components, and which headers/params are ignored by the key.
@@ -407,6 +438,8 @@ Triage every hit by hand: a template match is a lead, not a finding. Update temp
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

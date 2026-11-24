@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (159 valid reports, 29 paid / 18%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| fuzzing / wordlist brute force | 51 |
+| intercept & replay request in Burp | 31 |
+| admin / privileged-role context | 21 |
+| encoding / double-encode / null byte | 19 |
+| Content-Type / body-format switch | 18 |
+| public source-code / repo review | 15 |
+| header injection (Host / X-Forwarded / etc.) | 14 |
+| two-account / cross-account replay | 9 |
+| cache / CDN / unkeyed header | 9 |
+| HTTP method / verb tampering | 8 |
+
+### Parameters observed
+
+`username`, `password`, `template`, `name`, `class`, `invite_code`, `token`, `response`, `max-age`, `age`, `version`, `attempts`, `minutes`, `hours`, `utf8`
+
+### Case studies (real reports, paid and unpaid)
+
+- [125505](https://hackerone.com/reports/125505) Uber — Possibility to brute force invite codes in riders.uber.com ($5000, severity n/a)
+- [1363672](https://hackerone.com/reports/1363672) Shopify — Bypass a fix for report #708013 ($3500, medium)
+- [125707](https://hackerone.com/reports/125707) Uber — Possibility to enumerate and bruteforce promotion codes in Uber iOS App ($3000, medium)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Map the factor lifecycle: enrol, challenge, verify, disable, reset, remembered device.
@@ -313,6 +344,8 @@ Triage every hit by hand: a template match is a lead, not a finding. Update temp
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

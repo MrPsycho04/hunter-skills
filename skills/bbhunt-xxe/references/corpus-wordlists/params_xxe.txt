@@ -1,0 +1,15 @@
+debug
+status
+type
+top-text
+bottom-text
+id
+_hxpage
+max_file_size_kb
+allow_file_type_list
+EventAction
+EventDate
+url
+RelayState
+method
+dl

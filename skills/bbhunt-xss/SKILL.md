@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (2569 valid reports, 546 paid / 21%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| DOM / HTML source inspection | 743 |
+| second-order / stored / blind delivery | 413 |
+| encoding / double-encode / null byte | 332 |
+| WAF / sanitizer / filter bypass | 332 |
+| admin / privileged-role context | 267 |
+| public source-code / repo review | 208 |
+| file upload / filename / extension | 207 |
+| HTTP method / verb tampering | 183 |
+| two-account / cross-account replay | 158 |
+| Content-Type / body-format switch | 135 |
+
+### Parameters observed
+
+`src`, `onerror`, `name`, `type`, `value`, `onload`, `href`, `class`, `onmouseover`, `action`, `x15`, `method`, `style`, `url`, `mode`
+
+### Case studies (real reports, paid and unpaid)
+
+- [1212067](https://hackerone.com/reports/1212067) GitLab — Stored XSS in markdown via the DesignReferenceFilter ($16000, critical)
+- [1731349](https://hackerone.com/reports/1731349) GitLab — Stored XSS via Kroki diagram ($13950, high)
+- [1578400](https://hackerone.com/reports/1578400) GitLab — New /add_contacts /remove_contacts quick commands susseptible to XSS from Customer Contact firstname/lastname fields ($13950, high)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Map the context before choosing a payload: HTML body, quoted/unquoted attribute, JS string, URL attribute, CSS url(), or template expression. Same input needs a different breakout in each.
@@ -476,6 +507,8 @@ Triage every hit by hand: a template match is a lead, not a finding. Update temp
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 6 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 4 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

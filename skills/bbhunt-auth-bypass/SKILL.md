@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (989 valid reports, 197 paid / 20%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| admin / privileged-role context | 162 |
+| encoding / double-encode / null byte | 107 |
+| Content-Type / body-format switch | 98 |
+| header injection (Host / X-Forwarded / etc.) | 86 |
+| two-account / cross-account replay | 84 |
+| webhook / OAuth / SAML / integration abuse | 78 |
+| cache / CDN / unkeyed header | 75 |
+| HTTP method / verb tampering | 73 |
+| public source-code / repo review | 72 |
+|  HosT/absolute-URL reset poisoning | 67 |
+
+### Parameters observed
+
+`name`, `charset`, `class`, `path`, `type`, `_ga`, `max-age`, `email`, `__utma`, `__utmz`, `utmcsr`, `utmccn`, `utmcmd`, `href`, `__utmb`
+
+### Case studies (real reports, paid and unpaid)
+
+- [739737](https://hackerone.com/reports/739737) PayPal — Token leak in security challenge flow allows retrieving victim's PayPal email and plain text password ($15300, high)
+- [2443228](https://hackerone.com/reports/2443228) TikTok — Account Takeover via Authentication Bypass in TikTok Account Recovery ($12000, critical)
+- [976603](https://hackerone.com/reports/976603) Superhuman (formerly Grammarly) — Ability to DOS any organization's SSO and open up the door to account takeovers ($10500, high)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Trace the whole authentication lifecycle: login, token issuance, refresh, reset, email change, logout, and session invalidation.
@@ -421,6 +452,8 @@ Triage every hit by hand: a template match is a lead, not a finding. Update temp
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

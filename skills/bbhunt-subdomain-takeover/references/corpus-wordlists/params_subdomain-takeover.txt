@@ -1,0 +1,10 @@
+_method
+authenticity_token
+domainToCheck
+conversationId
+pageSize
+domain
+state
+dl
+button
+id

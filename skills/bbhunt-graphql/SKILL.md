@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (13 valid reports, 2 paid / 15%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| API docs / Swagger / introspection | 4 |
+| public source-code / repo review | 3 |
+| admin / privileged-role context | 3 |
+| race / concurrency / timing | 3 |
+| unauthenticated / removed-cookie test | 2 |
+| HTTP method / verb tampering | 2 |
+| mass assignment / extra request fields | 1 |
+| internal service / port / container | 1 |
+| third-party data / paste / breach reuse | 1 |
+| employee / developer public info | 1 |
+
+### Parameters observed
+
+`z2lkoi8vagfja2vyb25ll1rlyw0vmtm`
+
+### Case studies (real reports, paid and unpaid)
+
+- [1618347](https://hackerone.com/reports/1618347) HackerOne — Disclosing  PolicyPageAssetGroup in Private Programs via /graphql `gid://hackerone/PolicyPageAssetGroupsIndex::PolicyPageAssetGroup/{id}` ($25000, critical)
+- [707406](https://hackerone.com/reports/707406) HackerOne — Team object in GraphQL disclosed of private programs via the industry ($500, low)
+- [3287208](https://hackerone.com/reports/3287208) HackerOne — DOS via Mutation Aliasing in GraphQL Account Recovery Phone Number Verification API (no bounty — still valid, severity n/a)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Enumerate the schema (introspection, persisted queries, error-based reconstruction) and record queries, mutations and input types.
@@ -398,6 +429,8 @@ Triage every hit by hand: a template match is a lead, not a finding. Update temp
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

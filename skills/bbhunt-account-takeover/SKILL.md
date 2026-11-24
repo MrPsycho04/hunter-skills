@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (64 valid reports, 10 paid / 16%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| subdomain / DNS / cert-transparency recon | 9 |
+| admin / privileged-role context | 9 |
+|  HosT/absolute-URL reset poisoning | 7 |
+| employee / developer public info | 7 |
+| Content-Type / body-format switch | 6 |
+| encoding / double-encode / null byte | 6 |
+| webhook / OAuth / SAML / integration abuse | 5 |
+| file upload / filename / extension | 5 |
+| XML / SOAP / SAML / XXE | 5 |
+| header injection (Host / X-Forwarded / etc.) | 4 |
+
+### Parameters observed
+
+`password`, `month`, `year`, `username`, `challenge`, `challenge_answer`, `url`, `page.`, `risk.`, `approved`, `address`, `takeover`, `scope`
+
+### Case studies (real reports, paid and unpaid)
+
+- [862589](https://hackerone.com/reports/862589) LY Corporation — Spring Actuator endpoints publicly available, leading to account takeover ($5000, critical)
+- [2798380](https://hackerone.com/reports/2798380) HackerOne — Hackerone supports accounts organitation takeover ($2500, medium)
+- [1266828](https://hackerone.com/reports/1266828) Shopify — Staff who only have apps and channels permission can do a takeover account at the wholesale store (Bypass get invitation link) ($1600, medium)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Do not hunt 'ATO' directly — first identify the concrete primitive (reset, OAuth, session, XSS, CSRF, IDOR).
@@ -274,6 +305,8 @@ Triage every hit by hand: a template match is a lead, not a finding. Update temp
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

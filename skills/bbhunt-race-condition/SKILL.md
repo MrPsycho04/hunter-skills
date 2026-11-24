@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (65 valid reports, 14 paid / 22%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| race / concurrency / timing | 43 |
+| intercept & replay request in Burp | 17 |
+| encoding / double-encode / null byte | 14 |
+| public source-code / repo review | 14 |
+| cache / CDN / unkeyed header | 12 |
+| internal service / port / container | 11 |
+| Content-Type / body-format switch | 10 |
+| header injection (Host / X-Forwarded / etc.) | 10 |
+| two-account / cross-account replay | 7 |
+| admin / privileged-role context | 7 |
+
+### Parameters observed
+
+`charset`, `max-age`, `curl_stub_gss_creds`, `refcount`, `defid`, `direction`, `key`, `good`, `stream`, `ref_count`, `cookies`, `dcurl_use_openssl`
+
+### Case studies (real reports, paid and unpaid)
+
+- [300305](https://hackerone.com/reports/300305) Shopify — Ability to bypass partner email confirmation to take over any store given an employee email ($15250, critical)
+- [1438052](https://hackerone.com/reports/1438052) Cosmos — Race condition in faucet when using starport ($5000, critical)
+- [1520931](https://hackerone.com/reports/1520931) Internet Bug Bounty — Time-of-check to time-of-use vulnerability in the std::fs::remove_dir_all() function of the Rust standard library ($4000, high)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Identify check-then-act pairs: read a balance/limit, decide, then write. The gap is the race window.
@@ -415,6 +446,8 @@ grep -rn "\.get(\|\.filter(" --include="*.py" | grep -v "select_for_update"
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

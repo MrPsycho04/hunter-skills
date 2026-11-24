@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (153 valid reports, 11 paid / 7%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| HTTP method / verb tampering | 14 |
+| DOM / HTML source inspection | 13 |
+| XML / SOAP / SAML / XXE | 12 |
+| public source-code / repo review | 9 |
+| webhook / OAuth / SAML / integration abuse | 6 |
+| two-account / cross-account replay | 6 |
+| admin / privileged-role context | 5 |
+| file upload / filename / extension | 5 |
+| encoding / double-encode / null byte | 4 |
+| subdomain / DNS / cert-transparency recon | 3 |
+
+### Parameters observed
+
+`src`, `width`, `height`, `style`, `lang`, `charset`, `window.onbeforeunload`, `sandbox`, `frameborder`, `scrolling`, `href`, `rel`, `target`, `window.top.location`, `opacity`
+
+### Case studies (real reports, paid and unpaid)
+
+- [662287](https://hackerone.com/reports/662287) GitLab — Cross-site Scripting (XSS) - Stored in RDoc wiki pages ($3500, high)
+- [591432](https://hackerone.com/reports/591432) X / xAI — Twitter Periscope Clickjacking Vulnerability ($1120, medium)
+- [198622](https://hackerone.com/reports/198622) X / xAI — Clickjacking Periscope.tv on Chrome ($560, medium)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Identify sensitive state-changing pages and verify framing is actually allowed in a current browser.
@@ -252,6 +283,8 @@ Triage every hit by hand: a template match is a lead, not a finding. Update temp
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

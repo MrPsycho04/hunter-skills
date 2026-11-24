@@ -1,0 +1,12 @@
+name
+load
+email
+content
+subject
+message
+revision
+formkey
+postkey
+window_id
+referring_controller
+referring_action

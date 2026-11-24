@@ -1,0 +1,12 @@
+url
+name
+Search
+client_id
+scope
+redirect_uri
+state
+custom
+template
+signature
+content_type
+content

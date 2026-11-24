@@ -1,0 +1,3 @@
+/blog/ascii-smuggler.html
+/tools/view-chars.php
+/secret.txt

@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (931 valid reports, 134 paid / 14%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| encoding / double-encode / null byte | 132 |
+| public source-code / repo review | 96 |
+| Content-Type / body-format switch | 95 |
+| header injection (Host / X-Forwarded / etc.) | 91 |
+| intercept & replay request in Burp | 83 |
+| admin / privileged-role context | 83 |
+| subdomain / DNS / cert-transparency recon | 77 |
+| HTTP method / verb tampering | 74 |
+| file upload / filename / extension | 73 |
+| cache / CDN / unkeyed header | 73 |
+
+### Parameters observed
+
+`max-age`, `name`, `charset`, `path`, `class`, `expires`, `mode`, `src`, `email`, `type`, `lang`, `domain`, `amount`, `curlopt_ssl_verifypeer`, `verifypeer`
+
+### Case studies (real reports, paid and unpaid)
+
+- [894569](https://hackerone.com/reports/894569) GitLab — An attacker can run pipeline jobs as arbitrary user ($12000, critical)
+- [1295844](https://hackerone.com/reports/1295844) Valve — Modify in-flight data to payment provider Smart2Pay ($7500, critical)
+- [1849626](https://hackerone.com/reports/1849626) Stripe — Fee discounts can be redeemed many times, resulting in unlimited fee-free transactions ($5000, medium)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Model the state machine on paper: states, transitions, who may trigger each, and what is trusted between steps.
@@ -363,6 +394,8 @@ Triage every hit by hand: a template match is a lead, not a finding. Update temp
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

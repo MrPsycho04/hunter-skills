@@ -106,6 +106,8 @@ spec = importlib.util.spec_from_file_location("cm", os.path.join(HERE, "class_me
 cm = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(cm)
 CLASS_META = cm.CLASSES
+with open(os.path.join(HERE, "class_digest.json")) as f:
+    DIGEST = json.load(f)
 
 PHASE = {
     "methodology": ("Bug-bounty methodology orchestrator",
@@ -369,6 +371,9 @@ def build_skill(slug, sources):
                     "---\n\n" + s["text"])
     companions = link_companion_assets(slug, sources)
 
+    companion_blocks = companion_method_blocks(slug, sources)
+    wordlists = link_corpus_wordlists(slug, sources)
+
     unified = ["# Unified upstream methodology\n",
                "Collected from every contributing repository skill. Deduplicated by content hash; "
                "full originals are preserved in `references/upstream-*.md`.\n"]
@@ -383,6 +388,11 @@ def build_skill(slug, sources):
         blocks = dedup_blocks(buckets[key])
         if blocks:
             unified += [f"## {labels[key]}\n", "\n\n".join(blocks), ""]
+    if companion_blocks:
+        unified += ["## Companion methodology (merged, deduplicated)\n",
+                    "Full text of every non-SKILL.md methodology file from the contributing skills "
+                    "— payload banks, technique references, reconnaissance and attack-class guides.\n",
+                    "\n\n".join(companion_blocks), ""]
     with open(os.path.join(d, "references", "unified-method.md"), "w") as f:
         f.write("\n".join(unified))
 
@@ -401,7 +411,26 @@ def build_skill(slug, sources):
     ]
     if is_class:
         n = CLASS_META[slug]
+        cd = DIGEST[slug]
+        paid_pct = round(100.0 * cd["paid_reports"] / max(1, cd["valid_reports"]))
         parts += [
+            f"## Corpus evidence ({cd['valid_reports']} valid reports, "
+            f"{cd['paid_reports']} paid / {paid_pct}%)\n\n",
+            "Payment is not validity — zero-bounty disclosures are mined as evidence too.\n\n",
+            "### Techniques ranked across ALL valid writeups\n\n",
+            "| Technique | Reports |\n|---|---:|\n",
+            "".join(f"| {k} | {v} |\n" for k, v in cd["techniques"][:10]),
+            "\n### Parameters observed\n\n",
+            ", ".join(f"`{p}`" for p, _ in cd["parameters"][:15]) + "\n\n",
+            "### Case studies (real reports, paid and unpaid)\n\n",
+            "".join(
+                f"- [{c['id']}](https://{c['url']}) {c['program']} — {c['title']} "
+                f"({'no bounty — still valid' if not c['bounty'] else '$%d' % float(c['bounty'])}, "
+                f"{c['severity'] or 'severity n/a'})\n"
+                for c in cd["case_studies"][:3]
+            ) + "\n",
+            "Full payload bank, bypass frequencies, approach patterns and case-study excerpts: "
+            "`references/evidence.md`.\n\n",
             "## Corpus-backed method (this class)\n\n",
             "\n".join(f"{i+1}. {s}" for i, s in enumerate(n["steps"])) + "\n\n",
             "### Signals\n\n" + "\n".join(f"- {s}" for s in n["signals"]) + "\n\n",
@@ -434,6 +463,12 @@ def build_skill(slug, sources):
             f"- `references/upstream-assets/` — {companions} companion files (payload/technique "
             "references, scripts, validators and schemas) from the contributing skills\n"
         )
+    if companion_blocks:
+        parts.append(f"- `references/unified-method.md` — includes {len(companion_blocks)} merged "
+                     "companion methodology documents\n")
+    if wordlists:
+        parts.append(f"- `references/corpus-wordlists/` — {wordlists} mined paths/params/payload lists "
+                     "from the HackerOne corpus\n")
     parts.append("- `../../upstream/` — complete unmodified archives of all five source repositories\n")
     if is_class:
         parts.append("- `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank\n")
@@ -536,6 +571,47 @@ def link_companion_assets(slug, sources):
                     shutil.copy2(path, os.path.join(target_dir, os.path.basename(path)))
                     count += 1
     return count
+
+
+def companion_method_blocks(slug, sources):
+    """Extract text from every companion methodology file into deduplicated blocks."""
+    blocks = []
+    seen = set()
+    for s in sources:
+        skill_dir = os.path.dirname(s["path"])
+        candidates = glob.glob(skill_dir + "/**/*.md", recursive=True)
+        if s["src"] == "cloudflare":
+            candidates += glob.glob(os.path.dirname(s["path"]) + "/*.md")
+        for path in sorted(set(candidates)):
+            if os.path.basename(path) in ("SKILL.md", "skill.md"):
+                continue
+            text = open(path, errors="ignore").read().strip()
+            if len(text) < 60:
+                continue
+            key = hashlib.sha1(text.encode()).hexdigest()
+            if key in seen:
+                continue
+            seen.add(key)
+            rel = os.path.relpath(path, skill_dir)
+            blocks.append(f"### Companion: {s['src']} / {rel}\n\n{text}")
+    return blocks
+
+
+def link_corpus_wordlists(slug, sources):
+    """Copy the corpus's mined paths/params/payload lists for this class into the skill."""
+    corpus_wl = os.path.expanduser("~/.local/share/hackerone-reports/wordlists")
+    if not os.path.isdir(corpus_wl):
+        return 0
+    dest = os.path.join(SKILLS, f"bbhunt-{slug}", "references", "corpus-wordlists")
+    if os.path.exists(dest):
+        shutil.rmtree(dest)
+    n = 0
+    for pattern in (f"*_{slug}.txt", f"*_{slug}_waf.txt"):
+        for path in glob.glob(os.path.join(corpus_wl, pattern)):
+            os.makedirs(dest, exist_ok=True)
+            shutil.copy2(path, os.path.join(dest, os.path.basename(path)))
+            n += 1
+    return n
 
 
 def main():

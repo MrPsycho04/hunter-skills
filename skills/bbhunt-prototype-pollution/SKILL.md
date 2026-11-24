@@ -8,6 +8,33 @@ agent_created: true
 
 > **Unified skill.** Built from 2 upstream skills across h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (14 valid reports, 0 paid / 0%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| public source-code / repo review | 9 |
+| HTTP method / verb tampering | 2 |
+| deserialization / gadget chain | 1 |
+| third-party data / paste / breach reuse | 1 |
+| file upload / filename / extension | 1 |
+| mass assignment / extra request fields | 1 |
+
+### Parameters observed
+
+`malicious_payload`, `merge`, `payload`, `test`, `deap`, `mergify`, `upmerge`, `tsdot`, `obj`
+
+### Case studies (real reports, paid and unpaid)
+
+- [778414](https://hackerone.com/reports/778414) Node.js third-party modules — [klona] Prototype pollution (no bounty — still valid, critical)
+- [245228](https://hackerone.com/reports/245228) Automattic — Object Injection in Woocommerce / Handle PDT Responses from PayPal (no bounty — still valid, medium)
+- [390860](https://hackerone.com/reports/390860) Node.js third-party modules — Prototype Pollution Vulnerability in mpath Package (no bounty — still valid, high)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Identify the parsing and merge path for JSON/query/body input; test whether special keys survive parsing.
@@ -247,6 +274,8 @@ Triage every hit by hand: a template match is a lead, not a finding. Update temp
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

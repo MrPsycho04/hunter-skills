@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (112 valid reports, 18 paid / 16%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| unauthenticated / removed-cookie test | 14 |
+| admin / privileged-role context | 14 |
+|  HosT/absolute-URL reset poisoning | 13 |
+| cache / CDN / unkeyed header | 11 |
+| encoding / double-encode / null byte | 10 |
+| second-order / stored / blind delivery | 9 |
+| header injection (Host / X-Forwarded / etc.) | 9 |
+| HTTP method / verb tampering | 9 |
+| race / concurrency / timing | 9 |
+| public source-code / repo review | 8 |
+
+### Parameters observed
+
+`valid_until`, `charset`, `in_header`, `max-age`, `rel`, `curlopt_ssl_verifypeer`, `rtp_len`, `size`, `download_done`, `state`, `jsessionid`, `xsrf-token`, `src`, `steps`, `summary`
+
+### Case studies (real reports, paid and unpaid)
+
+- [1547684](https://hackerone.com/reports/1547684) Shopify — Disconnecting an external login provider does not revoke session ($1600, medium)
+- [347748](https://hackerone.com/reports/347748) X / xAI — Improper session handling on web browsers ($560, medium)
+- [1162443](https://hackerone.com/reports/1162443) Shopify — No Session Expiry after log-out, attacker can reuse the old cookies ($500, low)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Capture session identifiers at pre-login, post-login, after privilege change, and after logout; check for regeneration and revocation.
@@ -437,6 +468,8 @@ Triage every hit by hand: a template match is a lead, not a finding. Update temp
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

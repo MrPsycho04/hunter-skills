@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 4 upstream skills across cbh, h1skills, hunting, research and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (382 valid reports, 88 paid / 23%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| two-account / cross-account replay | 102 |
+| admin / privileged-role context | 74 |
+| encoding / double-encode / null byte | 56 |
+| header injection (Host / X-Forwarded / etc.) | 52 |
+| Content-Type / body-format switch | 49 |
+| intercept & replay request in Burp | 45 |
+| swap object ID / parameter value | 40 |
+| HTTP method / verb tampering | 36 |
+| file upload / filename / extension | 35 |
+| public source-code / repo review | 32 |
+
+### Parameters observed
+
+`onerror`, `src`, `max-age`, `charset`, `user_id`, `password`, `txtamount`, `amount`, `txtcustomamount`, `username`, `imageid`, `profileid`, `target_id`, `target_type`, `selectedaddressid`
+
+### Case studies (real reports, paid and unpaid)
+
+- [743953](https://hackerone.com/reports/743953) GitLab — Steal private objects of other projects via project import ($20000, critical)
+- [767770](https://hackerone.com/reports/767770) GitLab — Private objects exposed through project import ($20000, critical)
+- [1819832](https://hackerone.com/reports/1819832) Snapchat — Delete anyone's content spotlight remotely. ($15000, high)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Create two accounts (and a second tenant where applicable) before testing. Record each object ID with its owner.
@@ -545,6 +576,8 @@ _...and 1 more sections in `references/unified-method.md`._
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (1399 valid reports, 338 paid / 24%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| public source-code / repo review | 393 |
+| internal service / port / container | 221 |
+| file upload / filename / extension | 220 |
+| HTTP method / verb tampering | 200 |
+| admin / privileged-role context | 188 |
+| encoding / double-encode / null byte | 159 |
+| WAF / sanitizer / filter bypass | 153 |
+| race / concurrency / timing | 130 |
+| Content-Type / body-format switch | 119 |
+| cache / CDN / unkeyed header | 100 |
+
+### Parameters observed
+
+`mrb`, `entry`, `proc`, `self`, `class`, `src`, `argc`, `href`, `name`, `argv`, `version`, `stack_keep`, `charset`, `type`, `value`
+
+### Case studies (real reports, paid and unpaid)
+
+- [1679624](https://hackerone.com/reports/1679624) GitLab — Remote Command Execution via Github import ($33510, critical)
+- [1609965](https://hackerone.com/reports/1609965) GitLab — RCE via the DecompressedArchiveSizeValidator and Project BulkImports (behind feature flag) ($33510, critical)
+- [925585](https://hackerone.com/reports/925585) PayPal — RCE via npm misconfig -- installing internal libraries from the public registry ($30000, critical)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Identify the interpreter boundary: shell, language eval, template engine, deserializer, or OS-level file write. Each needs a different payload grammar.
@@ -437,6 +468,8 @@ grep -rn "Yaml()\|new Yaml()" --include="*.java" .
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 4 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

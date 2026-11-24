@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 4 upstream skills across cbh, h1skills, hunting, research and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (5 valid reports, 0 paid / 0%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| parser confusion / normalization | 3 |
+| public source-code / repo review | 3 |
+| encoding / double-encode / null byte | 2 |
+| two-account / cross-account replay | 1 |
+| HTTP method / verb tampering | 1 |
+| OAST / DNS / HTTP callback proof | 1 |
+| cache / CDN / unkeyed header | 1 |
+| WAF / sanitizer / filter bypass | 1 |
+| API docs / Swagger / introspection | 1 |
+| public bucket / storage exposure | 1 |
+
+### Parameters observed
+
+`check`, `authorizes`
+
+### Case studies (real reports, paid and unpaid)
+
+- [2372363](https://hackerone.com/reports/2372363) HackerOne — LLM01: Invisible Prompt Injection (no bounty — still valid, medium)
+- [3086301](https://hackerone.com/reports/3086301) Brave Software — Prompt Injection via GitHub Patch in Brave AI Chat (Leo) (no bounty — still valid, high)
+- [2370955](https://hackerone.com/reports/2370955) HackerOne — LLM03: Training Data Poisoning via ASCII decoding (no bounty — still valid, none)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Map the trust boundaries: system prompt, user input, retrieved content, tool definitions, and output rendering.
@@ -295,6 +326,8 @@ fetch_url("http://metadata.google.internal/computeMetadata/v1/instance/service-a
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 4 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (1226 valid reports, 246 paid / 20%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| public source-code / repo review | 189 |
+| encoding / double-encode / null byte | 146 |
+| admin / privileged-role context | 144 |
+| internal service / port / container | 139 |
+| file upload / filename / extension | 107 |
+| header injection (Host / X-Forwarded / etc.) | 101 |
+| Content-Type / body-format switch | 94 |
+| HTTP method / verb tampering | 91 |
+| subdomain / DNS / cert-transparency recon | 88 |
+| cache / CDN / unkeyed header | 86 |
+
+### Parameters observed
+
+`href`, `path`, `max-age`, `src`, `target`, `charset`, `name`, `rel`, `domain`, `realm`, `mode`, `nonce`, `type`, `expires`, `filename`
+
+### Case studies (real reports, paid and unpaid)
+
+- [1087489](https://hackerone.com/reports/1087489) Shopify — Github access token exposure ($50000, critical)
+- [3018307](https://hackerone.com/reports/3018307) Cosmos — Groups module can halt chain when handling a proposal with malicious group weights ($15000, high)
+- [838635](https://hackerone.com/reports/838635) LY Corporation — Spring Actuator endpoints publicly available and broken authentication ($12500, critical)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Describe the primitive precisely: what the server does, with what input, under which identity.
@@ -378,6 +409,8 @@ ffuf -u 'https://target/api?FUZZ=canary' -w $W/params_other.txt \
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 4 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 4 merged companion methodology documents
+- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

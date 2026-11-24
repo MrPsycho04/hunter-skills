@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (55 valid reports, 12 paid / 22%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| file upload / filename / extension | 43 |
+| second-order / stored / blind delivery | 10 |
+| JWT / token / base64 decode | 6 |
+| HTTP method / verb tampering | 6 |
+| WAF / sanitizer / filter bypass | 6 |
+| Content-Type / body-format switch | 6 |
+| internal service / port / container | 6 |
+| encoding / double-encode / null byte | 5 |
+| cloud metadata / IAM abuse | 4 |
+| public source-code / repo review | 4 |
+
+### Parameters observed
+
+`src`, `width`, `height`, `onerror`, `href`, `page`, `type`, `fwa`, `style`, `stroke-width`, `has_used_cb`, `details`, `case`, `mimetype`, `max-age`
+
+### Case studies (real reports, paid and unpaid)
+
+- [1547877](https://hackerone.com/reports/1547877) Aiven Ltd — [Kafka Connect] [JdbcSinkConnector][HttpSinkConnector] RCE by leveraging file upload via SQLite JDBC driver and SSRF to internal Jolokia ($5000, critical)
+- [401483](https://hackerone.com/reports/401483) Chaturbate — [chaturbate.com] - CSRF Vulnerability on image upload ($300, medium)
+- [3008878](https://hackerone.com/reports/3008878) LY Corporation — Stored XSS via SVG Upload in chat.line.biz ($100, low)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Map the full pipeline: validation, storage path/name, serving mechanism, and later processing.
@@ -291,6 +322,8 @@ Triage every hit by hand: a template match is a lead, not a finding. Update temp
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

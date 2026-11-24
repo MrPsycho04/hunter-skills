@@ -1,0 +1,17 @@
+ver
+mode
+name
+step
+verify_token
+param
+authenticity_token
+attributes[delivery-min-days]
+attributes[delivery-max-days]
+attributes[locale]
+checkout[shipping_address][country]
+access_token
+_fd
+id
+aeRg
+e3t5b
+mt

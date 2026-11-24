@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 2 upstream skills across h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (66 valid reports, 18 paid / 27%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| internal service / port / container | 14 |
+| public source-code / repo review | 14 |
+| HTTP method / verb tampering | 10 |
+| file upload / filename / extension | 10 |
+| parameter pollution / duplicate keys | 10 |
+| admin / privileged-role context | 10 |
+| encoding / double-encode / null byte | 9 |
+| Content-Type / body-format switch | 8 |
+| header injection (Host / X-Forwarded / etc.) | 6 |
+| WAF / sanitizer / filter bypass | 6 |
+
+### Parameters observed
+
+`conn`, `format`, `mem`, `len`, `csrfmiddlewaretoken`, `email`, `content`, `json`, `uid`, `mail`, `username`, `samaccountname`, `cloudron_ldap_bind_dn`, `cloudron_ldap_bind_password`, `cloudron_ldap_users_base_dn`
+
+### Case studies (real reports, paid and unpaid)
+
+- [2520679](https://hackerone.com/reports/2520679) Internet Bug Bounty — Possible DoS Vulnerability with Range Header in Rack ($5420, high)
+- [880187](https://hackerone.com/reports/880187) HackerOne — Near to Infinite loop when changing Group's name that has API token as Team Member ($2500, medium)
+- [1627159](https://hackerone.com/reports/1627159) Internet Bug Bounty — Rack CVE-2022-30122: Denial of Service Vulnerability in Rack Multipart Parsing ($2400, medium)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Confirm the program's DoS policy before any test; many exclude it entirely.
@@ -242,6 +273,8 @@ Triage every hit by hand: a template match is a lead, not a finding. Update temp
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

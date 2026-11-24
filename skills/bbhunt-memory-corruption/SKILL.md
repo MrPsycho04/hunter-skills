@@ -8,6 +8,37 @@ agent_created: true
 
 > **Unified skill.** Built from 2 upstream skills across h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
 
+## Corpus evidence (892 valid reports, 291 paid / 33%)
+
+Payment is not validity — zero-bounty disclosures are mined as evidence too.
+
+### Techniques ranked across ALL valid writeups
+
+| Technique | Reports |
+|---|---:|
+| public source-code / repo review | 232 |
+| WAF / sanitizer / filter bypass | 209 |
+| race / concurrency / timing | 201 |
+| HTTP method / verb tampering | 150 |
+| encoding / double-encode / null byte | 138 |
+| internal service / port / container | 106 |
+| third-party data / paste / breach reuse | 95 |
+| error message / stack trace probing | 88 |
+| file upload / filename / extension | 81 |
+| OAST / DNS / HTTP callback proof | 56 |
+
+### Parameters observed
+
+`mrb`, `entry`, `self`, `proc`, `fsanitize`, `argc`, `argv`, `main`, `stack_keep`, `str`, `len`, `nil`, `mid`, `sig`, `val`
+
+### Case studies (real reports, paid and unpaid)
+
+- [2177925](https://hackerone.com/reports/2177925) PlayStation — Remote vulnerabilities in spp ($12500, high)
+- [826026](https://hackerone.com/reports/826026) PlayStation — Use-After-Free In IPV6_2292PKTOPTIONS leading To Arbitrary Kernel R/W Primitives ($10000, high)
+- [943231](https://hackerone.com/reports/943231) PlayStation — SOCK_RAW sockets reachable from Webkit process allows triggering double free in IP6_EXTHDR_CHECK ($10000, high)
+
+Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+
 ## Corpus-backed method (this class)
 
 1. Confirm the target is genuinely in scope and that a crash/disruption test is permitted — many programs exclude DoS-style crashes.
@@ -248,6 +279,8 @@ Triage every hit by hand: a template match is a lead, not a finding. Update temp
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
 - `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `references/unified-method.md` — includes 2 merged companion methodology documents
+- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router
