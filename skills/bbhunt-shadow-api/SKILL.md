@@ -1,68 +1,16 @@
 ---
 name: bbhunt-shadow-api
-description: "Enumerate API version history and undocumented paths, then test them for missing authentication. Unified from 2 upstream skills (cbh, hunting). For authorized security testing only."
+description: "Enumerate API version history and undocumented paths, then test them for missing authentication. Unified from 1 upstream skills (cbh). For authorized security testing only."
 agent_created: true
 ---
 
-# Shadow and zombie API discovery — unified methodology
+# Shadow and zombie API discovery — unified skill
 
-> **Unified skill.** Built from 2 upstream skills across cbh, hunting. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
+> **Complete merged skill.** Everything from 1 upstream skills across cbh is contained in this file. Unmodified originals remain in `references/` for provenance only.
 
-## Unified upstream methodology (deduplicated)
-
-### Discovery and hunting method
-
-### A. Discovery checklist — concrete artifacts, endpoints, patterns, tools to look for
-
-- **Classify before testing (OWASP API9:2023):** shadow = active but undocumented; zombie = deprecated but still reachable; orphan = no accountable owner; rogue = created outside approved architecture. Categories overlap — a route can be both shadow and orphan. CWE-1059 is the reference weakness.
-- **Path-based versioning sweep:** `for v in v1 v2 v3 v4 beta alpha internal legacy old 2022-01-01 2023-01-01 2024-01-01; do curl -s -o /dev/null -w "%{http_code} /api/$v/" ...; done`. Also date-style versions (`/api/2023-01-01/`) and `/beta`, `/internal`, `/legacy` prefixes.
-- **Header/subdomain versioning:** `X-API-Version: 1`, `Accept: application/vnd.company.v1+json`; subdomains `api-v1`, `api-v2`, `apiv1`, `apiv2`, `legacy-api`, `old-api`, `internal-api`, `staging-api`. Anything but 404/connection-refused (200, 401, 403) means the version is live.
-- **Every reachable spec, not just the linked one:** `openapi.json`, `swagger.json`, `v1/swagger.json`, `v2/swagger.json`, `v3/api-docs`, `api-docs.json`, `swagger/v1/swagger.json`, `.well-known/openapi.json`. Diff `info.version` fields — one version implies others exist.
-- **Wayback Machine (key shadow-API source):** CDX queries for `*swagger*` and `*openapi*` with `collapse=urlkey`; an old spec often remains indexed after the live link is removed.
-- **Five signal sources (Safeguard/OWASP):** gateway & load-balancer logs (methods/paths receiving real traffic), route tables in source (Express routers, Flask blueprints, Spring `@RequestMapping`), 
-
-### Techniques, payloads and bypasses
-
-### B. Techniques & bypasses — specific actionable techniques/payload shapes
-
-- **Spec-to-spec diff:** `jq -r '.paths | keys[]' v1-swagger.json | sort > /tmp/v1_paths.txt`; same for v2; `comm -23 /tmp/v1_paths.txt /tmp/v2_paths.txt` = in v1 only. Confirm each against the v1 base URL; a non-404 route documented only in the old spec is a zombie candidate.
-- **Behavioral diff, not shape diff:** send payloads that behave differently under old vs new logic — weaker auth, missing rate limit, lax validation, extra response fields (PII/internal IDs). Cosmetic field renames are Informational only.
-- **The OWASP canonical scenario:** rate limiting implemented in a separate component in front of `api.socialnetwork...` but *not* on `beta.api.socialnetwork...` — brute-force a 6-digit reset token against the beta host. Also: old versions connected to the same production database expose admin functions or unpatched CVEs.
-- **Alias check before claiming regression:** confirm the old endpoint is not simply a proxy/alias to the current implementation; send a discriminator payload that would actually behave differently under the two code paths.
-- **Deprecation-message false positive:** a `200` serving only "this API version is deprecated, use v2" is not a finding — confirm the underlying operation still executes.
-- **Client-app extraction:** browse with highest-privilege account, capture XHR/fetch calls, compare with the spec; for SPAs extract path-shaped strings from the bundle, including admin/internal/feature-flagged routes the UI never calls.
-- **Use Nuclei/ffuf/feroxbuster** with API wor
-
-### Validation and proof
-
-### C. Validation / proof bar — how to confirm and avoid false positives
-
-- **The finding is the security-relevant regression**, not the version string. Severity scale: auth/rate-limit/validation regression High; extra PII/internal fields Medium–High; behaviorally identical Informational.
-- Prove the endpoint is genuinely unmanaged: no inventory entry, no owner, no gateway/WAF coverage — a documented-but-untested internal route is not automatically shadow.
-- Confirm reachability from the attacker's network position and demonstrate one concrete impact (read cross-tenant data, bypass rate limit, reach admin function). Stop at PoC; do not dump production datasets.
-- Check that a different status code alone is not evidence — compare bodies and successful operations with controlled accounts (admin baseline vs low-privilege vs anonymous).
-- Avoid claiming "zombie" just because traffic is low or a spec says deprecated; require confirmed deprecation intent plus ongoing reachability/callability.
-- Keep the internal inventory itself sensitive — it maps hosts, environments, owners, and data classification; separate public docs from the internal register.
-
-- **Runtime-signal alerts worth mining (NHI Mgmt 2026):** traffic to routes/hosts not in the inventory, calls to deprecated versions after sunset, enumeration of `/v1`/`/beta`/`/internal`, new DNS records or certificates for API hostnames, and docs endpoints answering from outside.
-- **Spec accuracy metric:** share of APIs whose live routes match their specification — a low value is the attacker's advantage; a high value is the goal 
+## Unified upstream methodology (complete, deduplicated)
 
 ### Escalation and related chains
-
-### Related Skills & Chains
-
-- **`api-misconfig`** — owns exploitation once a spec or endpoint is in hand (mass
-  assignment, JWT attacks, OData, Swagger-chain attacks). This skill hands it a sharper target:
-  "here's a zombie endpoint with weaker validation than the current one."
-- **`subdomain-takeover`** — owns host/subdomain-level discovery (`api-v1.target.com` as its own
-  host, potential takeover). This skill owns what happens once you're inside a given host's
-  version surface.
-- **`info-disclosure`** — JS-bundle grep for internal/undocumented calls; reused here
-  specifically for version-diffing rather than secret extraction.
-- **`apk-redteam-pipeline`** / **`ios-redteam-pipeline`** — mobile builds routinely hardcode an
-  older API version; every mobile-sourced endpoint is a version-diff candidate.
-- **`brute-force`** — a rate-limit regression found here is only a complete finding once
-  chained to actual brute-forceable impact (login, OTP, enumeration).
 
 ### Related Skills & Chains
 
@@ -79,14 +27,147 @@ agent_created: true
 - **`hunt-brute-force`** — a rate-limit regression found here is only a complete finding once
   chained to actual brute-forceable impact (login, OTP, enumeration).
 
+### Additional notes
+
+### OWASP API9 — Improper Inventory Management (Shadow / Zombie APIs)
+
+As an API evolves, old versions and internal/staging routes routinely stay reachable without
+receiving the same security fixes as the current version — because nobody tracks that they
+still exist. The bug is rarely in one endpoint; it's in the **delta** between what an old
+version enforces and what the current version enforces on the same operation.
+
+### When to use
+
+Trigger when:
+- Versioned paths are visible (`/v1/`, `/v2/`, `/api/2023-01-01/`) or `Accept`/`X-API-Version`
+  headers are in play.
+- A changelog, release notes, or deprecation notice references removed/old API behavior.
+- A mobile APK/IPA (via `apk-redteam-pipeline` / `ios-redteam-pipeline`) hardcodes endpoints
+  that look like an older backend version than the current web app calls.
+- Multiple OpenAPI/Swagger specs are discoverable, or `info.version` in one spec implies others
+  exist.
+
+DO NOT use for single-version APIs with no version history — there's nothing to diff; go
+straight to `hunt-api-misconfig` for direct exploitation of the one surface that exists.
+
+---
+
+### Stage 1 — Enumerate the Full Version Surface
+
+```bash
+# Path-based versioning
+for v in v1 v2 v3 v4 beta alpha internal legacy old 2022-01-01 2023-01-01 2024-01-01; do
+  curl -s -o /dev/null -w "%{http_code} /api/$v/\n" "https://$TARGET/api/$v/"
+done
+
+# Header-based versioning
+curl -s -H "X-API-Version: 1" https://$TARGET/api/users
+curl -s -H "Accept: application/vnd.company.v1+json" https://$TARGET/api/users
+
+# Subdomain-based versioning
+for sub in api api-v1 api-v2 apiv1 apiv2 legacy-api old-api internal-api staging-api; do
+  curl -s -o /dev/null -w "%{http_code} $sub\n" "https://$sub.$TARGET/"
+done
+```
+
+A `200`/`401`/`403` on an old version path (anything but `404`/connection-refused) means the
+version is still live and worth carrying into Stage 3, even if it demands auth.
+
+---
+
+### Stage 2 — Pull Every Reachable Spec, Not Just the Linked One
+
+```bash
+for path in openapi.json swagger.json v1/swagger.json v2/swagger.json v3/api-docs \
+            api-docs.json swagger/v1/swagger.json .well-known/openapi.json; do
+  curl -s -o /dev/null -w "%{http_code} /$path\n" "https://$TARGET/$path"
+done
+
+# Wayback Machine — a DEPRECATED version's spec often stays indexed after the live link is removed
+curl -s "http://web.archive.org/cdx/search/cdx?url=$TARGET/*swagger*&output=json&collapse=urlkey"
+curl -s "http://web.archive.org/cdx/search/cdx?url=$TARGET/*openapi*&output=json&collapse=urlkey"
+```
+
+When more than one spec resolves (a current one and an archived/old one), diff the endpoint
+inventories directly:
+```bash
+jq -r '.paths | keys[]' v1-swagger.json | sort > /tmp/v1_paths.txt
+jq -r '.paths | keys[]' v2-swagger.json | sort > /tmp/v2_paths.txt
+comm -23 /tmp/v1_paths.txt /tmp/v2_paths.txt   # in v1 only — candidates for "still live but forgotten"
+```
+For every path in that diff, confirm it's still reachable against the v1 base URL. A route
+documented only in the old spec that still returns something other than `404` is a zombie-
+endpoint candidate — carry it into Stage 3.
+
+---
+
+### Stage 3 — Behavioral Diff Between Old and Current Version
+
+For each operation that exists in **both** versions, compare security-relevant behavior, not
+response shape. Response shape differences are Informational; behavioral security regressions
+are the finding.
+
+- **Auth strength.** Does the old version accept no token, an expired token, or a lower-
+  privilege token that the current version rejects?
+  ```bash
+  curl -s -H "Authorization: Bearer $EXPIRED_TOKEN" https://$TARGET/api/v1/users/me -w '\n%{http_code}\n'
+  curl -s -H "Authorization: Bearer $EXPIRED_TOKEN" https://$TARGET/api/v2/users/me -w '\n%{http_code}\n'
+  ```
+- **Rate limiting.** Burst the same number of requests against both versions' equivalent
+  endpoint; a missing `429` on the old version means rate-limiting was added later and never
+  backported.
+- **Input validation.** Send the identical injection/oversized/malformed payload to both; the
+  old version accepting what the new one rejects means hardening happened forward-only —
+  chain into whichever injection class the payload targets (`hunt-sqli`, `hunt-idor`, etc.).
+- **Field exposure.** Does the old version's response body include fields — internal IDs, other
+  users' data, internal notes, PII — that the current version has since redacted?
+
+---
+
+### Stage 4 — Deprecated / Internal Routes Never Referenced by the Current UI
+
+- Grep JS bundles for API calls no visible UI flow triggers (`/internal/`, `/admin/`, `/debug/`,
+  `/_internal/`, `/test/`, `/staging/`) — reuse `hunt-source-leak`'s JS-bundle grep patterns for
+  this specifically.
+- Check `robots.txt` / `sitemap.xml` for disallowed API paths — a self-inflicted disclosure.
+- Mobile-app endpoint inventories (via `apk-redteam-pipeline` / `ios-redteam-pipeline`) very
+  often reference an older backend version than the current web app calls. Treat every
+  APK/IPA-sourced endpoint as a version-diff candidate against the live web API.
+
+---
+
+### False-Positive Gate
+
+- A version difference alone (different response shape, cosmetic field renaming) is
+  Informational. The finding is a **security-relevant regression** — auth, rate-limit, or
+  validation that got weaker going backward in version history.
+- Confirm the old endpoint is not simply an alias/proxy to the current implementation before
+  claiming a behavioral difference — send a payload that would actually behave differently
+  under old vs. new logic, not just compare a version string in the response body.
+- A `200` on a path that just serves a static "this API version is deprecated, use v2" message
+  is not a finding — confirm the underlying operation still executes.
+
+---
+
+### Severity Table
+
+| Finding | Severity |
+|---|---|
+| Old version bypasses auth entirely where current version requires it | Critical |
+| Old version missing rate-limit present on current version | Medium–High (chain via `hunt-brute-force`) |
+| Old version leaks extra fields (PII, internal IDs) vs. current | Medium–High |
+| Old version accepts payloads the current version now validates/sanitizes | High (chain to the underlying injection class) |
+| Version is reachable but behaviorally identical to current | Informational |
+
+---
+
 ## Source skills merged into this topic
 
-- `hunting` — `shadow-api`
 - `cbh` — `hunt-shadow-api`
 
-## References
+## Provenance
 
-- `references/unified-method.md` — complete deduplicated union of all upstream sections
-- `references/upstream-*.md` — full original SKILL.md from each contributing repo
+- `references/unified-method.md` — same deduplicated union as this file, for tooling
+- `references/upstream-*.md` — unmodified original SKILL.md from each repo
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

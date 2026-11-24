@@ -4,11 +4,11 @@ description: "Hunt source maps, Swagger/OpenAPI, .git/.env exposure, webpack chu
 agent_created: true
 ---
 
-# Source and build-artifact leakage — unified methodology
+# Source and build-artifact leakage — unified skill
 
-> **Unified skill.** Built from 1 upstream skills across cbh. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
+> **Complete merged skill.** Everything from 1 upstream skills across cbh is contained in this file. Unmodified originals remain in `references/` for provenance only.
 
-## Unified upstream methodology (deduplicated)
+## Unified upstream methodology (complete, deduplicated)
 
 ### Discovery and hunting method
 
@@ -107,13 +107,223 @@ trufflehog filesystem /tmp/repo/
 
 ---
 
+### Sources and related reading
+
+### Phase 2 — Source Map Discovery
+
+> **Always resolve the CURRENT build hash before testing, and again before
+> re-verifying.** Bundle filenames are content-hashed, so they rotate on every
+> deploy. A `.map` URL recorded yesterday can 404 today while the map is still
+> fully exposed under a new name. **A 404 at the old URL is not remediation** —
+> it is a new build.
+>
+> ```bash
+> # ALWAYS derive the hash live, never reuse a recorded URL
+> HASH=$(curl -s "https://$TARGET/" | grep -oE 'main\.[a-f0-9]+\.js' | head -1)
+> curl -s -o /dev/null -w '%{http_code} %{size_download} %{content_type}\n' \
+>   "https://$TARGET/static/js/${HASH}.map"
+> ```
+>
+> **Lesson from an authorized engagement.** A large production map was found at
+> `main.<hashA>.js.map`. On re-verification that URL returned a small HTML
+> soft-404 and the finding was nearly closed as fixed. The bundle had rotated to
+> `main.<hashB>.js` — and the map was still published at `main.<hashB>.js.map`,
+> same size. Nothing had been remediated.
+>
+> Tell the client this explicitly in the report: **redeploying does not fix source
+> map exposure.** Only `GENERATE_SOURCEMAP=false` (or stripping `.map` at deploy)
+> plus a CDN purge closes it. A team that redeploys and re-checks the old link
+> will wrongly declare victory.
+>
+> Same rule applies to any content-hashed artifact: chunk files, CSS maps,
+> `asset-manifest.json`, and staging equivalents.
+
+```bash
+# Step 1: Get asset manifest to find all JS bundle paths
+curl -s "https://$TARGET/asset-manifest.json" | python3 -m json.tool 2>/dev/null
+curl -s "https://$TARGET/static/js/main.*.js" 2>/dev/null | head -3
+
+# Next.js
+BUILD_ID=$(curl -s https://$TARGET/ | grep -oP '"buildId":"\K[^"]+')
+curl -s "https://$TARGET/_next/static/$BUILD_ID/_buildManifest.js" | head -5
+
+# Step 2: For each JS bundle, check for source map reference at end of file
+for JS_URL in $(curl -s https://$TARGET/ | grep -oP 'src="[^"]*\.js"' | sed 's/src="//;s/"//'); do
+  LAST_LINE=$(curl -s "https://$TARGET$JS_URL" | tail -1)
+  echo "$LAST_LINE" | grep -q "sourceMappingURL" && echo "[+] Source map: $JS_URL"
+done
+
+# Step 3: Download and reconstruct source from .map files
+JS_URL="https://$TARGET/static/js/main.abc123.js"
+MAP_URL="${JS_URL}.map"
+curl -s "$MAP_URL" | python3 -c "
+import sys, json, os
+data = json.load(sys.stdin)
+sources = data.get('sources', [])
+contents = data.get('sourcesContent', [])
+for i, (src, content) in enumerate(zip(sources, contents)):
+    if content:
+        path = '/tmp/sourcemap_extract/' + src.replace('../','').replace('./',''). replace('webpack://','')
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, 'w') as f:
+            f.write(content)
+        print(f'[+] Extracted: {src}')
+"
+
+# Step 4: Grep extracted source for secrets
+grep -r "API_KEY\|SECRET\|PASSWORD\|TOKEN\|PRIVATE" /tmp/sourcemap_extract/ 2>/dev/null
+grep -r "process\.env\." /tmp/sourcemap_extract/ 2>/dev/null | grep -v "NEXT_PUBLIC_" | head -20
+grep -r "http://internal\|localhost\|127\.0\.0\.1\|10\.\|172\.\|192\.168" /tmp/sourcemap_extract/ 2>/dev/null | head -20
+```
+
+---
+
+### Additional notes
+
+### Phase 3 — Swagger / OpenAPI Discovery
+
+```bash
+# Common paths
+SWAGGER_PATHS=(
+  "/swagger.json" "/swagger.yaml" "/swagger/"
+  "/api/swagger.json" "/api/swagger.yaml"
+  "/v1/swagger.json" "/v2/swagger.json" "/v3/swagger.json"
+  "/openapi.json" "/openapi.yaml"
+  "/api/openapi.json" "/api-docs" "/api-docs.json"
+  "/api/v1/swagger.json" "/api/v2/swagger.json"
+  "/rest/swagger.json" "/rest/api-docs"
+  "/.well-known/openapi.json"
+  "/graphql/schema.json"
+)
+
+for PATH in "${SWAGGER_PATHS[@]}"; do
+  STATUS=$(curl -s -o /tmp/swagger_test -w "%{http_code}" "https://$TARGET$PATH")
+  if [ "$STATUS" = "200" ]; then
+    echo "[+] Found: https://$TARGET$PATH"
+    # Extract all API paths from swagger
+    python3 -c "
+import sys, json
+try:
+    d = json.load(open('/tmp/swagger_test'))
+    paths = list(d.get('paths', {}).keys())
+    print(f'Endpoints: {len(paths)}')
+    print('\n'.join(sorted(paths)))
+except: pass
+" | head -50
+  fi
+done
+```
+
+---
+
+### Phase 4 — .git Exposure
+
+```bash
+# Check if .git directory is accessible
+curl -s "https://$TARGET/.git/HEAD" | grep -q "ref:" && echo "[+] .git exposed!"
+
+# If exposed, reconstruct repo
+# Tool: git-dumper
+pip3 install git-dumper
+git-dumper "https://$TARGET/.git/" /tmp/dumped-repo/
+
+# Grep for secrets in all git history
+cd /tmp/dumped-repo && \
+  git log --all --oneline 2>/dev/null | head -20
+  git grep -i "password\|secret\|api_key\|token" $(git rev-list --all) 2>/dev/null | head -30
+
+# trufflehog on git history
+trufflehog git file:///tmp/dumped-repo/ 2>/dev/null | head -50
+```
+
+---
+
+### Phase 5 — Forgotten Files & Debug Endpoints
+
+```bash
+# Build artifacts and debug files
+DEBUG_PATHS=(
+  "/build-info.json" "/build/build-info.json"
+  "/info" "/actuator/info" "/api/info"
+  "/version" "/api/version" "/_version"
+  "/health" "/status" "/ping"
+  "/robots.txt" "/security.txt" "/.well-known/security.txt"
+  "/sitemap.xml" "/manifest.json" "/browserconfig.xml"
+  "/crossdomain.xml" "/clientaccesspolicy.xml"
+  "/phpinfo.php" "/info.php" "/test.php"
+  "/server-status" "/server-info" "/.htaccess"
+  "/web.config" "/applicationHost.config"
+  "/WEB-INF/web.xml" "/META-INF/MANIFEST.MF"
+  "/package.json" "/composer.json" "/Gemfile"
+  "/Dockerfile" "/docker-compose.yml" "/.dockerenv"
+)
+
+for PATH in "${DEBUG_PATHS[@]}"; do
+  STATUS=$(curl -s -o /tmp/debug_test -w "%{http_code}" "https://$TARGET$PATH")
+  if [ "$STATUS" = "200" ]; then
+    echo "[+] Found: https://$TARGET$PATH ($STATUS, $(wc -c < /tmp/debug_test) bytes)"
+    head -3 /tmp/debug_test
+    echo "---"
+  fi
+done
+```
+
+---
+
+### Phase 6 — .DS_Store File Listing
+
+```bash
+# .DS_Store files on macOS-deployed web servers reveal directory structure
+curl -s "https://$TARGET/.DS_Store" | xxd | head -10
+
+# Parse .DS_Store to extract filenames
+pip3 install ds_store
+python3 -c "
+from ds_store import DSStore
+with DSStore.open('/tmp/ds_store_test', 'r') as d:
+    for entry in d:
+        print(entry.filename)
+"
+
+# Recursive .DS_Store enumeration
+# Tool: https://github.com/lijiejie/ds_store_exp
+python3 ds_store_exp.py "https://$TARGET/"
+```
+
+---
+
+### Phase 7 — webpack Chunk Analysis
+
+```bash
+# Download and analyze webpack chunks for hardcoded values
+# Find chunk files
+curl -s https://$TARGET/ | grep -oP '"[^"]*\.chunk\.js"' | tr -d '"' | while read chunk; do
+  echo "Analyzing: $chunk"
+  curl -s "https://$TARGET$chunk" | \
+    grep -oE '"(api_key|apiKey|secret|password|token|key)"\s*:\s*"[^"]+"' | head -5
+done
+
+# Also grep for internal hostnames
+curl -s "https://$TARGET/static/js/main.*.js" | \
+  grep -oE '"(https?://[^"]*internal[^"]*|http://[^"]*localhost[^"]*)"' | sort -u
+
+# Check for Base64-encoded secrets
+curl -s "https://$TARGET/static/js/main.*.js" | \
+  grep -oP '"[A-Za-z0-9+/]{30,}={0,2}"' | while read b64; do
+  DECODED=$(echo "$b64" | tr -d '"' | base64 -d 2>/dev/null)
+  echo "$DECODED" | grep -iE "key|secret|password|token" && echo "  B64: $b64"
+done
+```
+
+---
+
 ## Source skills merged into this topic
 
 - `cbh` — `hunt-source-leak`
 
-## References
+## Provenance
 
-- `references/unified-method.md` — complete deduplicated union of all upstream sections
-- `references/upstream-*.md` — full original SKILL.md from each contributing repo
+- `references/unified-method.md` — same deduplicated union as this file, for tooling
+- `references/upstream-*.md` — unmodified original SKILL.md from each repo
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

@@ -4,11 +4,11 @@ description: "Hunt IAM over-permission, public storage, metadata exposure and in
 agent_created: true
 ---
 
-# Cloud misconfiguration hunting — unified methodology
+# Cloud misconfiguration hunting — unified skill
 
-> **Unified skill.** Built from 3 upstream skills across cbh, hunting, research. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
+> **Complete merged skill.** Everything from 3 upstream skills across cbh, hunting, research is contained in this file. Unmodified originals remain in `references/` for provenance only.
 
-## Unified upstream methodology (deduplicated)
+## Unified upstream methodology (complete, deduplicated)
 
 ### Discovery and hunting method
 
@@ -22,7 +22,9 @@ agent_created: true
   - GCP: `http://metadata.google.internal/computeMetadata/v1/` (requires `Metadata-Flavor: Google`)
   - Azure: `http://169.254.169.254/metadata/instance?api-version=2021-02-01` (requires `Metadata: true`)
 - Determine IMDS version from response shape. IMDSv1 answers plain GETs with no token; IMDSv2 requires `PUT /latest/api/token` with `X-aws-ec2-metadata-token-ttl-seconds` and then the token header. Datadog's 2025 study still finds instances allowing both, and flags the attack path "public EC2 running IMDSv1 + SSRF."
-- Storage exposure sweep: public S3/GCS/Azure Blob listing, permissive bucket/container policies (publi
+- Storage exposure sweep: public S3/GCS/Azure Blob listing, permissive bucket/container policies (public `PutObjectAcl`/`PutObject`), public RDS snapshots, public Lambda function URLs, public GCP Cloud Run, exposed Azure Function Apps. Check `?list-type=2`, anonymous `ListBucket`, and ACL/Policy GETs.
+- Client-side secrets: JS bundles, `.env`, source maps, mobile APKs with hardcoded AWS keys / identity pool IDs / CloudWatch RUM config (see the existing CloudWatch RUM section).
+- Exposed management surfaces: Jenkins script console, RabbitMQ/AMQP with default creds, Kubernetes dashboard/kubelet, docker.sock — but defer K8s/CI-specific exploitation to their owning skills.
 
 ### Techniques, payloads and bypasses
 
@@ -38,7 +40,9 @@ agent_created: true
 - IMDSv2 bypass conditions to test (rare but real): SSRF that allows arbitrary method + headers (e.g. CRLF injection, gopher:// to Redis/HTTP, redirect-based method/header smuggling), or a proxy that adds `X-aws-ec2-metadata-token` itself. Otherwise treat IMDSv2 as a blocker. Note IMDSv2 also drops requests carrying `X-Forwarded-For` for token fetches and enforces an IP hop-count limit.
 - Blind/OOB variants: point the fetcher at a Collaborator/interactsh domain to prove outbound requests; use `gopher://` for protocol smuggling to internal Redis (unauthenticated -> RCE) or SMTP; DNS rebinding to defeat IP blocklists; redirect chains (`302` to `169.254.169.254`) when direct literals are filtered.
 - Redirect/allowlist bypasses for the URL parameter: decimal/octal/hex IP forms, `0x7f000001`, `2130706433`, `[::ffff:127.0.0.1]`, `169.254.169.254.nip.io`, `@`-userinfo, `#`/`?` fragments, trailing dots, and DNS rebinding.
-- Abusing Cognito Identity Pools from leaked JS: `GetId` -> `GetCredentialsForIdentity` 
+- Abusing Cognito Identity Pools from leaked JS: `GetId` -> `GetCredentialsForIdentity` with an unauthenticated role -> temporary AWS creds. Combine with the existing CloudWatch RUM weaponization section.
+- Cloud metadata abuse seen in the wild (Mandiant UNC2903, F5 Labs March 2025 campaign): automated scanning for SSRF then IMDS credential theft. Use this as evidence of real-world exploitability, not theoretical impact.
+- Anonymous bucket write test (authorized): `aws s3 cp marker.txt s3://bucket/ --no-sign-request` — but do not leave artifacts; use a clearly labeled marker and remove it.
 
 ### Validation and proof
 
@@ -65,7 +69,17 @@ agent_created: true
 - For RUM/Cognito chains, prove the guest role actually grants a sensitive action (e.g. S3 read, `sts:AssumeRole`) before claiming impact.
 
 - Check the IMDS hop limit: IMDSv2 drops packets with IP TTL 1 at the instance. If the SSRF fetcher is a proxy one hop away, even a valid token may fail — note this when triaging "IMDS unreachable."
-- F
+- For ECS/Fargate the credentials endpoint differs (`AWS_CONTAINER_CREDENTIALS_RELATIVE_URI` / `169.254.170.2`); for Lambda check env vars if code execution exists. Map the workload type before choosing the endpoint.
+- GCP requires `Metadata-Flavor: Google` and Azure requires `Metadata: true`; a plain GET returns 403/404 — that is not evidence metadata is absent.
+- Public EBS/RDS snapshots and AMIs are a separate high-yield surface: search for snapshots owned by the target account ID and check for unencrypted copies containing secrets.
+- Cross-reference secrets from JS bundles and mobile apps with the cloud account ID — a leaked AWS key plus a permissive bucket policy can be faster than SSRF.
+- Check S3 Block Public Access at account and bucket level; a bucket policy granting `s3:GetObject` to `Principal: *` is exploitable even if the ACL looks private.
+- Validate with `aws sts get-caller-identity` immediately after retrieving credentials — it proves the creds are live and gives the account/ARN for scoping.
+- Do not enumerate beyond the minimum needed to demonstrate impact; broad credential use against the victim account is out of scope for most programs.
+- Bucket naming: if a bucket name appears in JS/APK, test `s3://<name>` anonymously across likely regions — a `ListBucket` failure in one region is not proof across all.
+- Watch for IMDS abuse indicators: Wiz notes rare processes touching IMDS and unusual metadata paths are the highest-signal detections — use this for the defensive recommendation.
+- The 2025 F5 Labs campaign showed a four-day burst of EC2 metadata exploitation; cite real-world scanning when a program questions impact.
+- For GCP, a leaked service-account JSON is a direct credential (no SSRF needed) — activate it and enumerate project roles.
 
 ### Escalation and related chains
 
@@ -119,7 +133,11 @@ aws rum put-rum-events \
   --region us-east-1
 ```
 
-Defenders watching egress see traffic to a known-good AWS hostname; DLP doesn't parse the JSON body; SIEM rules typical
+Defenders watching egress see traffic to a known-good AWS hostname; DLP doesn't parse the JSON body; SIEM rules typically don't ingest customer RUM telemetry.
+
+**Chain C — DOM injection via snippet source poisoning.** Many customers either self-host `cwr.js` on their own CDN (`assets.target.com/cwr.js`) or bundle `aws-rum-web` and serve from `static.target.com/main.<hash>.js`. Subdomain takeover on the JS host or supply-chain compromise (npm typosquat against `aws-rum-webb`) gives persistent JS execution on every page-load with the trust of the `aws-rum-web` SDK — including its already-granted Cognito permissions.
+
+**Chain D — Telemetry injection / dashboard poisoning.** With the public `identityPoolId` + `applicationId`, an external attacker can flood `PutRumEvents` with fake error spikes (drown real alerts), inject XSS payloads into page-URL telemetry that fire when an SOC analyst views the CloudWatch dashboard, and inflate billable RUM event counts (financial DoS).
 
 ### Related Skills & Chains
 
@@ -139,15 +157,143 @@ Defenders watching egress see traffic to a known-good AWS hostname; DLP doesn't 
 - **`security-arsenal`** — Load the Cloud Bucket Wordlist (target-prod / target-backup / target-staging permutations) and the Admin-Panel Path List for fast enumeration.
 - **`triage-validation`** — Apply the Unique-Marker gate: any "writable bucket" claim requires a write of a unique marker file and a read-back from a clean session before report submission.
 
+### Sources and related reading
+
+### D. Sources — numbered list of URLs you actually fetched
+
+1. https://hackingthe.cloud/aws/exploitation/ec2-metadata-ssrf
+2. https://aws.amazon.com/blogs/security/defense-in-depth-open-firewalls-reverse-proxies-ssrf-vulnerabilities-ec2-instance-metadata-service
+3. https://www.wiz.io/blog/imds-anomaly-hunting-zero-day
+4. https://www.f5.com/labs/articles/campaign-targets-amazon-ec2-instance-metadata-via-ssrf
+5. https://cloud.google.com/blog/topics/threat-intelligence/cloud-metadata-abuse-unc2903
+6. https://securitylabs.datadoghq.com/articles/misconfiguration-spotlight-imds
+7. https://www.datadoghq.com/blog/cloud-security-study-learnings-2025
+
+### Additional notes
+
+### S3 / GCS / Azure Blob
+
+```bash
+# S3 listing
+curl -s "https://TARGET-NAME.s3.amazonaws.com/?max-keys=10"
+aws s3 ls s3://target-bucket-name --no-sign-request
+
+# Try common bucket names
+for name in target target-backup target-assets target-prod target-staging; do
+  curl -s -o /dev/null -w "$name: %{http_code}\n" "https://$name.s3.amazonaws.com/"
+done
+
+# Firebase open rules
+curl -s "https://TARGET-APP.firebaseio.com/.json"   # read
+curl -s -X PUT "https://TARGET-APP.firebaseio.com/test.json" -d '"pwned"'  # write
+```
+
+### EC2 Metadata (via SSRF)
+
+```bash
+http://169.254.169.254/latest/meta-data/iam/security-credentials/  # role name
+http://169.254.169.254/latest/meta-data/iam/security-credentials/ROLE-NAME  # keys
+```
+
+### Exposed Admin Panels
+
+```
+/jenkins  /grafana  /kibana  /elasticsearch  /swagger-ui.html
+/phpMyAdmin  /.env  /config.json  /api-docs  /server-status
+```
+
+---
+
+### Jenkins SSO-restriction failure → Script Console RCE
+
+An exposed Jenkins that authenticates ANY personal Google/OAuth account (missing org-domain restriction) is full compromise: log in, then `/script` (Groovy console) = RCE, and `/credentials` + `/scriptText` = stored API tokens and source disclosure. Disclosed: reports/231460.
+
+### Exposed message broker (RabbitMQ / AMQP) with default creds
+
+Probe RabbitMQ management (`http://TARGET:15672/`, API `:15672/api/overview`) and AMQP `:5672`; try default `guest:guest` (works off-localhost when `loopback_users` is misconfigured) → queue/message read, vhost enumeration, management-plugin admin. Disclosed: reports/753602.
+
+### CloudWatch RUM Weaponization (2024-2026 surface)
+
+AWS CloudWatch RUM (Real-User Monitoring) is a client-side telemetry service launched late 2021. Customers embed a JS snippet on their pages that sends performance/error events to `dataplane.rum.<region>.amazonaws.com`. The snippet's `AppMonitor` config contains an `identityPoolId` (Cognito) and `guestRoleArn` (IAM role) — both **public by design**. The IAM role policy is the security boundary, and when developers leave it broader than the documented minimum (`rum:PutRumEvents` on the AppMonitor ARN), the entire pool becomes the unauthenticated AWS-credential vending machine described in `cloud-iam-deep` → Cognito Identity Pool chain.
+
+### Detection — JS bundle fingerprints
+
+**Snippet-style (most common, embedded in `<head>`):**
+```javascript
+(function(n,i,v,r,s,c,x,z){...})(
+  'cwr',
+  '00000000-0000-0000-0000-000000000000',                       // applicationId (UUID)
+  '1.0.0',
+  'us-east-1',
+  'https://client.rum.us-east-1.amazonaws.com/1.x/cwr.js',
+  {
+    sessionSampleRate: 1,
+    guestRoleArn: "arn:aws:iam::123456789012:role/RUM-Monitor-...-Unauth",
+    identityPoolId: "us-east-1:abcd1234-...",
+    endpoint: "https://dataplane.rum.us-east-1.amazonaws.com",
+    telemetries: ["errors","performance","http"]
+  }
+);
+```
+
+**NPM-style (aws-rum-web package):**
+```javascript
+import { AwsRum, AwsRumConfig } from 'aws-rum-web';
+const config: AwsRumConfig = { identityPoolId, endpoint, guestRoleArn, ... };
+const awsRum = new AwsRum(APPLICATION_ID, '1.0.0', AWS_REGION, config);
+```
+
+### Regex set for recon
+
+```bash
+# Detect RUM init
+grep -REn "cwr\(['\"]init['\"]|from\s+['\"]aws-rum-web['\"]|new\s+AwsRum\(" .
+
+# Extract applicationId (UUID v4)
+grep -ErohE "applicationId['\"]?\s*[:=]\s*['\"]([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})['\"]" .
+
+# Extract identityPoolId (region:UUID)
+grep -ErohE "identityPoolId['\"]?\s*[:=]\s*['\"]([a-z]{2}-[a-z]+-[0-9]+:[0-9a-f-]{36})['\"]" .
+
+# Extract guestRoleArn (leaks AWS account ID + role name)
+grep -ErohE "guestRoleArn['\"]?\s*[:=]\s*['\"]arn:aws:iam::[0-9]{12}:role/[A-Za-z0-9._/-]+['\"]" .
+
+# Endpoint reveals region
+grep -ErohE "dataplane\.rum\.[a-z0-9-]+\.amazonaws\.com" .
+```
+
+### Severity rubric
+
+| Finding | Severity | Justification |
+|---|---|---|
+| `guestRoleArn` with `*:*` or wildcards on multiple services | **Critical** (9.1+) | Anonymous full AWS access |
+| `guestRoleArn` with `s3:*`, `dynamodb:*`, `secretsmanager:*`, `lambda:Invoke*` on production resources | **High** (7.5-8.8) | Data exfil / RCE depending on resource |
+| `guestRoleArn` with `cognito-identity:*` or `iam:PassRole` | **High** (8.0) | Privilege escalation primitive |
+| `guestRoleArn` with only `rum:PutRumEvents` + endpoint-scoped resource | **Informational** | Documented, intended config |
+| RUM `userDetails` logging PII into events viewable in CloudWatch console | **Medium** (5.3-6.5) | Sensitive data exposure via dashboard sharing |
+| RUM AppMonitor accepts `PutRumEvents` from arbitrary internet sources (telemetry injection) | **Low-Medium** (4.3) | Dashboard poisoning, alert evasion, billing DoS |
+| Self-hosted `cwr.js` on takeoverable subdomain | **Critical** (9.8) when chained | Persistent stored XSS across every customer page |
+
+### Disclosed cases / authoritative writeups
+
+No CVE assigned specifically to AWS RUM as of 2026-05. The attack class is documented in research but specific named bug-bounty payouts on RUM are rare in public hacktivity. The pattern is "Cognito identity pool over-permission via embedded SDK" — RUM is one common embedding.
+
+- **Andres Riancho — "Misconfigured Cognito Identity Pools" (2020/2023)** — establishes the attack class. [andresriancho.com](https://andresriancho.com/identity-pools-and-the-default-iam-role-trap/)
+- **Rhino Security Labs — Pacu `cognito__enum_identity_pools`** — production tooling that automates Chain A. [github.com/RhinoSecurityLabs/pacu](https://github.com/RhinoSecurityLabs/pacu)
+- **NotSoSecure / Claranet — "Exploiting weak configurations in Amazon Cognito" (Nov 2023)** — explicitly calls out RUM as one of three SDKs commonly leaking the pool ID. [notsosecure.com](https://www.notsosecure.com/exploiting-weak-configurations-in-amazon-cognito/)
+- **HackTricks Cloud — `aws-cognito-unauthenticated-enum`** — canonical playbook. [cloud.hacktricks.wiki](https://cloud.hacktricks.wiki/en/pentesting-cloud/aws-security/aws-unauthenticated-enum-access/aws-cognito-unauthenticated-enum.html)
+- **Datadog Security Labs — "Following AWS Logs Backwards: Cognito Identity Pool Abuse" (2024)** — telemetry showing real-world abuse rates. [securitylabs.datadoghq.com](https://securitylabs.datadoghq.com/articles/abusing-aws-cognito-misconfigurations/)
+- **aws-observability/aws-rum-web GitHub issues #213, #404** — community discussion of the bundled-snippet security model. [github.com/aws-observability/aws-rum-web](https://github.com/aws-observability/aws-rum-web/issues)
+
 ## Source skills merged into this topic
 
 - `hunting` — `cloud-misconfig`
 - `research` — `hunt-cloud-misconfig`
 - `cbh` — `hunt-cloud-misconfig`
 
-## References
+## Provenance
 
-- `references/unified-method.md` — complete deduplicated union of all upstream sections
-- `references/upstream-*.md` — full original SKILL.md from each contributing repo
+- `references/unified-method.md` — same deduplicated union as this file, for tooling
+- `references/upstream-*.md` — unmodified original SKILL.md from each repo
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

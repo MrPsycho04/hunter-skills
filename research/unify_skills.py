@@ -21,6 +21,7 @@ import json
 import os
 import re
 import shutil
+import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -89,6 +90,9 @@ ALIASES = {
     "supply-chain-attack-recon": "supply-chain-attack-recon",
     "offensive-osint": "offensive-osint", "osint-methodology": "osint-methodology",
     "recon-scope-triage": "recon-scope-triage", "web2-recon": "web2-recon",
+    "offensive-osint": "recon", "osint-methodology": "recon", "js-collect": "recon",
+    "web2-recon-alias": "recon", "source-leak": "recon", "shadow-api": "recon",
+    "hunt-chains": "chains", "chains": "chains", "chain": "chains",
     "js-collect": "js-collect", "js-analyze": "js-analyze", "js-sinks": "js-analyze",
     "security-arsenal": "security-arsenal", "bb-local-toolkit": "bb-local-toolkit",
     "redteam-mindset": "redteam-mindset", "redteam-report-template": "redteam-report-template",
@@ -108,6 +112,8 @@ spec.loader.exec_module(cm)
 CLASS_META = cm.CLASSES
 with open(os.path.join(HERE, "class_digest.json")) as f:
     DIGEST = json.load(f)
+sys.path.insert(0, os.path.expanduser("~/.local/share/hackerone-reports"))
+from payloads import PAYLOAD_BANK
 
 PHASE = {
     "methodology": ("Bug-bounty methodology orchestrator",
@@ -396,100 +402,111 @@ def build_skill(slug, sources):
     with open(os.path.join(d, "references", "unified-method.md"), "w") as f:
         f.write("\n".join(unified))
 
-    # SKILL.md — unified view, concise but complete, with pointers to full detail.
+    # SKILL.md — the COMPLETE merged skill. No truncation: every technique,
+    # methodology, payload, bypass, case study and wordlist lives in this file.
     desc = description_for(slug, sources)
-    is_class = slug in CLASS_META
+    is_class = CLASS_META[slug] if slug in CLASS_META else None
     parts = [
         "---\n", f"name: bbhunt-{slug}\n", f"description: {json.dumps(desc)}\n",
         "agent_created: true\n", "---\n\n",
-        f"# {title_for(slug)} — unified methodology\n\n",
-        f"> **Unified skill.** Built from {len(sources)} upstream skills across "
+        f"# {title_for(slug)} — unified skill\n\n",
+        f"> **Complete merged skill.** Everything from {len(sources)} upstream skills across "
         + ", ".join(sorted({s['src'] for s in sources}))
-        + (" and the local HackerOne corpus." if is_class else ".")
-        + " Full originals are in `references/upstream-*.md`; the deduplicated union is in "
-          "`references/unified-method.md`.\n\n",
+        + (" and the local HackerOne corpus is contained in this file."
+           if is_class else " is contained in this file.")
+        + " Unmodified originals remain in `references/` for provenance only.\n\n",
     ]
     if is_class:
-        n = CLASS_META[slug]
+        n = is_class
         cd = DIGEST[slug]
         paid_pct = round(100.0 * cd["paid_reports"] / max(1, cd["valid_reports"]))
         parts += [
-            f"## Corpus evidence ({cd['valid_reports']} valid reports, "
-            f"{cd['paid_reports']} paid / {paid_pct}%)\n\n",
-            "Payment is not validity — zero-bounty disclosures are mined as evidence too.\n\n",
-            "### Techniques ranked across ALL valid writeups\n\n",
+            f"## Corpus evidence — {cd['valid_reports']} valid HackerOne reports "
+            f"({cd['paid_reports']} paid / {paid_pct}%)\n\n",
+            "Every disclosed report is valid; payment is an impact signal, not a validity test.\n\n",
+            "### Techniques ranked across ALL valid reports\n\n",
             "| Technique | Reports |\n|---|---:|\n",
-            "".join(f"| {k} | {v} |\n" for k, v in cd["techniques"][:10]),
-            "\n### Parameters observed\n\n",
-            ", ".join(f"`{p}`" for p, _ in cd["parameters"][:15]) + "\n\n",
-            "### Case studies (real reports, paid and unpaid)\n\n",
-            "".join(
-                f"- [{c['id']}](https://{c['url']}) {c['program']} — {c['title']} "
-                f"({'no bounty — still valid' if not c['bounty'] else '$%d' % float(c['bounty'])}, "
-                f"{c['severity'] or 'severity n/a'})\n"
-                for c in cd["case_studies"][:3]
-            ) + "\n",
-            "Full payload bank, bypass frequencies, approach patterns and case-study excerpts: "
-            "`references/evidence.md`.\n\n",
+            "".join(f"| {k} | {v} |\n" for k, v in cd["techniques"]),
+            "\n### Parameters observed in writeups\n\n",
+            ", ".join(f"`{p}` ({c})" for p, c in cd["parameters"]) + "\n\n",
+            "### Bypass primitives observed\n\n",
+            ", ".join(f"`{k}` ({v})" for k, v in cd["bypasses"]) + "\n\n",
+            "### Impact language observed\n\n",
+            ", ".join(f"`{k}` ({v})" for k, v in cd["impacts"]) + "\n\n",
+            "### Case studies — full excerpts (paid and unpaid)\n\n",
+        ]
+        for c in cd["case_studies"]:
+            money = f"${float(c['bounty']):.0f}" if c["bounty"] else "no bounty — still valid"
+            parts += [
+                f"#### [{c['id']}](https://{c['url']}) — {c['title']}\n\n",
+                f"{c['program']} · {money} · {c['severity'] or 'severity n/a'}\n\n",
+                c["excerpt"] + "\n\n",
+            ]
+        parts += [
+            "### Recurring approach patterns from real reports\n\n",
+            "".join(f"- {a['count']}× {a['phrase']}\n" for a in cd["approach_patterns"]) + "\n",
             "## Corpus-backed method (this class)\n\n",
             "\n".join(f"{i+1}. {s}" for i, s in enumerate(n["steps"])) + "\n\n",
             "### Signals\n\n" + "\n".join(f"- {s}" for s in n["signals"]) + "\n\n",
             "### Kill criteria\n\n" + "\n".join(f"- {s}" for s in n["kill"]) + "\n\n",
             "### Escalation chains\n\n" + "\n".join(f"- {s}" for s in n["chains"]) + "\n\n",
+            "### Probes\n\n" + "\n".join(f"- {s}" for s in n["probes"]) + "\n\n",
             "### Veteran tip\n\n" + n["tip"] + "\n\n",
         ]
-    parts += [
-        "## Unified upstream methodology (deduplicated)\n\n",
-    ]
-    for key in ("method", "signals", "techniques", "validation", "chains", "tools"):
+    # Include ALL deduplicated upstream blocks, in full — no truncation.
+    parts += ["## Unified upstream methodology (complete, deduplicated)\n\n"]
+    all_keys = ("method", "signals", "techniques", "validation", "chains", "tools",
+                "cases", "sources", "other")
+    for key in all_keys:
         blocks = dedup_blocks(buckets[key])
         if not blocks:
             continue
-        parts += [f"### {labels[key]}\n\n"]
-        # Keep SKILL.md lean: include up to 6 blocks, full set is in references.
-        for b in blocks[:6]:
-            parts.append(b[:1600] + "\n\n")
-        if len(blocks) > 6:
-            parts.append(f"_...and {len(blocks)-6} more sections in `references/unified-method.md`._\n\n")
+        parts += [f"### {labels[key]}\n\n", "\n\n".join(blocks), "\n\n"]
+    if companion_blocks:
+        parts += [
+            "## Companion methodology (complete, deduplicated)\n\n",
+            "Full text of every non-SKILL.md methodology document from the contributing skills.\n\n",
+            "\n\n".join(dedup_blocks(companion_blocks)), "\n\n",
+        ]
+    # Inline the corpus payload bank from the corpus's curated payloads.py.
+    bank = PAYLOAD_BANK.get(slug, [])
+    if bank:
+        parts += ["## Corpus payload bank (curated)\n\n"]
+        for group, payloads in bank:
+            parts += [f"### {group}\n\n```text\n", "\n".join(payloads), "\n```\n\n"]
+    # Inline the mined wordlists.
+    wl_dir = os.path.join(d, "references", "corpus-wordlists")
+    if os.path.isdir(wl_dir):
+        parts += ["## Corpus wordlists (mined)\n\n"]
+        for wf in sorted(glob.glob(os.path.join(wl_dir, "*"))):
+            parts += [f"### `{os.path.basename(wf)}`\n\n```text\n",
+                      open(wf, errors="ignore").read().strip(), "\n```\n\n"]
     parts += [
         "## Source skills merged into this topic\n\n",
         "\n".join(f"- `{s['src']}` — `{s['name']}`" for s in sources) + "\n\n",
-        "## References\n\n",
-        "- `references/unified-method.md` — complete deduplicated union of all upstream sections\n",
-        "- `references/upstream-*.md` — full original SKILL.md from each contributing repo\n",
-    ]
-    if companions:
-        parts.append(
-            f"- `references/upstream-assets/` — {companions} companion files (payload/technique "
-            "references, scripts, validators and schemas) from the contributing skills\n"
-        )
-    if companion_blocks:
-        parts.append(f"- `references/unified-method.md` — includes {len(companion_blocks)} merged "
-                     "companion methodology documents\n")
-    if wordlists:
-        parts.append(f"- `references/corpus-wordlists/` — {wordlists} mined paths/params/payload lists "
-                     "from the HackerOne corpus\n")
-    parts.append("- `../../upstream/` — complete unmodified archives of all five source repositories\n")
-    if is_class:
-        parts.append("- `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank\n")
-    parts += [
+        "## Provenance\n\n",
+        "- `references/unified-method.md` — same deduplicated union as this file, for tooling\n",
+        "- `references/upstream-*.md` — unmodified original SKILL.md from each repo\n",
+        f"- `references/upstream-assets/` — {companions} companion files\n" if companions else "",
+        "- `../../upstream/` — complete unmodified archives of all five source repositories\n",
         "- `bbhunt-methodology` — orchestrator, state machine and class router\n",
     ]
     skill_md = os.path.join(d, "SKILL.md")
     if slug in PRESERVE and os.path.exists(skill_md):
-        # Keep the hand-authored orchestrator/phase SKILL.md intact; append a
-        # short pointer to the newly merged upstream references.
-        existing = open(skill_md).read()
-        if "references/unified-method.md" not in existing:
-            pointer = (
-                "\n## Unified upstream methodology\n\n"
-                f"All {len(sources)} contributing upstream skills from "
-                + ", ".join(sorted({s['src'] for s in sources}))
-                + " are merged and deduplicated in `references/unified-method.md`; "
-                  "full originals are preserved as `references/upstream-*.md`.\n"
-            )
+        # Keep the hand-authored orchestration section, then append the FULL
+        # deduplicated upstream union so the skill itself contains everything.
+        authored = open(skill_md).read()
+        marker = "## Complete merged upstream methodology"
+        if marker in authored:
+            authored = authored.split(marker)[0].rstrip()
+        union_text = open(os.path.join(d, "references", "unified-method.md")).read().strip()
+        body = union_text.split("\n", 1)[1] if "\n" in union_text else ""
+        if len(body) > 100:
             with open(skill_md, "w") as f:
-                f.write(existing.rstrip() + "\n" + pointer)
+                f.write(authored + "\n\n" + marker + "\n\n"
+                        "Full deduplicated methodology merged from all contributing upstream skills. "
+                        "The authored orchestration instructions above remain authoritative where they conflict.\n\n"
+                        + body + "\n")
     else:
         with open(skill_md, "w") as f:
             f.write("".join(parts))

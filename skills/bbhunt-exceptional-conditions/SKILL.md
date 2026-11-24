@@ -4,11 +4,11 @@ description: "Feed malformed, unexpected input to make an endpoint fail open or 
 agent_created: true
 ---
 
-# Exceptional-condition mishandling — unified methodology
+# Exceptional-condition mishandling — unified skill
 
-> **Unified skill.** Built from 2 upstream skills across cbh, hunting. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
+> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
 
-## Unified upstream methodology (deduplicated)
+## Unified upstream methodology (complete, deduplicated)
 
 ### Discovery and hunting method
 
@@ -29,7 +29,12 @@ agent_created: true
    - CWE-396 / CWE-397 — catch/throw generic exception; CWE-460 — improper cleanup on thrown exception
    - CWE-476 — NULL pointer dereference; CWE-478 / CWE-484 — missing default case / omitted `break` in switch
    - CWE-636 — not failing securely ("failing open"); CWE-703 / CWE-754 / CWE-755 / CWE-756 — improper check/handling, missing custom error page
-3. **Add these probes to the type-fuzzing list:** omit a required parameter entirely; add an unexpected ex
+3. **Add these probes to the type-fuzzing list:** omit a required parameter entirely; add an unexpected extra parameter; send `null`, `[]`, `{}`; send `0` or a negative number to any field used as a divisor (CWE-369); send an unexpected status/return value from an upstream service; force a generic-catch path (CWE-396); trigger cleanup-failure (CWE-460).
+4. **Hunt debug-mode indicators.** `?debug=true`, `?test=1`, `X-Debug: 1`, `/debug`, `/actuator`, `trace.axd`, `elmah.axd`, `APP_DEBUG=true`, framework default error pages. PortSwigger's "Information disclosure in error messages" lab: an unexpected data type → full stack trace → Apache Struts 2 2.3.31 disclosed. That version string then arms targeted CVE selection.
+5. **Look beyond the response body to *state*.** OWASP scenario #3: a multi-step transaction (debit → credit → log) interrupted mid-flight that does not roll back (fails open) → drained account or double-send. OWASP scenario #1: exceptions during file upload that don't release resources → resource exhaustion/DoS. These are fail-open findings, not disclosure findings, and can be High/Critical.
+6. **Check the environment-dependent error paths.** Memory pressure, network timeouts, permission denial, and missing optional services often have completely different (and unhandled) error handling than the happy path. Force upstream failures via invalid credentials/hosts where in scope.
+7. **Look at error-handling *consistency*, not just individual endpoints.** OWASP explicitly recommends centralized handling and a global exception handler because "one application should not [have] multiple functions for handling exceptional conditions." In practice that means fuzz the same malformed input across many endpoints: the one that returns a different, verbose shape is where the global handler was bypassed.
+8. **Check rate/resource limits on the error path itself.** OWASP's prevention guidance calls for rate limiting, quotas, and throttling so exceptional conditions are not trivially reachable at scale. An error page that is both verbose *and* unthrottled is a cheap reconnaissance primitive — and repeated identical errors can be collapsed into statistics rather than echoed verbatim.
 
 ### Signals and surfaces
 
@@ -56,7 +61,8 @@ finding — that's correct handling. Disclosure of internal structure is.
 3. **Type-confusion into ORM internals.** Send an object where a scalar is expected (`{"quantity":{}}`, `{"rating":"x","comment":[1,2,3]}`); a `SequelizeDatabaseError` or `SQLException` response often discloses table names, column names, and the query fragment — directly reusable for SQLi.
 4. **CWE-636 fail-open probe.** On any authorization or payment step, trigger an exception *after* the auth decision but *before* the state change: does the error path default to allow, or does it roll back and deny? Example shape: send a valid token plus a malformed body that throws during deserialization — check whether the action still executes.
 5. **State-corruption / rollback test.** For a multi-step operation, interrupt it mid-flight (drop the connection, force a 500 on step 2, or race two requests) and query final state. A partial commit = fail-open state corruption (OWASP scenario #3), not a mere verbose error.
-6. **Error-page fingerprinting chain.** Capture framework/version from the stack trace,
+6. **Error-page fingerprinting chain.** Capture framework/version from the stack trace, then map to known CVEs. A disclosed absolute path also enables `path-traversal`; a disclosed ORM enables `sqli`; a disclosed deserialization stack enables `deserialization`. Always attempt the chain before writing up disclosure alone.
+7. **Resource-exhaustion check.** Repeat an erroring request that allocates resources (upload, image processing); watch for leaked locks/handles and eventual DoS (OWASP scenario #1). Pair this with the OWASP prevention advice to add quotas and throttling — the absence of both is what turns a handled error into an availability bug.
 
 ### Validation and proof
 
@@ -86,14 +92,72 @@ finding — that's correct handling. Disclosure of internal structure is.
 - Note what the leak enables next (e.g. a disclosed SQL error → hunt-sqli; a
   disclosed absolute path → hunt-lfi).
 
+### Sources and related reading
+
+### D. Sources — numbered list of URLs you actually fetched
+
+1. https://top10.owasp.org/2025/A10_2025-Mishandling_of_Exceptional_Conditions/ (official A10:2025 page — 24 CWEs, score table, three failings, prevention, scenarios #1–#3; webfetched)
+2. https://portswigger.net/web-security/information-disclosure/exploiting/lab-infoleak-in-error-messages (unexpected data type → stack trace → Apache Struts 2 2.3.31 disclosure)
+3. https://cwe.mitre.org/data/definitions/209.html (CWE-209: Generation of Error Message Containing Sensitive Information)
+4. https://nhimg.org/owasp-top-10-a10-guide (A10:2025 as reconnaissance, CWE-209/CWE-550, error messages as recon)
+5. https://www.raventek.com/exception-handling-for-federal-application-security/ (fail-open/default-allow, raw stack trace, debug mode, key technical weaknesses)
+6. https://www.invicti.com/web-application-vulnerabilities/stack-trace-disclosure-java (disable debug mode in production, custom error pages)
+
+### Additional notes
+
+### What actually pays
+
+Well-built apps catch errors and return a clean, generic message. A broken app,
+when handed input it didn't expect, throws an unhandled exception and renders a
+**developer error page** straight to the client — leaking the stack trace, the
+ORM/query internals, server-side file paths, and framework/library versions.
+That disclosure is the finding (and it arms SQLi/RCE/path attacks next).
+
+### Recon
+
+Any endpoint that parses input is a candidate; the richest are:
+
+```
+JSON APIs that expect typed fields:  POST /api/* with {numbers, ids, enums}
+Endpoints with numeric/id path or query params:  /item/{id}, ?page=, ?quantity=
+Search / filter / sort params
+File or content-type sensitive uploads
+```
+
+### Attack — send what the code didn't anticipate
+
+Take a known-good request and break ONE assumption at a time:
+
+- **Wrong type:** a field the app expects to be a number/string is sent as an
+  array or object — `{"rating":"x","comment":[1,2,3]}`, `{"quantity":{}}`.
+- **Malformed body:** truncated/!invalid JSON, an unterminated string, a stray
+  brace, a wrong/missing Content-Type.
+- **Boundary/oversized:** a very long string, a huge/negative/overflow number.
+- **Null byte / control chars** embedded in a value.
+
+```
+POST /api/Feedbacks   {"rating":"notanumber","comment":[1,2,3]}
+GET  /item/' OR /item/%00   (also exercises the error path)
+```
+
+Watch the RESPONSE BODY, not just the status: a 500 (or even a 200/400) whose
+body contains a stack trace or framework error page is the signal.
+
+### Cross-skill routing for exceptional-condition findings
+
+- **Stack trace / ORM / path / version disclosed** → `info-disclosure`, then chain to `sqli` / `path-traversal` / `deserialization` where the leaked artifact enables it.
+- **Error path defaults to allow, or a transaction partially commits** → `authz-bypass` / `fintech-graphql` / `race-condition` (fail-open state corruption is usually the higher-severity finding).
+- **Oversized/unterminated input crashes a native parser** → `memory-corruption`; **oversized input exhausts a managed runtime** → `dos`.
+- **A missing parameter changes a security decision** (e.g. omitting a role or scope field) → `api-misconfig` mass-assignment / `authz-bypass`.
+
 ## Source skills merged into this topic
 
 - `hunting` — `exceptional-conditions`
 - `cbh` — `hunt-exceptional-conditions`
 
-## References
+## Provenance
 
-- `references/unified-method.md` — complete deduplicated union of all upstream sections
-- `references/upstream-*.md` — full original SKILL.md from each contributing repo
+- `references/unified-method.md` — same deduplicated union as this file, for tooling
+- `references/upstream-*.md` — unmodified original SKILL.md from each repo
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

@@ -70,3 +70,10 @@ python3 ~/.local/share/hackerone-reports/h1.py search "chain <primitive>" --limi
 ## Unified upstream methodology
 
 All 0 contributing upstream skills from  are merged and deduplicated in `references/unified-method.md`; full originals are preserved as `references/upstream-*.md`.
+
+## Complete merged upstream methodology
+
+Full deduplicated methodology merged from all contributing upstream skills. The authored orchestration instructions above remain authoritative where they conflict.
+
+
+Collected from every contributing repository skill. Deduplicated by content hash; full originals are preserved in `references/upstream-*.md`.

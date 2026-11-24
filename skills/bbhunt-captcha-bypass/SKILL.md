@@ -4,11 +4,11 @@ description: "Hunt omitted fields, replayed tokens, predictable solutions and cl
 agent_created: true
 ---
 
-# CAPTCHA bypass hunting — unified methodology
+# CAPTCHA bypass hunting — unified skill
 
-> **Unified skill.** Built from 2 upstream skills across cbh, hunting. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
+> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
 
-## Unified upstream methodology (deduplicated)
+## Unified upstream methodology (complete, deduplicated)
 
 ### Discovery and hunting method
 
@@ -38,7 +38,28 @@ Some apps validate field presence but not content.
 **Pattern 4 — Test without CAPTCHA on similar endpoints:**
 Some apps add CAPTCHA to the registration form but forget the password reset, API endpoint, or mobile API path (`/api/register` vs `/register`). Try the same action via the API path without any CAPTCHA field.
 
-**Pattern 5 — Rate/throughpu
+**Pattern 5 — Rate/throughput-gated "prove you're automated" challenges:**
+Some apps define CAPTCHA "bypass" as simply exceeding the rate a human could plausibly sustain —
+e.g. "N submissions within T seconds" — checked by a middleware that counts REQUESTS REACHING the
+route, not successful outcomes. Garbage/placeholder payloads satisfy this exactly as well as valid
+ones, since the counter increments regardless of whether the request's own validation passes.
+
+**Timing note (sliding-window counters):** don't solve this one request at a time — a sequential
+pace (seconds between each request) structurally cannot land N requests inside a short sliding
+window, and issuing more requests serially does not fix it. A typical failing pattern is 12
+requests spread across ~250 seconds when the check requires ~10 requests within 20 seconds.
+Instead fire the requests **concurrently** (e.g. `"concurrency": N` on a single request call, or
+any parallel-request primitive your tooling offers, with N >= the required count) so they arrive
+simultaneously and satisfy the sliding window trivially. Check the endpoint's own
+required-field validation first (e.g. a `rating` field that can't be null) so the concurrent
+payload is at least well-formed enough to reach the counting middleware, even if other fields
+(like the CAPTCHA answer itself) are wrong or reused.
+
+**What to skip in automated testing:** Solving real reCAPTCHA/hCaptcha programmatically (OCR, audio bypass) requires external services. Only attempt if patterns 1-4 fail and the test budget allows.
+
+**Proof:** Any successful state-changing action (account created, login succeeded, form submitted) that completed without a valid CAPTCHA token confirms the bypass.
+
+---
 
 ### Web-Research Methodology Additions (2026)
 
@@ -53,7 +74,19 @@ Research basis: HackTricks "Captcha Bypass" and PortSwigger Research "Cracking r
 - **Method/format surface:** POST→GET or other verbs; `application/x-www-form-urlencoded` → JSON → multipart. A validator written for one parser often silently skips the others.
 - **Counter mechanics:** does a normal application flow (reloading the form, changing a cookie, logging in) reset the attempt counter? Is the counter keyed to IP, session, or a device id?
 - **Custom-captcha families:** math captchas, finite image sets (count unique images and fingerprint by MD5), text captchas with a small answer space; also the audio/accessibility option.
-- **Tooling signals:** Tesseract for character challenges, speech-to-text for audio, OWASP WS
+- **Tooling signals:** Tesseract for character challenges, speech-to-text for audio, OWASP WSTG "Testing for Weak Lock Out Mechanism" for the canonical CAPTCHA test cases.
+
+- **Baseline capture:** save one full successful request with a valid token — status, body, headers, resulting state — as the comparison point for every manipulation.
+- **Token lifecycle:** note issue time, expiry, endpoint(s) accepted on, and whether the response sets/consumes a cookie; these define the four bindings.
+- **Widget-specific fields:** Turnstile (`cf-turnstile-response`), hCaptcha (`h-captcha-response`), reCAPTCHA v3 (`g-recaptcha-response` + `action`/`score`) — v3 score thresholds can be gamed by replaying a high-score token.
+- **Where the challenge is enforced:** CDN/WAF layer vs application layer. A WAF-level challenge may be bypassable by reaching origin directly; an app-level check needs a token the app trusts.
+- **Downgrade paths:** switch from the hardened client (browser SDK) to a plain HTTP client; many integrations only verify the widget's JS gating.
+- **Second-order surface:** any endpoint consuming the same token type (contact form and newsletter signup, e.g.) — cross-endpoint reuse is a distinct finding.
+- **Rate-limit interaction:** determine whether the CAPTCHA is the *only* gate. If removing it exposes an uncapped login/OTP endpoint, the impact is that chain, not "CAPTCHA bypass."
+- **Counter increments:** send a valid-but-wrong captcha value and confirm whether the failure counter still advances — this is the sliding-window condition in this skill.
+- **Audio path:** enumerate the audio challenge endpoint; it often has a far smaller answer set than the image variant.
+- **Cookie-bound challenges:** check whether the solution is stored in a cookie and merely echoed back — if so, forge the cookie.
+- **Multi-tenant reuse:** a token solved in tenant A accepted in tenant B.
 
 ### Techniques, payloads and bypasses
 
@@ -65,7 +98,9 @@ Research basis: HackTricks "Captcha Bypass" and PortSwigger Research "Cracking r
 - **Source/cookie extraction:** if the answer is present in the DOM or a cookie, read it programmatically and submit it with every request.
 - **Finite-set automation:** for image captchas, hash the image set and map to answers; for math captchas, evaluate the expression; OCR/STT where needed.
 - **Rotate the limiter key:** test-owned session IDs and source IPs, User-Agent/header rotation, and normal flows that reset the counter. Stay within the authorized scope.
-- **reCAPTCHA single-use race (second-order TOCTOU).** reCAPTCHA validation happens at the *target website → Google* hop, so the target can be made to race on your behalf. With Turbo Intruder last-byte synchronisation (gate + `openGate`), one solved token can be accepted several times — PortSwigger tripled Reddit registration rate with three concurrent uses. Impact: N× spam accounts and the ability to win races in thread-unsafe code that CAPTCHA was protecting. Defensive fix is to lock/synchronise o
+- **reCAPTCHA single-use race (second-order TOCTOU).** reCAPTCHA validation happens at the *target website → Google* hop, so the target can be made to race on your behalf. With Turbo Intruder last-byte synchronisation (gate + `openGate`), one solved token can be accepted several times — PortSwigger tripled Reddit registration rate with three concurrent uses. Impact: N× spam accounts and the ability to win races in thread-unsafe code that CAPTCHA was protecting. Defensive fix is to lock/synchronise on the `g-recaptcha-response` token.
+- **Sliding-window concurrency:** if the gate is "N requests in T seconds," fire N concurrently (see the existing timing note) — garbage placeholder values count because the counter increments regardless of the request's own validation result.
+- **Third-party solvers** (e.g. CapSolver-style APIs) are a last resort and must be treated as data processors: only in-scope challenges, no sensitive screenshots or production tokens.
 
 ### Validation and proof
 
@@ -84,7 +119,12 @@ JavaScript hides/disables the submit button until CAPTCHA is solved, but the ser
 - **Baseline diff:** every "bypass" must be compared against a request with a valid token AND one with a deliberately invalid token — a three-way diff removes ambiguity.
 - **Server-side proof:** remove the token in Burp Repeater (not by disabling JS in the browser) — if it still succeeds, the check is truly absent server-side.
 - **Reuse proof:** show the *same* token string accepted twice with two different payloads; log only a token prefix in the report, not the full secret.
-- **Action-binding proof:** a token solved on `/re
+- **Action-binding proof:** a token solved on `/register` succeeding on `/reset` is the finding — capture both requests.
+- **Hard-lock case:** if the server rejects token reuse, report only the omitted/empty-field variant if that succeeds; do not claim replay.
+- **Effect on other users:** a bypass that only lets you spam yourself is informational; show it reaches another account or a shared resource.
+- **Response-time check:** a server that always returns 200 but silently drops the action is the CAPTCHA analogue of shadow-throttling; verify the state actually changed.
+- **No solved token needed:** if omitting the field works, say so explicitly — it strengthens the finding.
+- **Scope hygiene:** note in the report that external solver services were not used (or only on in-scope challenges), so evidence stays reproducible.
 
 ### Escalation and related chains
 
@@ -124,14 +164,41 @@ CAPTCHA bypass + password reset = **token flooding** → chain with `hunt-forgot
 - **`hunt-forgot-password`** — reset endpoints sometimes protected by CAPTCHA only
 - **`hunt-race-condition`** — race the CAPTCHA validation window (submit before the token is revoked)
 
+### Sources and related reading
+
+### D. Sources — numbered list of URLs you actually fetched
+
+1. https://hacktricks.wiki/en/pentesting-web/captcha-bypass.html
+2. https://portswigger.net/research/cracking-recaptcha-turbo-intruder-style
+
+### Additional notes
+
+### 2. CAPTCHA Not Tied to Session or Action
+
+A token solved for login is accepted on the registration endpoint (or any other). The server validates "is this a real CAPTCHA solution?" but not "is this the right solution for THIS action?".
+
+### 3. Single-Use Not Enforced
+
+CAPTCHA tokens (especially reCAPTCHA v2) are meant to be consumed after one use. If the server doesn't revoke them after verification, a single human-solved token becomes reusable for many requests.
+
+### 4. CAPTCHA Added Reactively (Only After N Failures)
+
+Some apps only show CAPTCHA after 3-5 failed login attempts. Before that threshold, no CAPTCHA is required → an attacker can make N-1 attempts per account indefinitely by resetting state between attempts.
+
+### 5. Static or Predictable CAPTCHA
+
+Math CAPTCHAs (`3 + 4 = ?`), simple image CAPTCHAs, or text CAPTCHAs with a finite answer set can be automated. These are custom CAPTCHA implementations, not Google/hCaptcha.
+
+---
+
 ## Source skills merged into this topic
 
 - `hunting` — `captcha-bypass`
 - `cbh` — `hunt-captcha-bypass`
 
-## References
+## Provenance
 
-- `references/unified-method.md` — complete deduplicated union of all upstream sections
-- `references/upstream-*.md` — full original SKILL.md from each contributing repo
+- `references/unified-method.md` — same deduplicated union as this file, for tooling
+- `references/upstream-*.md` — unmodified original SKILL.md from each repo
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

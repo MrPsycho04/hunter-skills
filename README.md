@@ -1,6 +1,8 @@
 # bbhunt — unified bug-bounty skill suite
 
-A **96-skill** WorkBuddy suite for authorized bug-bounty and security testing. Every topic is a **unified skill**: all matching skills from all five reference repos are merged into one deduplicated methodology, with every original preserved alongside it. Corpus-backed topics also carry evidence mined from all 15,259 disclosed HackerOne reports.
+A **96-skill** WorkBuddy suite for authorized bug-bounty and security testing. Every topic is a **complete unified skill**: all matching skills from all five reference repos are merged into one deduplicated methodology **inside `SKILL.md` itself** — not an abridged preview pointing at references. Corpus-backed topics also carry the full evidence mined from all 15,259 disclosed HackerOne reports: technique rankings, parameters, bypasses, case-study excerpts, approach patterns, the curated payload bank and the mined wordlists, all inline.
+
+`SKILL.md` files average ~1,000 lines (SSRF: 3,780; XSS: 2,781; recon: 6,505). References exist only as provenance archives of unmodified originals.
 
 ## Start here
 

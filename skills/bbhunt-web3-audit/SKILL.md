@@ -4,11 +4,11 @@ description: "Audit DeFi accounting, access control, oracles, reentrancy, flash 
 agent_created: true
 ---
 
-# Smart-contract security audit — unified methodology
+# Smart-contract security audit — unified skill
 
-> **Unified skill.** Built from 2 upstream skills across cbh, hunting. Full originals are in `references/upstream-*.md`; the deduplicated union is in `references/unified-method.md`.
+> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
 
-## Unified upstream methodology (deduplicated)
+## Unified upstream methodology (complete, deduplicated)
 
 ### Discovery and hunting method
 
@@ -20,7 +20,18 @@ agent_created: true
 
 1. **Reweight your effort using the 6-year data (Immunefi, 2026-04-27).** Total DeFi protocol losses fell ~80% from the 2022 peak ($2.62B) to $534M in 2024; 2025 rebounded to $680M but almost entirely from a handful of large incidents. Median loss per incident fell from $6M (2022) to $1.5M (2025). Crucially: **ecosystem-class attacks (flash-loan oracle manipulation, reentrancy) collapsed from ~19% of losses in 2022 to under 1% in 2025**; bridges fell 73%→3%; infrastructure failures 30.7%→10.3%. **89% of 2025 DeFi losses were protocol-logic exploits** — unique, application-specific flaws. Practical consequence: spend your time on bespoke logic and state-management bugs, not another generic flash-loan-oracle hunt.
 2. **Know where the big money moved instead.** Cross-chain messaging and custodial ops: KelpDAO April 2026 — **$292M** through a single-verifier LayerZero bridge configuration (47% of LayerZero apps used the same minimal verifier setup), with up to $230M bad debt on Aave and $13B TVL withdrawals in 48h. Bybit February 2025 — **$1.5B** multisig phishing. Exchanges took >$1.6B infrastructure-class losses in 2025. Drift Protocol (Solana, 2026) — $285M via a six-month North Korean social-engineering operation combining governance manipulation with oracle abuse. Audit verifier counts, peer validation, amount reconciliation, and governance/multisig operational procedures, not just Solidity.
-3. **Treat multi-chain deployment as its own risk class.** Balancer V2's **$128M** exploit (Nov 2025) hit E
+3. **Treat multi-chain deployment as its own risk class.** Balancer V2's **$128M** exploit (Nov 2025) hit Ethereum, Arbitrum, Base, Polygon, Sonic, and OP Mainnet simultaneously — the same protocol logic was exploitable everywhere it was deployed. If the code is replicated across chains, one bug = N chains.
+4. **Mine the 2025-2026 exploit catalog for concrete bug shapes** (DefiLlama hacks DB):
+   - *Donation / exchange-rate*: Tectonic **$124.47M** (Aug 2026) — 98 recursive ops built a leveraged position, then TONIC was transferred directly into the tTONIC contract twice without minting shares, inflating the exchange rate; price feed had no smoothing/circuit breaker. Yearn V1 TUSD $300K; Curve LlamaLend $240K (used `convertToAssets()` as spot price); Yearn Ether **$9M** from a 16-wei deposit — cached storage vars not reset at zero liquidity let the attacker mint 235 septillion yETH.
+   - *Rounding*: Balancer V2 $128M — rounding-down in `batchSwap` invariant compounding across rapid successive swaps; Bunni V2 $8.4M — withdrawal rounding let attackers withdraw more than entitled.
+   - *Oracle*: Solido Cash $900K — stale feed fell back to near-par CASH valuation while SOLID traded 22.2 SUPRA; Bonzo Lend $9.05M — $5 of SAUCE collateral, price inflated ~12 orders of magnitude in Supra's oracle; Rhea Lend $18.4M — attacker-created Ref Finance pools accepted as legitimate prices.
+   - *Access/initialization*: Rari Capital $2M — dormant Fuse pools exploited via unprotected proxy upgrade; SubQuery $134K — missing owner guard on Settings functions; Panoptic V1.1 — non-collision-resistant XOR position fingerprinting (hash collision) found before exploitation.
+   - *Reentrancy*: GMX V1 **$42M** — `executeDecreaseOrder()` assumed `_account` was an EOA; a contract reentered, inflated GLP price, and redeemed. Arcadia V2 $2.5M — unvalidated router address parameter + $1.5B Morpho Blue flash loan.
+   - *Cross-chain forgery*: Ankr — five forged withdrawal receipts referencing one already-redeemed deposit; Verus bridge — forged payload passed all crypto checks but lacked **amount reconciliation** ($10 in VRSC fees → $11.58M); GriffinAI — misconfigured LayerZero peer let attacker initialize a fake peer and mint 5B tokens.
+   - *Arithmetic/signature*: DeFiChain — overflow deducted 1 satoshi but credited full amounts (184B DFI minted); Atomic Green — signature replay; Gnosis Pay — ERC-1271 check that didn't validate contract-call success.
+5. **Check new protocol primitives.** OWASP **SC08:2026 Reentrancy** explicitly includes read-only reentrancy (view functions/oracles reading state mid-callback). **EIP-7702** (Pectra, 2025) lets an EOA delegate to contract code — new signature-replay/delegation primitives. **EIP-1153 transient storage** (`tload`/`tstore`) creates desync classes when reads are cached across external calls. **ERC-4337** paymaster sponsorship abuse and bundler griefing.
+6. **Audit decimals and token-standard assumptions at every boundary.** Ribbon (Dec 2025, $2.7M) came from an oracle upgrade creating an 8-vs-18 decimal mismatch with legacy assets plus a publicly callable price-setting function; LABUBU/OLPC (Jun 2026, $1.1M) came from a malicious `decimalsValue` parameter (7326680472586200649) that desynchronized cached reserves. Grep every `decimals()`, `10**decimals`, `convertToAssets`, and stored `decimalsValue` for cross-asset and cross-version mismatches.
+7. **Read the audit report's scope-exclusion section before diving.** The ZKsync lesson at the top of this file is about ROI, not impossibility: if the auditors explicitly excluded oracles, governance, off-chain components, frontend, or the admin path, those are the highest-yield places to look. An unexamined assumption that a feed is trustworthy is worth more than another reentrancy grep.
 
 ### Signals and surfaces
 
@@ -136,7 +147,12 @@ function withdraw(uint256 amount) external {
 2. **Rounding-drain test.** Call `batchSwap`/`withdraw` repeatedly with minimal amounts and assert cumulative reserve drift. Grep every `Math.mulDiv`, `*Div*`, and manual division for rounding direction — a round-*toward-user* in one path is the bug. Balancer/Bunni both died this way.
 3. **Oracle failover-chain audit.** Don't stop at the primary Chainlink feed: check staleness/heartbeat, the fallback path, secondary TWAP source, confidence-interval checks (Pyth `p.conf`), and whether a low-liquidity pool price is accepted. Solido Cash and Bonzo show the secondary/fallback path is the target.
 4. **Cross-chain dual-endpoint simulation.** Simulate BOTH endpoints and assert: peer/verifier configuration, signature validation, amount reconciliation across chains, replay protection, and withdrawal-deduplication. A payload passing all crypto checks can still be exploitable if amounts aren't reconciled (Verus).
-5. **Read-only reentrancy probe.** During a callback in another protocol, call a view function (`getPrice`, `convertToAssets`, `balanceOf`-based valuation) and check whether it returns an inconsistent i
+5. **Read-only reentrancy probe.** During a callback in another protocol, call a view function (`getPrice`, `convertToAssets`, `balanceOf`-based valuation) and check whether it returns an inconsistent intermediate state (Curve pattern).
+6. **Signature-replay matrix.** For every `ecrecover`/`ECDSA.recover`/ERC-1271 path, verify the signed hash includes nonce + `block.chainid` + contract address; test cross-chain, cross-delegation (EIP-7702), and "call success not checked" variants.
+7. **Invariant/fuzz tool stack (2026).** Foundry remains primary: `forge fuzz`, invariant tests, `forge coverage`, `forge inspect` for storage-layout audits; pair with Slither (static), Echidna (property fuzz), Mythril (symbolic) and Tenderly for mainnet-fork simulation. For Solana: Anchor, sealevel-attacks corpus, sec3. For Move: move-prover, `aptos move test`. For cross-chain: Hyperlane/LayerZero audit repos — simulate both endpoints.
+8. **Fork-and-replay.** Pin the pre-exploit block with `vm.createSelectFork`, load the target, fund accounts with `deal`, replay the exact exploit transaction via `vm.prank` from the attacker EOA, and assert the drained balance.
+9. **Cross-check your hypothesis against public post-mortems before writing the PoC.** The 2025-2026 incidents above are unusually well documented (Tectonic, Balancer V2, Yearn Ether, GMX V1, Arcadia, Verus). Compare your candidate root cause against those writeups: if it matches a known class, check whether the protocol already has the standard mitigation (TWAP, virtual shares, `nonReentrant`, lineage/amount reconciliation). If the mitigation is present, the real bug is usually in the *failover path* or a sibling function — which is exactly where the "read ALL sibling functions" rule at the top of this file earns its keep.
+10. **Trace every external call and its trust assumption.** Arcadia V2 (unvalidated router address), Hyperdrive (arbitrary router call), and dTRINITY (missing authorization in `swapLiquidity()` that used victims' prior approvals) all reduced to "an address parameter the caller controls reached an external call while the contract held value or approvals." Grep for `call`, `delegatecall`, `swap`, and router/admin address setters, then ask who can set that address and what the contract holds at that moment.
 
 ### Validation and proof
 
@@ -147,7 +163,8 @@ function withdraw(uint256 amount) external {
 3. **Avoid admin-malice findings.** Most Immunefi programs explicitly downgrade or reject findings that assume a malicious admin/centralization risk. Show the bug is exploitable by an *unprivileged* actor now.
 4. **Quantify economics.** Show net profit vs. capital and gas cost, and that the state change is deterministic from a clean fork state. Theoretical "could be exploited if X" without a runnable PoC is rejected.
 5. **Confabulation analogue: don't claim an exploit from a revert-only observation or a scanner finding.** Reentrancy/donation patterns are only findings when the PoC actually drains value or corrupts state. (True confabulation is an AI-class concern; here the equivalent failure is an unproven theoretical finding.)
-6. **Scope discipline.** Audit-report scope exclusions are where missed bugs live — check whether oracles, governance, off-chain components, frontend, or admin paths were explicitly NOT audited. Multisig >5 signers + timelock >48h = low rug risk, but that is not 
+6. **Scope discipline.** Audit-report scope exclusions are where missed bugs live — check whether oracles, governance, off-chain components, frontend, or admin paths were explicitly NOT audited. Multisig >5 signers + timelock >48h = low rug risk, but that is not the same as no logic bug.
+7. **Keep the source taxonomy honest.** Classify your finding as logic / oracle / access control / accounting / cross-chain — the Immunefi 2026 data says 89% of real losses are logic, so label accordingly rather than forcing it into a flash-loan template.
 
 ### Escalation and related chains
 
@@ -260,16 +277,462 @@ grep -rn "function deposit\|function mint\|function withdraw\|function redeem" c
 
 ---
 
-_...and 4 more sections in `references/unified-method.md`._
+### Grep Patterns
+
+```bash
+# External calls before state updates
+grep -rn "\.call{value\|safeTransfer\|transfer(" contracts/ -B10 | grep -v "require\|revert"
+
+# Missing nonReentrant modifier on critical functions
+grep -rn "function withdraw\|function redeem\|function claim" contracts/ -A2 | grep -v "nonReentrant"
+
+# Storage slot for reentrancy guard
+grep -rn "nonReentrant\|ReentrancyGuard\|_notEntered" contracts/
+```
+
+---
+
+### Grep Patterns
+
+```bash
+grep -rn "ecrecover\|ECDSA\.recover" contracts/ -B20
+# Check: does the signed hash include nonce + chainId + contract address?
+
+grep -rn "nonce\|_nonces\|nonces\[" contracts/
+```
+
+---
+
+### Grep Patterns
+
+```bash
+# UUPS initialization protection
+grep -rn "function initialize\b\|_disableInitializers\|initializer" contracts/
+
+# Delegate call
+grep -rn "delegatecall\b" contracts/ -B3 -A5
+
+# Storage layout — proxy uses EIP-1967 slots?
+grep -rn "0x360894\|EIP1967\|_IMPLEMENTATION_SLOT" contracts/
+```
+
+---
+
+### Tool stack for 2026
+
+Foundry remains the test framework. `forge test --gas-report --debug` for invariant testing; `forge fuzz` for property-based testing; `forge inspect` for storage-layout audits. Slither + Echidna for static + fuzz. Mythril for symbolic execution on smaller contracts. tenderly.co for forking + simulation (best UX for replicating attacks against mainnet state).
+
+For Solana: anchor framework, sealevel-attacks corpus (curated PoCs by anchor maintainers), soteria-sec / sec3 scanner. For Move (Aptos, Sui): move-prover, aptos-cli `aptos move test`.
+
+For cross-chain: hyperlane and LayerZero each have audit-tooling repos; bridge bugs require simulating both endpoints, not just one.
+
+### Sources and related reading
+
+### Bug D: Single-Source Oracle
+
+```solidity
+// VULNERABLE: only Uniswap spot price
+uint price = getUniswapSpotPrice(token);  // flash loan manipulatable
+
+// CORRECT: Chainlink primary, Uniswap TWAP as fallback, require close agreement
+```
+
+### D. Sources — numbered list of URLs you actually fetched
+
+1. https://immunefi.com/blog/research/the-ecosystem-vulnerability-scoreboard-6-years-of-defi-loss-data/ (6-year loss data, 89% protocol-logic 2025, <1% ecosystem-class, bridge 73%→3%, KelpDAO $292M, multi-chain risk; webfetched)
+2. https://defillama.com/hacks (2025–2026 exploit database: Tectonic, Balancer V2, Yearn Ether, Bonzo, GMX V1, Arcadia, Verus, DeFiChain, etc.)
+3. https://scs.owasp.org/sctop10/SC08-ReentrancyAttacks/ (OWASP Smart Contract Top 10 SC08:2026 incl. read-only reentrancy)
+4. https://defihacklabs.substack.com/p/in-depth-discussion-on-eip-7702-and (EIP-7702 delegation and new attack primitives)
+5. https://shattered.io/smart-contract-audit-tutorial-2026/ (2026 audit workflow, Foundry PoC patterns, vulnerability triage table)
+6. https://securelayer7.net/us/services/ethereum-smart-contract-audit (2026 scope: ERC-4337 paymasters, EIP-7702, ERC-4626, MEV-aware ordering, L2)
+
+### Additional notes
+
+### THE ONE RULE
+
+> "Read ALL sibling functions. If `vote()` has a modifier, check `poke()`, `reset()`, `harvest()`. The missing modifier on the sibling IS the bug."
+
+This single rule explains 19% of all Critical findings.
+
+---
+
+### 1. ACCOUNTING STATE DESYNCHRONIZATION
+
+> #1 Critical bug class — 28% of all Criticals on Immunefi.
+
+### What It Is
+
+Two state variables supposed to stay in sync. One code path updates A but forgets B. Later code reads both and makes decisions based on stale B.
+
+```
+Real Value = A - B
+If A updated but B isn't → Real Value appears larger → phantom value
+```
+
+### 2. ACCESS CONTROL
+
+> #2 Critical — 19% of Criticals. $953M lost in 2024 alone.
+
+### Variant 1: Missing Modifier on Sibling Function
+
+```solidity
+function vote(uint256 tokenId) external onlyNewEpoch(tokenId) {  // guarded
+function reset(uint256 tokenId) external onlyNewEpoch(tokenId) { // guarded
+function poke(uint256 tokenId) external {                         // NO GUARD → infinite FLUX inflation
+}
+```
+
+### Variant 2: Wrong Check (Existence vs Ownership)
+
+```solidity
+function split(uint256 tokenId, uint256 amount) external {
+    _requireOwned(tokenId);  // checks if token EXISTS, not if caller OWNS it
+    _burn(tokenId);
+    _mint(msg.sender, amount);  // attacker steals tokens they don't own
+}
+```
+
+### Variant 3: Silent Modifier (if vs require)
+
+```solidity
+// VULNERABLE — non-admin silently gets through:
+modifier onlyAdmin() {
+    if (msg.sender == admin) {
+        _;  // body only executes for admin, but non-admin doesn't revert
+    }
+}
+// CORRECT: require(msg.sender == admin, "Not admin"); _;
+```
+
+### Variant 4: Uninitialized Proxy
+
+```solidity
+function initialize(address _owner) public {  // MISSING: initializer modifier
+    owner = _owner;  // anyone can call → become owner
+}
+// Fix: constructor() { _disableInitializers(); }
+```
+
+### Real Paid Examples
+
+| Protocol | Payout | Bug |
+|---|---|---|
+| Wormhole | $10M | Uninitialized UUPS proxy → anyone calls initialize() |
+| ZeroLend | n/a | split() uses existence check, not ownership check |
+| Alchemix | n/a | poke() missing onlyNewEpoch → infinite FLUX inflation |
+| Parity | $150M frozen | No access control on initWallet() in library |
+
+---
+
+### 3. INCOMPLETE CODE PATH
+
+> #3 Critical — 17% of Criticals.
+
+### The Function Family Comparison Test
+
+```
+1. List all state changes in function A (deposit/place/create)
+2. List all state changes in function B (withdraw/update/cancel)
+3. For each state change in A: does B have the corresponding reverse?
+4. For each token transfer in A: does B have the corresponding refund?
+If A does X but B doesn't do the reverse of X → BUG.
+```
+
+### Variant 1: Update Function Missing Refund (ThunderNFT)
+
+```solidity
+function place_order(OrderInput calldata order) external {
+    token.safeTransferFrom(msg.sender, address(this), order.price);  // takes tokens
+    orders[orderId] = order;
+}
+function update_order(OrderInput calldata updatedOrder) external {
+    // BUG: NO REFUND for sell orders when price decreases → tokens permanently stuck
+    orders[orderId] = updatedOrder;
+}
+```
+
+### Variant 2: Partial Fill Token Stuck (Plume)
+
+```solidity
+function swapForETH(uint256 amountIn) external {
+    token.safeTransferFrom(msg.sender, address(this), amountIn);
+    uint256 filled = dex.swap(amountIn);  // partial fill possible
+    _refundExcessEth(amountIn - filled);  // BUG: refunds ETH only, not ERC20
+}
+```
+
+### 4. OFF-BY-ONE & BOUNDARY CONDITIONS
+
+> #4 High — 22% of Highs. Single character change. Massive impact.
+
+### Mental Test for Every Comparison
+
+> For every `if (A > B)`: "What happens when A == B?" Is that correct?
+
+### 6 Boundary Locations to Check
+
+1. Period/Epoch boundaries: `>` vs `>=` at period end
+2. Time-based locks: does `block.timestamp == deadline` lock or unlock?
+3. Loop break conditions: `break` with `>` vs `>=`
+4. Array index boundaries: `i <= array.length` (should be `i < array.length`)
+5. Amount/balance boundaries: `>= amount` allows exact full withdrawal?
+6. Rounding/precision: can any input produce 0 output that should be non-zero?
+
+### 5. ORACLE / PRICE MANIPULATION
+
+> 12% of all reports. Largest individual payouts. $117M Mango, $70M Curve.
+
+### Bug A: Missing Staleness Check (most common)
+
+```solidity
+// VULNERABLE:
+(, int256 price,,,) = priceFeed.latestRoundData();
+return uint256(price);  // If Chainlink node goes down, stale price returned indefinitely
+
+// CORRECT:
+(, int256 price,, uint256 updatedAt,) = priceFeed.latestRoundData();
+require(block.timestamp - updatedAt <= MAX_PRICE_AGE, "Stale price");
+require(price > 0, "Invalid price");
+```
+
+### Bug B: Missing Confidence Interval (Pyth)
+
+```solidity
+// VULNERABLE:
+PythStructs.Price memory p = pyth.getPriceUnsafe(priceFeed);
+return p.price;  // ignores p.conf (confidence interval)
+
+// CORRECT:
+require(p.conf * 10 <= uint64(p.price), "Price too uncertain");
+// conf > 10% of price = untrustworthy
+```
+
+### Bug C: TWAP Too Short (flash loan manipulatable)
+
+```solidity
+// VULNERABLE: 60-second TWAP
+uint32[] memory secondsAgos = new uint32[](2);
+secondsAgos[0] = 60; secondsAgos[1] = 0;
+// Flash loan can shift price for entire 60s window
+
+// CORRECT: 1800s minimum TWAP (30 min)
+```
+
+### Exchange Rate Manipulation (near-empty vault)
+
+```solidity
+// VULNERABLE — first depositor attack:
+// 1. Attacker deposits 1 wei → gets 1 share
+// 2. Attacker donates large amount directly (transfer, not deposit)
+// 3. Exchange rate: 1 share = (1 + donation) assets
+// 4. Victim deposits → rounds down to 0 shares → free donation to attacker
+
+// CORRECT: virtual shares (OpenZeppelin v4.9+)
+function _decimalsOffset() internal view virtual override returns (uint8) {
+    return 9;  // add 1e9 virtual shares + assets to prevent manipulation
+}
+```
+
+### ERC4626 Transfer (moves shares but not stake/lock records)
+
+```solidity
+// VULNERABLE: shares transferred, but lock records stay with original owner
+// → shares stuck, can't redeem → permanent freeze (Belong pattern)
+function transfer(address to, uint256 amount) external override {
+    _transfer(msg.sender, to, amount);  // moves shares
+    // MISSING: transfer lock record from msg.sender to `to`
+}
+```
+
+### 7. REENTRANCY
+
+> 2016–present. CEI pattern prevents it. Still found in DeFi.
+
+### Variants
+
+- **Single-function**: attacker re-enters same function before state updated
+- **Cross-function**: re-enters a sibling function with stale state
+- **Cross-contract**: re-enters via a callback to another protocol
+- **Read-only**: re-enters a view function that returns stale data used by attacker
+
+### Oracle Manipulation via Flash Loan
+
+```solidity
+// Attack flow:
+// 1. Borrow $100M from Aave flash loan
+// 2. Dump token in Uniswap pool → crash spot price
+// 3. Protocol reads Uniswap spot → undercollateralized loans accepted
+// 4. Borrow max against cheap collateral
+// 5. Repay flash loan, keep profits
+```
+
+### Price Oracle Sanity Checks (what to look for)
+
+```bash
+grep -rn "getReserves\|getAmountsOut\|slot0\b" contracts/ -A5
+# spot price from reserves = manipulatable with flash loan
+# slot0 = Uniswap V3 spot price = manipulatable
+```
+
+---
+
+### Missing Nonce
+
+```solidity
+// VULNERABLE:
+function permit(address owner, address spender, uint256 value,
+                uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
+    bytes32 hash = keccak256(abi.encodePacked(owner, spender, value, deadline));
+    // MISSING: nonce not included → same signature usable multiple times
+    require(ecrecover(hash, v, r, s) == owner);
+}
+```
+
+### Storage Collision
+
+```solidity
+// Implementation and proxy share storage layout
+// Proxy slot 0: _owner
+// Implementation slot 0: _initialized
+// → writing to _initialized overwrites _owner
+```
+
+### Uninitialized Implementation
+
+```solidity
+// If implementation can be initialized directly → anyone becomes owner of implementation
+// Attack: call initialize() on implementation contract → call upgradeTo() → replace logic
+```
+
+### delegatecall to User-Controlled Address
+
+```solidity
+function execute(address target, bytes calldata data) external onlyOwner {
+    target.delegatecall(data);  // target is validated, but what if owner is compromised?
+}
+```
+
+### FOUNDRY POC TEMPLATE
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "forge-std/Test.sol";
+import "../src/VulnerableContract.sol";
+
+contract ExploitTest is Test {
+    VulnerableContract target;
+    address attacker = makeAddr("attacker");
+    address victim = makeAddr("victim");
+
+    function setUp() public {
+        // Fork mainnet at specific block
+        vm.createSelectFork("mainnet", BLOCK_NUMBER);
+
+        // Deploy or load target
+        target = VulnerableContract(TARGET_ADDRESS);
+
+        // Fund accounts
+        deal(address(token), attacker, INITIAL_BALANCE);
+        deal(address(token), victim, VICTIM_BALANCE);
+    }
+
+    function test_exploit() public {
+        console.log("Attacker balance before:", token.balanceOf(attacker));
+
+        vm.startPrank(attacker);
+
+        // Step 1: Setup conditions
+        // Step 2: Execute exploit
+        // Step 3: Verify impact
+
+        vm.stopPrank();
+
+        console.log("Attacker balance after:", token.balanceOf(attacker));
+        assertGt(token.balanceOf(attacker), INITIAL_BALANCE, "Exploit failed");
+    }
+}
+```
+
+### Key Foundry Cheatcodes
+
+```solidity
+vm.prank(address)           // next call from address
+vm.startPrank(address)      // all calls from address until stopPrank()
+vm.deal(address, amount)    // set ETH balance
+deal(token, address, amount) // set ERC20 balance
+vm.warp(timestamp)          // set block.timestamp
+vm.roll(blockNumber)        // set block.number
+vm.createSelectFork("mainnet", blockNumber)  // fork mainnet
+vm.expectRevert(bytes)      // next call should revert
+vm.label(address, "name")   // label for trace output
+vm.assume(condition)        // fuzz: discard inputs where false
+```
+
+### Running Tests
+
+```bash
+# Run specific test
+forge test --match-test test_exploit -vvvv
+
+# Run with fork
+forge test --match-test test_exploit -vvvv --fork-url $MAINNET_RPC
+
+# Gas report
+forge test --gas-report
+
+# Coverage
+forge coverage --report summary
+```
+
+---
+
+### Operator Notes (Claude-BugHunter)
+
+> Engagement-derived + 2026-specific additions to the vendored foundation.
+> Wisdom from real authorized engagements + Phase 2 verification across
+> this repo's 31+ skill-area live tests. The upstream content covers the WHAT;
+> this layer covers the WHEN-IT-WORKS-vs-WHEN-IT-DOESN'T.
+
+### Bug classes still paying in 2026
+
+Flash-loan attacks remain top-paid on Immunefi (top 5 in 2024-2026 by bounty). The economic primitive — borrow $50M, manipulate price oracle, drain pool, repay — keeps reappearing because new protocols keep shipping with composability assumptions that don't hold under flash-loaned imbalance.
+
+Reentrancy IS still paying because new protocols keep shipping with ERC-777 / hooks / callbacks. Don't assume the class is dead — the 2023-2025 paid corpus contains 40+ reentrancy bugs against post-Checks-Effects-Interactions codebases (cross-function reentrancy, read-only reentrancy via view functions called during state-mid-flight).
+
+Oracle manipulation: still paid heavily but harder. Most projects use Chainlink price feeds now; the attack target is the SECONDARY oracle most projects also use (TWAP from a low-liquidity Uniswap V2 pair, the protocol's own internal oracle, a stale fallback path). Audit the failover chain, not just the primary feed.
+
+### What's new since the vendored content was written
+
+- **EIP-1153 (transient storage)** — introduced in 2024. New reentrancy classes: transient-storage reads cached across the same transaction can desync from persistent storage. Audit any `tload`/`tstore` usage for read-after-external-call.
+- **EIP-7702 (Pectra hard fork 2025)** — added EOA-to-smart-account upgrades. New ATO-like primitives via re-delegation: an EOA signed-once can delegate to a contract that the attacker controls, then signature replay across delegations.
+- **Account abstraction (ERC-4337 bundlers)** — paymaster sponsorship abuse and bundler griefing. Paymaster contracts that don't enforce strict sender allowlists drain on first call.
+- **ZK-rollup bridge bugs** — proof-replay across rollups, off-chain prover compromise, sequencer censorship leading to forced-inclusion edge cases.
+- **LST/LRT depeg dynamics** — liquid-staking and liquid-restaking tokens that assume 1:1 peg under loss conditions; oracle assumes peg, market reflects depeg, liquidation logic breaks.
+
+### Reporting discipline
+
+Immunefi requires Foundry PoC. Submission without PoC is auto-rejected. Submission with a PoC that requires manual setup ("first deploy this, then call that") usually gets downgraded — the PoC should be a single `forge test` invocation that proves the impact, with explicit `assertEq` on the drained balance / minted token / corrupted state.
+
+Severity claims must use Immunefi's severity matrix exactly; don't invent severities. The matrix gates on direct economic loss percentage of TVL — a critical against a $500K protocol pays differently than a critical against a $500M one. Read the program's specific severity assignment before claiming Critical.
+
+---
+
+### Reporting discipline
+
+Immunefi requires Foundry PoC. Submission without PoC is auto-rejected. Submission with a PoC that requires manual setup ("first deploy this, then call that") usually gets downgraded — the PoC should be a single `forge test` invocation that proves the impact, with explicit `assertEq` on the drained balance / minted token / corrupted state.
+
+Severity claims must use Immunefi's severity matrix exactly; don't invent severities. The matrix gates on direct economic loss percentage of TVL — a critical against a $500K protocol pays differently than a critical against a $500M one. Read the program's specific severity assignment before claiming Critical.
 
 ## Source skills merged into this topic
 
 - `hunting` — `web3-audit`
 - `cbh` — `web3-audit`
 
-## References
+## Provenance
 
-- `references/unified-method.md` — complete deduplicated union of all upstream sections
-- `references/upstream-*.md` — full original SKILL.md from each contributing repo
+- `references/unified-method.md` — same deduplicated union as this file, for tooling
+- `references/upstream-*.md` — unmodified original SKILL.md from each repo
 - `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router
