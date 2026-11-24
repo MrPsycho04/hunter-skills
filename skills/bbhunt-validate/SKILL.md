@@ -81,14 +81,11 @@ severity: <only for confirmed, with reasoning>
 
 All 3 contributing upstream skills from cbh, hunting, research are merged and deduplicated in `references/unified-method.md`; full originals are preserved as `references/upstream-*.md`.
 
-## Complete merged upstream methodology
+## Unified upstream methodology
 
-Full deduplicated methodology merged from all contributing upstream skills. The authored orchestration instructions above remain authoritative where they conflict.
+Deduplicated methodology merged from the contributing upstream skills. The authored orchestration instructions above remain authoritative where they conflict.
 
-
-Collected from every contributing repository skill. Deduplicated by content hash; full originals are preserved in `references/upstream-*.md`.
-
-## Signals and surfaces
+### Signals and surfaces
 
 ### Q3: Is the root cause in an in-scope asset?
 
@@ -101,7 +98,7 @@ Confirm:
 
 ---
 
-## Techniques, payloads and bypasses
+### Techniques and bypasses
 
 ### THE LAYER-ORDERING TRAP — read before claiming any auth bypass
 
@@ -152,7 +149,7 @@ a well-formed `{}`. The false Critical was avoided only because someone re-teste
 
 ---
 
-## Validation and proof
+### Validation and proof
 
 ### Gate 0: Reality Check (30 seconds)
 
@@ -188,7 +185,7 @@ The 7 questions are the umbrella; the discipline rules from `bb-methodology` are
 
 When a question is hard to answer "yes" to, the cross-linked rule tells you which artifact to produce to make the answer yes. Q6 is the one most engagements stumble on; that's why three discipline rules back it.
 
-## Escalation and related chains
+### Escalation and related chains
 
 ### CONDITIONALLY VALID — CHAIN REQUIRED
 
@@ -221,7 +218,7 @@ Build the chain first, prove it works end to end, THEN report.
 
 ---
 
-## Additional notes
+### Additional notes
 
 ### THE 7-QUESTION GATE
 
@@ -504,11 +501,9 @@ The friction is the gate working. The half of findings that get killed by the 7Q
 
 The exception: if the 7Q kills a finding but you still believe it, the answer is **gather more evidence**, not **bypass the gate**. The gate is a "do you have proof" check. Get proof, then re-run the gate.
 
-## Companion methodology (merged, deduplicated)
+### Companion methodology (deduplicated)
 
-Full text of every non-SKILL.md methodology file from the contributing skills — payload banks, technique references, reconnaissance and attack-class guides.
-
-### Companion: hunting / references/techniques.md
+### hunting / references/techniques.md
 
 # TRIAGE & VALIDATION — Technique reference
 
@@ -611,3 +606,4 @@ a well-formed `{}`. The false Critical was avoided only because someone re-teste
 
 
 ---
+

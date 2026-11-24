@@ -4,14 +4,13 @@ description: "Hunt money-movement mutations, balance IDOR, decimal-precision abu
 agent_created: true
 ---
 
-# Fintech GraphQL-specific hunting — unified skill
+# Fintech GraphQL-specific hunting — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Step-by-Step Hunting Methodology
 
 1. **Map every mutation that touches balance, whether directly or as a side effect.** Not just
@@ -128,10 +127,7 @@ agent_created: true
    `hunt-race-condition` for the parallel-HTTP escalation once alias batching alone confirms the
    resolver isn't serializing writes per-account.
 
----
-
-### Signals and surfaces
-
+---### Signals and surfaces
 ### Attack Surface Signals
 
 **URL / schema naming patterns (in addition to `graphql`'s generic `/graphql` list):**
@@ -190,10 +186,7 @@ idempotencyKey, clientMutationId
 Run `hunt-graphql`'s discovery + introspection methodology first to get the schema; everything
 below assumes you already have (or have partially enumerated) a schema with money-movement types.
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### Common Root Causes
 
 1. **Client-side amount/fee validation only.** The UI computes and displays the correct amount;
@@ -313,10 +306,7 @@ mutation {
 Send as a non-admin user against a mutation the client UI never exposes these fields for; a
 schema that accepts them anyway is mass assignment onto ledger state.
 
----
-
-### Validation and proof
-
+---### Validation and proof
 ### Gate 0 Validation
 
 Money-movement findings need a stricter bar than a typical GraphQL IDOR — "the query returns
@@ -360,10 +350,7 @@ someone else's balance" is real impact; "I sent a malformed amount and got a 400
    message." A verbose GraphQL error leaking a stack trace on a malformed `Money` scalar is a
    `hunt-source-leak`-class finding, not a fintech-logic one — don't conflate the two in a report.
 
----
-
-### Escalation and related chains
-
+---### Escalation and related chains
 ### Related Skills & Chains
 
 - **`graphql`** — parent skill for generic GraphQL discovery, introspection bypass, node-ID
@@ -404,10 +391,7 @@ someone else's balance" is real impact; "I sent a malformed amount and got a 400
   redaction discipline as any other capture, plus care that a real account number/balance from a
   live financial account is never included verbatim.
 - **`triage-validation`** — apply Gate 0 above before drafting; a fintech program's triage team
-  will kill anything without a demonstrated ledger state change immediately.
-
-### Sources and related reading
-
+  will kill anything without a demonstrated ledger state change immediately.### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://www.ox.security/blog/gitlab-graphql-cve-2026-19478-19650/ (CVE-2026-19478 CWE-94 code injection via `@gl_introduced`, CVE-2026-19650 CWE-352 multiplex mutation-over-GET; webfetched)
@@ -415,10 +399,7 @@ someone else's balance" is real impact; "I sent a malformed amount and got a 400
 3. https://shopify.engineering/building-resilient-graphql-apis-using-idempotency (`ChargeCreate` with `idempotencyKey`; double-charge failure modes)
 4. https://community.shopify.dev/t/idempotency-key-for-store-credit-update-apis/17501 (2025-2026 reports of duplicate store-credit credit/debit without idempotency)
 5. https://escape.tech/blog/best-graphql-security-tools/ (field-level authz via multi-role diffing, batching/rate-limit abuse in 2026)
-6. https://wundergraph.com/blog/the_complete_graphql_security_guide_fixing_the_13_most_common_graphql_vulnerabilities_to_make_your_api_production_ready (13 GraphQL vulnerability classes, CSRF/introspection/excessive errors)
-
-### Additional notes
-
+6. https://wundergraph.com/blog/the_complete_graphql_security_guide_fixing_the_13_most_common_graphql_vulnerabilities_to_make_your_api_production_ready (13 GraphQL vulnerability classes, CSRF/introspection/excessive errors)### Additional notes
 ### Why Fintech GraphQL Is a Different Risk Class
 
 Generic GraphQL bugs (IDOR, mass assignment, introspection, batching abuse — see `graphql`)
@@ -461,183 +442,9 @@ GraphQL backends a distinct hunting surface:
   `linkedBankAccount` alongside `displayName` and `email` — one missing field-level authorization
   check on a type used everywhere in the schema fans out to every query that touches it.
 
----
+---## Probes
 
-## Companion methodology (complete, deduplicated)
+## Supporting data
 
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# fintech-graphql — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payload & Detection Patterns
-
-
-
-**Idempotency-key replay test:**
-
-```graphql
-
-mutation {
-
-  transferFunds(input: {
-
-    idempotencyKey: "test-key-001"
-
-    sourceAccountId: "acc_1"
-
-    destAccountId: "acc_2"
-
-    amount: "10.00"
-
-  }) { transactionId status }
-
-}
-
-```
-
-Send twice with the identical `idempotencyKey`. Two successful, distinct `transactionId` values
-
-= idempotency not enforced.
-
-
-
-**Decimal-precision / rounding probes:**
-
-```graphql
-
-mutation { transferFunds(input: {sourceAccountId:"acc_1", destAccountId:"acc_2", amount: "0.001"}) { transactionId } }
-
-mutation { transferFunds(input: {sourceAccountId:"acc_1", destAccountId:"acc_2", amount: "9999999999999999.99"}) { transactionId } }
-
-mutation { transferFunds(input: {sourceAccountId:"acc_1", destAccountId:"acc_2", amount: "1e2"}) { transactionId } }
-
-mutation { transferFunds(input: {sourceAccountId:"acc_1", destAccountId:"acc_2", amount: "-50.00"}) { transactionId } }
-
-```
-
-Sub-cent amounts test truncate-vs-round handling (repeat N times to accumulate a rounding-error
-
-balance drift); scientific notation and oversized values test whether the `Money`/`Decimal`
-
-scalar parser falls back to a native float/int with overflow or precision-loss behavior; negative
-
-amounts test whether the resolver assumes sign server-side or trusts the client's.
-
-
-
-**Alias-batched double-spend probe (confirm before escalating to parallel HTTP):**
-
-```graphql
-
-mutation {
-
-  r1: redeemRewards(input: {rewardId: "rwd_1", accountId: "acc_1"}) { success }
-
-  r2: redeemRewards(input: {rewardId: "rwd_1", accountId: "acc_1"}) { success }
-
-  r3: redeemRewards(input: {rewardId: "rwd_1", accountId: "acc_1"}) { success }
-
-}
-
-```
-
-If more than one alias succeeds against a single-use reward/coupon, the resolver doesn't
-
-serialize per-account/per-resource writes within a batched request — see `race-condition`
-
-for combining this with parallel HTTP POSTs to confirm real double-spend impact.
-
-
-
-**Source-account authorization probe (asymmetric IDOR check):**
-
-```graphql
-
-mutation {
-
-  transferFunds(input: {
-
-    sourceAccountId: "VICTIM_ACCOUNT_ID"
-
-    destAccountId: "ATTACKER_CONTROLLED_ACCOUNT_ID"
-
-    amount: "1.00"
-
-  }) { transactionId status }
-
-}
-
-```
-
-Run as the attacker's own session/token. Success = the resolver validated the destination is
-
-attacker-controlled (obviously required) but never validated that the source belongs to the
-
-caller.
-
-
-
-**Nested field-level PII probe:**
-
-```graphql
-
-query {
-
-  transaction(id: "txn_123") {
-
-    amount
-
-    counterparty { displayName ssnLast4 routingNumber kycStatus }
-
-  }
-
-}
-
-```
-
-Query as a user with no relationship to the counterparty beyond a shared transaction; success on
-
-the nested PII fields is the finding even if the top-level `transaction` query correctly scoped
-
-the transaction itself.
-
-
-
-**Mass-assignment probe on admin-shaped input fields:**
-
-```graphql
-
-mutation {
-
-  updateTransaction(input: {id: "txn_123", status: "COMPLETED", amount: "0.01"}) { id status }
-
-}
-
-```
-
-Send as a non-admin user against a mutation the client UI never exposes these fields for; a
-
-schema that accepts them anyway is mass assignment onto ledger state.
-
-
-
----
-
-## Source skills merged into this topic
-
-- `hunting` — `fintech-graphql`
-- `cbh` — `hunt-fintech-graphql`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 1 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/payloads.md` — curated payload bank + upstream payload references
 - `bbhunt-methodology` — orchestrator, state machine and class router

@@ -4,14 +4,13 @@ description: "Unified methodology for mid engagement ir detection.. Unified from
 agent_created: true
 ---
 
-# Mid Engagement Ir Detection — unified skill
+# Mid Engagement Ir Detection — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Signals and surfaces
-
 ### The "single signal recanted" rule
 
 If a confirmed-vulnerable finding stops reproducing:
@@ -24,10 +23,7 @@ If a confirmed-vulnerable finding stops reproducing:
 
 This is the discipline that distinguishes professional red team from "hobbyist scanning". Your client wants the timeline of vulnerability + mitigation, not just the static state.
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### Observation 1 — Mid-engagement WAF rule deployment
 
 **Symptoms:**
@@ -77,20 +73,14 @@ Recommendation:
 
 ### State diff — the key technique
 
-Maintain three pieces of state:
-
-### Escalation and related chains
-
+Maintain three pieces of state:### Escalation and related chains
 ### Related Skills & Chains
 
 - **`redteam-mindset`** — This skill is a specific application of the broader red-team discipline. Engagement flow: `redteam-mindset` loaded at engagement start → baseline-capture habit built in → when response patterns shift mid-test, `mid-engagement-ir-detection` activates to capture the SOC-patch state as a NEW finding (defensive-action observed = client capability metric, not "the bug got fixed so we lose the finding").
 - **`evidence-hygiene`** — Mid-engagement IR detection produces TWO states (pre-patch and post-patch); both need disciplined evidence capture or the second finding can't be defended. Engagement flow: baseline screenshots + timestamped request/response dumps at session start → response shift detected → second capture set with explicit timestamp delta → both packaged together.
 - **`m365-entra-attack`** — The single richest source of mid-engagement IR signal in modern engagements. Engagement flow: M365 spray triggers AADSTS50053 lockout → baseline lockout policy captured → if lockout window changes mid-test (e.g., from 60min to 24hr) → `mid-engagement-ir-detection` captures the policy change as a finding ("CA policy hardened mid-engagement; defensive response measured").
 - **`enterprise-vpn-attack`** + **`vmware-vcenter-attack`** — Critical-infrastructure CVE exploitation is the highest-noise activity; expect SOC to patch within hours. Engagement flow: confirmed VPN/vCenter CVE → baseline capture BEFORE exploitation attempt → if appliance updates mid-test, capture as defensive-action finding → report both the original CVE AND the IR-response.
-- **`redteam-report-template`** — IR-observation findings get their own Subject in the deliverable, framed differently from technical-vuln findings. Engagement flow: `mid-engagement-ir-detection` captures behavior-change event → `triage-validation` 7-Question Gate (specifically: "is the behavior-change attributable to my activity?") → `redteam-report-template` packages as a "client capability observation" with explicit timeline and detection-latency metric.
-
-### Tools and wordlists
-
+- **`redteam-report-template`** — IR-observation findings get their own Subject in the deliverable, framed differently from technical-vuln findings. Engagement flow: `mid-engagement-ir-detection` captures behavior-change event → `triage-validation` 7-Question Gate (specifically: "is the behavior-change attributable to my activity?") → `redteam-report-template` packages as a "client capability observation" with explicit timeline and detection-latency metric.### Tools
 ### Tooling — automated state-change detection
 
 ```bash
@@ -127,10 +117,7 @@ echo "$(date -u +%FT%TZ) lockout_count $LOCK_COUNT" >> lockout_history.log
 # Diff first vs last to surface delta
 ```
 
----
-
-### Additional notes
-
+---### Additional notes
 ### When to use this skill
 
 Trigger when:
@@ -361,13 +348,8 @@ When a state change is detected, append:
 
 This third file is your finding evidence. Every entry is a candidate finding.
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # mid-engagement-ir-detection — Technique reference
 
@@ -457,17 +439,8 @@ This third file is your finding evidence. Every entry is a candidate finding.
 
 
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `mid-engagement-ir-detection`
-- `cbh` — `mid-engagement-ir-detection`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 1 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

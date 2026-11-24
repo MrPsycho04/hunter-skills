@@ -4,13 +4,13 @@ description: "Use for session fixation, non-invalidation on logout/password/emai
 agent_created: true
 ---
 
-# Session Management Flaws — unified skill
+# Session Management Flaws — unified methodology
 
-> **Complete merged skill.** Everything from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 3 upstream skills across cbh, h1skills, hunting and grounded in 15,259 disclosed HackerOne reports. Payloads, wordlists and supporting data are in `references/`.
 
-## Corpus evidence — 112 valid HackerOne reports (18 paid / 16%)
+## Corpus signal — 112 valid reports (18 paid / 16%)
 
-Every disclosed report is valid; payment is an impact signal, not a validity test.
+Every disclosed report is valid; payment is an impact signal, not a validity test. Full technique frequencies, case studies and approach patterns: `references/evidence.md`.
 
 ### Techniques ranked across ALL valid reports
 
@@ -28,113 +28,6 @@ Every disclosed report is valid; payment is an impact signal, not a validity tes
 | public source-code / repo review | 8 |
 | two-account / cross-account replay | 8 |
 | intercept & replay request in Burp | 7 |
-| Content-Type / body-format switch | 7 |
-| OAST / DNS / HTTP callback proof | 6 |
-| internal service / port / container | 6 |
-| third-party data / paste / breach reuse | 5 |
-| webhook / OAuth / SAML / integration abuse | 5 |
-| file upload / filename / extension | 5 |
-| replay / modify a captured request | 4 |
-| cloud metadata / IAM abuse | 4 |
-| fuzzing / wordlist brute force | 4 |
-| subdomain / DNS / cert-transparency recon | 3 |
-| deserialization / gadget chain | 2 |
-| swap object ID / parameter value | 2 |
-| response diff / status / length comparison | 2 |
-| API docs / Swagger / introspection | 2 |
-| employee / developer public info | 2 |
-| XML / SOAP / SAML / XXE | 2 |
-| template injection (SSTI) | 2 |
-| DOM / HTML source inspection | 2 |
-| browser DevTools / network tab | 1 |
-| WAF / sanitizer / filter bypass | 1 |
-| verbose debug / framework fingerprint | 1 |
-| parameter pollution / duplicate keys | 1 |
-| JWT / token / base64 decode | 1 |
-| parser confusion / normalization | 1 |
-
-### Parameters observed in writeups
-
-`valid_until` (5), `charset` (3), `in_header` (3), `max-age` (2), `rel` (2), `curlopt_ssl_verifypeer` (2), `rtp_len` (2), `size` (2), `download_done` (2), `state` (2), `jsessionid` (1), `xsrf-token` (1), `src` (1), `steps` (1), `summary` (1), `response` (1), `headers` (1), `act` (1), `hostname` (1), `cert` (1), `verifyerror` (1), `password` (1), `browser` (1), `chrome]` (1), `link` (1), `aip` (1), `jid` (1), `gjid` (1), `cid` (1), `tid` (1)
-
-### Bypass primitives observed
-
-`bypass` (13), `content-type` (10), `bypassing` (4), `bypasses` (3), `bypassed` (2), `whitelist` (1)
-
-### Impact language observed
-
-`password` (238), `token` (113), `credential` (17), `admin` (14), `unauthorized` (14), `full access` (9), `sensitive information` (8), `localhost` (8), `secret` (6), `financial` (4), `account takeover` (3), `payment` (2), `data leak` (2), `unauthorised` (2), `sensitive data` (2), `privilege escalation` (1), `exfiltrate` (1), `api key` (1)
-
-### Case studies — full excerpts (paid and unpaid)
-
-#### [1547684](https://hackerone.com/reports/1547684) — Disconnecting an external login provider does not revoke session
-
-Shopify · $1600 · medium
-
-Hi team, Summary: attacker could create a backdoor using google login function.if an attacker stole the login password of victims throught any means. attacker could connect his/her google account and create a backdoor and attacker login with google if the victim disconnect attacker session did not expire and still get access beacuse of no session expire after disconnected with google account .attacker could still connect his google account again. Steps To Reproduce: 1. attacker stole the login password of victims throught any means - {{attacker prespective}} 2. attacker could connect his/her google account {{attacker prespective}} 3. attacker login with google authentication {{attacker prespective}} 4. victim disconnect attacker session did not expire and still get access beacuse of no session expire in the attacker browser after disconnected with google account {{victims prespective}} 5. attacker could still connect his google account again. {{attacker prespective}} POC video attached in this report ## Impact no session expire after disconnected with google account an attacker can still logined to the victim account .thus an attacker could create a backdoor in victim account to login even if the victims changes the password attacker has a backdoor way to login to the account .
-
-#### [347748](https://hackerone.com/reports/347748) — Improper session handling on web browsers
-
-X / xAI · $560 · medium
-
-> NOTE! Thanks for submitting a report! Please replace *all* the [square] sections below with the pertinent details. Remember, the more detail you provide, the easier it is for us to triage and respond quickly, so be sure to take your time filling out the report! **Summary:** Sessions are not properly logged out/ Information Leak **Description:** I have two accounts that I control from my mobile Browser , As a concept of Session handling by browsers at a time one can only use one account with proper mapping of session and generated cookies . But when someone send DM or other data for my logged out account i still get web Notifications , where i can read the DM of that logged out account . All the Testing is done on Chrome Browser of my phone , I have video for the same ## Steps To Reproduce: (Add details for how we can reproduce the issue) 1. login with multiple accounts in Twitter one by one , saving your credentials for future 2. Enable web push notifications for twitter 3 now as a normal scenario login to one account and ask your friend to send you DM on account other account which is not logged in 4 . you can see the DM in the android notifications for websites that saying notification for mobile.twitter.com and DM displayed ## Impact : session mishandling leading to my private data leak , on clicking the notification my cookies of one account is being taken with the reques
-
-#### [1162443](https://hackerone.com/reports/1162443) — No Session Expiry after log-out, attacker can reuse the old cookies
-
-Shopify · $500 · low
-
-Hi, There is no session expiry after log-out which can help an attacker to take-over the full account by reusing it. **Reproduction Steps** 1. Go to and click on Sign In 2. Continue with Google Account 3. Use "EditThisCookie" Extension to export the cookies 4. Once you logged in - click on "EditThisCookie" Extension and export the cookies 5. Now open another browser and import those cookies - you can able to login an account by using cookies 6. Logout from your first browser - it should logout from another browser as well. 7. Now, login again with your google account - This time use old cookies. 8. By using old cookies, you can able to login victim's account. (Whenever victim's session is active) Please find the attached POC video ████████ ## Impact **Attack Scenario:** If a malicious user gets the victim's cookies by exploiting any vulnerability, he can log in to victim's account . Whenever the victim's session is active an attacker can login victim's account by using old cookies. **Impact:** If a malicious user gets the cookies by exploiting any vulnerability, he can log in to the victim's account.
-
-#### [417382](https://hackerone.com/reports/417382) — Revoking user session in https://hackerone.com/settings/sessions does not revoke the GraphQL query session
-
-HackerOne · $500 · low
-
-Hi Team, **Summary:** I have found an Insufficient Session Expiration on implementation of the new `Revoke user session` feature of HackerOne here: **Description:** The new __REVOKE__ session feature will destroy the session of the selected device, that means any request that requires authorization should not work (`POST`, `GET`) __BUT__ i have observed that you forgot the `GraphQL` query request, i can still query sensitive information despite i already revoke my current session and this can result a __sensitive information disclosure__ ### Steps To Reproduce 1. Login to hackerone.com 2. Go to sensitive page and capture the `GraphQL` request , on my case i captured the bounty settings `{"query":"query User_bounty_settings_page... etc` on this end point: 3. Send the GraphQL request to repeater 4. Go to and click `Revoke` to destroy the current session 5. You will be logout to your account, means session destroyed 6. Go back to burp repeater and click `Go` to repeat the graphql request 7. Observed that you can still query the graphql `User_bounty_settings_page`, and it will disclosed the reports that was rewarded, including the amounts, report title, payment method used and other sensitive information. __Below is my sample GraphQL query and response after revoking the session:__ __Response:__ __PoC screenshot below:__ █████ ## Impact Insufficient Session Expiration can result to
-
-#### [390126](https://hackerone.com/reports/390126) — Узнаем несколько цифр номера телефона юзера (можно флудить смс), всего раз узнав его remixsid и его ид юзера, и установка оффлайна юзерам.
-
-VK.com · $300 · high
-
-Недостаточные проверки сессии. Было можно узнать часть номера телефона юзера и отправлять ему смс с ссылкой на приложение ( всего раз узнав его `remixsid`, вне зависимости сколько раз были ресетнуты сессии. Самый давний валидный для этой темы `remixsid` был давности ~ май 2016 года. Была возможность имея только ид юзера установить ему статус "оффлайн" (т.е. был в сети 1 сек назад и тд) и сбросить ему queue-ключи, что принудительно вызывало `/notifier.php?act=a_get_key` где был рейт лимит на получение ключей, таким образом можно было отключить юзеру queue серв (нотифиер, не тот что `imv4`, а `queuev4` - те реалтайм события не приходили, кроме тех что в личку идут)
-
-#### [837729](https://hackerone.com/reports/837729) — Session works after logout from Shopify account and password of online store is displayed
-
-Shopify · no bounty — still valid · low
-
-When a user creates a Shopify Lite Plan account, in the product creation stage when the account has not been upgraded, the store's password is enabled such that any visitor who wants to access the store is required to enter password before being granted access to view the products listed in the online store. When a logout request has been made and response has been received/displayed that logout is successful, session still works when is entered in the browser url address bar; the resulting Shopify page displays the password required to enter the store which is supposed to be visible to only the admin and those who have been sent this password. Please see the PoC attached. ## Impact Third party can view the listed products and also exploit the user session vulnerability.
-
-#### [3475626](https://hackerone.com/reports/3475626) — Session Cookie Leakage via Static Header Field in WebViewerFragment
-
-LinkedIn · no bounty — still valid · high
-
-Hello LinkedIn Security Team, I was able to identify a vulnerability in the `WebViewerFragment` that can lead to leaking the user's cookies to a threat actor. Below, I will explain the finding and provide a PoC. ## Summary A static field (`CUSTOM_HEADERS`) in `WebViewerFragment` persists cookies across different URL loads, allowing an attacker to chain multiple weaknesses to exfiltrate a victim's LinkedIn session cookies to an attacker-controlled server. ## Root Cause While the exploitation is complex, the root cause is simple. In the `loadUrl` method of the vulnerable fragment: The method retrieves cookies for the URL. If cookies exist, they are added to `WebViewerFragment.CUSTOM_HEADERS`. ### The Problem `WebViewerFragment.CUSTOM_HEADERS` is a **static field that is never cleared** between loads. This means: 1. If the vulnerable fragment opens website A (which has cookies), those cookies are stored in `CUSTOM_HEADERS` 2. If website B is subsequently opened and has no saved cookies, the cookies from website A are still present in `CUSTOM_HEADERS` and will be sent to website B **Attack Flow:** 1. Victim opens ` in the Fragment → LinkedIn cookies are saved to `CUSTOM_HEADERS` 2. Victim opens the attacker's website in the Fragment → The LinkedIn cookies already in `CUSTOM_HEADERS` are leaked to the attacker ## Exploitation Chain There is no deep-link that directly opens the vulne
-
-### Recurring approach patterns from real reports
-
-- 2× summary while conducting my researching i discovered that the application failure to invalidate session after password
-- 1× hackerone fails to expire the session cookie from the server side even when the user logs off upon clicking sign out from the application
-- 1× to reproduce this vulnerability open chrome and download edit this cookie ad don now open and log in now goto edit this cookie addon and click export all cookies by clicking this we get the cookie copied in clipboard
-- 1× an attacker could exploit this issue by for example tricking a user into clicking on a link to a page with the following html code img src when the user visits the page the browser will send a request to www irccloud com over an unencrypted connection note the http instead of https containing the session cookie
-- 1× as a result of this report we rethought how we handled password changes and we decided to invalidate all sessions on a password change reset to protect from this possible problem
-- 1× hey i ve found a session management in help nextcloud com which can lead to session takeover
-- 1× hi i don t know is it a valid vulnerability under your program but i found it
-- 1× i have found a way to change the value of the cookie this error can be used to leave off the application to a particular user to log on again the attacker would have to cause the victim to visit a particular link
-- 1× i observed session tokens remaining valid even hours after being issued
-- 1× authenticate to via the gmail oauth function receiving a valid session cookie from www urbandictionary com and then sign out by clicking
-- 1× description since the certificate is only valid through herokuapp com the domain is sending a warning message about mitm attacks
-- 1× also i discovered that privilege escalation is possible it is possible to attack another user account in some cases
-- 1× the problem is that the cookies stored on the browser are not getting expired after logging out from the platform and from github as well
-- 1× i found a broken authentitication vuln poc create a account confirm your email now request a password reset for your account
-- 1× i also did not fully investigate if there is a way to trigger the socket close event with no error which would skip the session eviction and turn this into a reliable bypass
-- 1× hello team i am hemant patidar working as a security researcher and i found a bug in your site
-- 1× report of bug is as follows description while conducting my research i discovered that the application failure to invalidate the session after the password change
-- 1× steps to reproduce add details for how we can reproduce the issue through manual testing only login to your urbancompany account using your mobile number with the otp received
-- 1× while conducting my research i discovered that the application failed to validate session after password change
-- 1× hi i would like to report session management issue to you while testing i found that we can easily invite or we can easily perform invite related action even we logged out from the the account
-- 1× i didn t checked the other functionality under session management but this can prove the session won t expired after the account admin logout from his account
-- 1× that time i revoked app access from the old reddit com and i checked my app and as expected i was not able to use the account in my app
-- 1× after days i was checking the chat invites feature on the web and after some time i turned on the internet on my mobile and got a reddit invitation accept notification
-- 1× i clicked on that and i was surprised that i was able to use the previously revoked user account again in the reddit app
 
 ## Corpus-backed method (this class)
 
@@ -161,18 +54,13 @@ Hello LinkedIn Security Team, I was able to identify a vulnerability in the `Web
 - Session fixation -> authenticated session -> account access.
 - Stale session -> access after password reset -> persistence.
 
-### Probes
-
-- Replay pre-auth cookie after login; replay cookie after logout and after password change; inspect Set-Cookie sequence.
-
 ### Veteran tip
 
 The most useful evidence is a timeline of which token worked at which lifecycle event.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Quick wins
 
 Start here. These are the highest-yield tests for this class.
@@ -259,10 +147,7 @@ get_cookie () {  # $1=jar  $2=name-regex (default: common session names)
 - Check SSO session linkage: an IdP session that remains valid after the app-side logout can silently re-authenticate the user on the next `/sso/callback` — test by replaying a fresh authorization code after logout.
 - Note session timeout semantics: absolute vs idle timeout, and whether the server enforces it (a cookie with `Expires` in the future but a short server-side TTL is fine; a long server TTL with short browser expiry is a weaker but not always reportable issue).
 - Look for session IDs in logs, error messages, `Referer`, and browser history (PortSwigger CWE-598) — these are theft vectors that make an otherwise strong token exploitable.
-- Check whether the app accepts a session token in multiple locations (cookie, header, query, body) — a token accepted via `?sid=` can be planted or leaked through a URL.
-
-### Signals and surfaces
-
+- Check whether the app accepts a session token in multiple locations (cookie, header, query, body) — a token accepted via `?sid=` can be planted or leaked through a URL.### Signals and surfaces
 ### Signal
 
 - Reports: **150** · paid: **22**
@@ -320,10 +205,7 @@ Set-Cookie: __Host-sess=...; Secure; Path=/     # GOOD — hard to fixate
 Sec-Session-Registration: ...                   # DBSC in play → test downgrade
 ```
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### Payloads & probes
 
 - Set-Cookie -> `; SameSite=None` without Secure
@@ -446,10 +328,7 @@ Recurring payloads from this class's writeups. Adapt, don't paste blindly.
 - Refresh-token race: fire two parallel `grant_type=refresh_token` requests with the same RT. Depending on rotation logic, both may succeed or one may revoke the other — record which, as this is both a test and a detection signal.
 - Device-bound session downgrade: if the app advertises DBSC/DPoP/mTLS, replay the token without the binding proof on every API host and version, since enforcement lives at each resource server.
 - XSS → session theft chain: with an XSS primitive, check whether the session cookie is HttpOnly; if not, exfiltrate it via `document.cookie` to a Collaborator and replay from your browser to prove account access.
-- Remember-me cookie brute: collect your own persistent cookie across several logins with different timestamps, derive the formula, then brute another user's — this bypasses login throttles because it hits a different validation path.
-
-### Validation and proof
-
+- Remember-me cookie brute: collect your own persistent cookie across several logins with different timestamps, derive the formula, then brute another user's — this bypasses login throttles because it hits a different validation path.### Validation and proof
 ### Reporting bar
 
 - Prove real impact on a second controlled account or a safe callback.
@@ -595,10 +474,7 @@ echo "AFTER pw-change: $AFTER"
 - Finding is confirmed only if `AFTER` returns 200 **and** the body still carries the account's unique data (body-diff vs `BEFORE`). A bare 200 on a public/SPA route is not proof.
 - Run the **garbage-cookie negative control** again to prove the endpoint is session-gated.
 - Repeat the identical flow for **email-change** (`/settings/email`) and for **logout-all-devices** — apps frequently invalidate the *acting* session (B) but not *sibling* sessions (A). That sibling-survival is the exact persistent-ATO primitive `hunt-ato` chains.
-- **Severity gate:** if the change-password endpoint also lacks a current-password / MFA step-up (per `hunt-mfa-bypass`), A can pivot from read-only to full takeover → escalate.
-
-### Escalation and related chains
-
+- **Severity gate:** if the change-password endpoint also lacks a current-password / MFA step-up (per `hunt-mfa-bypass`), A can pivot from read-only to full takeover → escalate.### Escalation and related chains
 ### Escalation chains
 
 - Session fixation -> ATO.
@@ -630,10 +506,7 @@ echo "AFTER pw-change: $AFTER"
 | DBSC downgrade accepted | Steal plain cookie despite device-binding | Defeats the only theft mitigation |
 | Predictable ID | Compute/brute another user's session | Cross-user ATO |
 
----
-
-### Tools and wordlists
-
+---### Tools
 ### Tools
 
 `Burp` · `jwt_tool` · `browser devtools`
@@ -669,10 +542,7 @@ nuclei -u https://target -t ~/nuclei-templates/http/misconfiguration \
 # authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
 ```
 
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Sources and related reading
-
+Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.### Sources and related reading
 ### Query the corpus
 
 ```sh
@@ -705,10 +575,7 @@ python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class sess
 1. https://portswigger.net/burp/documentation/desktop/testing-workflow/vulnerabilities/session-management
 2. https://auth0.com/blog/refresh-token-security-detecting-hijacking-and-misuse-with-auth0
 3. https://hacktricks.wiki/en/pentesting-web/oauth-to-account-takeover.html
-4. https://portswigger.net/web-security/race-conditions
-
-### Additional notes
-
+4. https://portswigger.net/web-security/race-conditions### Additional notes
 ### Parameters observed
 
 `proto` · `title` · `setlang` · `renderContext` · `batch_time` · `environmentId` · `action` · `shop` · `verificationUrl` · `sentry_key` · `utm_swu` · `ddsource` · `ddtags` · `demo_param` · `usp` · `password` · `id` · `commit` · `_ga` · `tenantId`
@@ -940,159 +807,8 @@ curl -s -L -H "Cookie: $A" "https://$TARGET/api/me" -w '\n[%{http_code}]'
 ```
 Hand OAuth `state`/`redirect_uri`/code-injection to `hunt-oauth`; this phase only covers the *session-layer* binding.
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# Session — Combined Field Guide — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payloads & probes
-
-
-
-- Set-Cookie -> `; SameSite=None` without Secure
-
-- Fixate -> `PHPSESSID=attacker` before login
-
-- Reuse -> old token after logout/password change
-
-
-
-## Payload fragments observed
-
-
-
-Recurring payloads from this class's writeups. Adapt, don't paste blindly.
-
-
-
-| Seen | Fragment |
-
-|---:|---|
-
-| 5× | `rtsp_connect()` |
-
-| 5× | `$\x00\x00\x10` |
-
-| 3× | `Curl_ws_accept()` |
-
-| 3× | `Curl_ssl_scache_take()` |
-
-| 3× | `rtsp_filter_rtp()` |
-
-| 3× | `rtsp_done()` |
-
-| 2× | `(valid_until > 0) && (valid_until < now)` |
-
-| 2× | `(-1 > 0) = FALSE` |
-
-| 2× | `curl_easy_ssls_export()` |
-
-| 2× | `valid_until < 0` |
-
-| 2× | `match_ssl_primary_config()` |
-
-| 2× | `SSL_connect()` |
-
-| 2× | `rtspc->in_header = FALSE` |
-
-| 2× | `rtspc->buf` |
-
-| 2× | `curl -c cookies.txt -b cookies.txt https://somesite.tld:9999/` |
-
-| 2× | `ssl_peer_key_build()` |
-
-| 2× | `peer->origin->scheme->family` |
-
-| 1× | `document.cookie='_flow_session=EVIL;domain=.shopifycloud.com;path=/';` |
-
-| 1× | `javascript://www.linkedin.com/%0aalert(1)` |
-
-| 1× | `javascript://www.linkedin.com/%0aalert(1)?renderContext=trustVerificationDeeplink` |
-
-
-
-## Parameters observed
-
-
-
-`proto` · `title` · `setlang` · `renderContext` · `batch_time` · `environmentId` · `action` · `shop` · `verificationUrl` · `sentry_key` · `utm_swu` · `ddsource` · `ddtags` · `demo_param` · `usp` · `password` · `id` · `commit` · `_ga` · `tenantId`
-
-
-
-## Wordlists
-
-
-
-Mined from this class's writeups and ready for `ffuf`/`feroxbuster`. Paths and parameters recur across programs; verify each hit.
-
-
-
-| File | Entries |
-
-|---|---:|
-
-| `~/.local/share/hackerone-reports/wordlists/paths_session.txt` | 70 |
-
-| `~/.local/share/hackerone-reports/wordlists/params_session.txt` | 57 |
-
-| `~/.local/share/hackerone-reports/wordlists/paths.txt` (global) | 500 |
-
-| `~/.local/share/hackerone-reports/wordlists/params.txt` (global) | 400 |
-
-
-
-```sh
-
-W=~/.local/share/hackerone-reports/wordlists
-
-ffuf -u https://target/FUZZ -w $W/paths_session.txt \
-
-     -mc all -fc 404 -fs 0 -rate 40
-
-ffuf -u 'https://target/api?FUZZ=canary' -w $W/params_session.txt \
-
-     -mr 'canary|error|invalid|not found' -rate 40
-
-```
-
-
-
-## Nuclei
-
-
-
-Check cookie flags and token lifecycle by hand; scanner coverage is thin.
-
-
-
-```sh
-
-nuclei -u https://target -tags cookie,session,jwt,token \
-
-       -severity low,medium,high,critical -rl 40 -o nuclei_session.txt
-
-nuclei -u https://target -t ~/nuclei-templates/http/misconfiguration \
-
-       -rl 40 -o nuclei_session_misconfiguration.txt
-
-# authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
-
-```
-
-
-
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # Session — Combined Field Guide — Technique reference
 
@@ -1346,157 +1062,13 @@ python3 ~/.local/share/hackerone-reports/h1.py search "wordpress" --class sessio
 
 python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class session --min-bounty 1000
 
-```
+```## Probes
 
-## Corpus wordlists (mined)
+- Replay pre-auth cookie after login; replay cookie after logout and after password change; inspect Set-Cookie sequence.
 
-### `params_session.txt`
+## Supporting data
 
-```text
-proto
-title
-setlang
-renderContext
-batch_time
-environmentId
-action
-shop
-verificationUrl
-sentry_key
-utm_swu
-ddsource
-ddtags
-demo_param
-usp
-password
-id
-commit
-tenantId
-act
-platform
-sessionId
-__form__
-__dialog__
-new
-email
-__submit__
-__wflow__
-__ajax__
-__metablock__
-template
-tcpg
-change-password
-return_url
-fsid
-_v
-aip
-ni
-_s
-dl
-ul
-de
-dt
-sd
-sr
-vp
-je
-ec
-ea
-el
-_u
-jid
-gjid
-cid
-tid
-_gid
-_r
-```
-
-### `paths_session.txt`
-
-```text
-/login
-/password-reset
-/myaccount/
-/my/account
-/wp-admin/admin-ajax.php
-/Pe4R-am2
-/xmlrpc.php
-/accounts/passwords
-/auth/callback
-/admin/apps/flow
-/robots.txt
-/products/canvas
-/oauth/userinfo
-/api/v1/logout
-/thread/yw535346rk766ybzpqtvrl36sjj789st
-/resetmypassword
-/signup_user_complete/
-/api/30/csp-report/
-/api/v1/password-reset
-/dash/scans/1/
-/oauth/callback
-/api/v2/rum
-/forgot-password
-/uLFJUJ3CnQQ
-/api/tls.html
-/authentication/password
-/admin.101/edit/username
-/index.php/s/Ezn3dOeZ28Hph57
-/index.php/s/Ezn3dOeZ28Hph57/download
-/index.php/s/Ezn3dOeZ28Hph57/authenticate
-/account
-/download/edgemax
-/accounts/profile/
-/hc/
-/CN=poc.local
-/bug.php
-/v0/me
-/version.txt
-/auth/logout
-/handle.save.php
-/users.php
-/handle.php
-/studio/invitations
-/mobile
-/notifier.php
-/es/help
-/accounts/reset/
-/settings/account
-/go/x-2xxxxx-f8xx7
-/auth/login
-/blog/web-security-zone/what-is-session-fixation/
-/user/user_name/edit
-/settings/user/(username
-/page/email/
-/settings/user/(username)/page/email/
-/signin
-/wp-admin/
-/settings/password/
-/settings/security/
-/security/two-step-authentication/
-/j/collect
-/rt/riders/1ad0f5c1-1ac0-4c2c-a34a-36f267d7ae6f/dispatch-view
-/login/en
-/docs/http-cookies.html
-/loginhelper
-/good-file
-/path/to/patched-source
-/path/to/patched-build
-/path/to/curl-8.23.0
-/path/to/curl-8.23.0-build
-```
-
-## Source skills merged into this topic
-
-- `h1skills` — `hackerone-session`
-- `hunting` — `session`
-- `cbh` — `hunt-session`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 2 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/evidence.md` — corpus technique frequencies, case studies, approach patterns
+- `references/payloads.md` — curated payload bank + upstream payload references
+- `references/wordlists/` — 2 mined paths/params/payload lists
 - `bbhunt-methodology` — orchestrator, state machine and class router

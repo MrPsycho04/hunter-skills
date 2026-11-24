@@ -4,14 +4,13 @@ description: "Hunt DOM clobbering, postMessage hijacking, service-worker abuse a
 agent_created: true
 ---
 
-# Client-side DOM vulnerability hunting — unified skill
+# Client-side DOM vulnerability hunting — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Web-Research Methodology Additions (2026)
 
 Research basis: HackTricks "DOM Clobbering" (full primitive catalog, DOMPurify `cid:` bypass, HTMLCollection-backed config clobbering) and PortSwigger Web Security Academy "Controlling the web message source" (postMessage origin-verification failures). These deepen the existing phases; they don't replace them.
@@ -36,10 +35,7 @@ Research basis: HackTricks "DOM Clobbering" (full primitive catalog, DOMPurify `
 - **Sender-origin audit:** list every `postMessage(x, '*')` and what it sends (tokens, codes, session data).
 - **OOB setup:** have a Collaborator/interactsh listener ready before testing CSS exfil or SW interception — evidence is callback-based.
 - **HTML-injection precondition:** clobbering needs markup reflection with `id`/`name` preserved — confirm `<a id=x>` survives the app's filter before investing in a chain.
-- **Deep-chain timeouts:** when using `iframe srcdoc` chains, add an `@import` delay or the property resolves to `undefined`.
-
-### Signals and surfaces
-
+- **Deep-chain timeouts:** when using `iframe srcdoc` chains, add an `@import` delay or the property resolves to `undefined`.### Signals and surfaces
 ### Crown Jewel Targets
 
 DOM-based attacks execute in the victim's browser — the server often never sees the payload, so WAFs and server-side input filters do not apply. PostMessage missing-origin-check = cross-origin token theft with no XSS needed.
@@ -66,10 +62,7 @@ user bio / display name / comment / markdown preview / SVG upload / CMS rich-tex
 ?theme=  custom-css profile field  email-template editor  style= passthrough
 ```
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### Phase 1 — DOM Clobbering
 
 ```bash
@@ -126,10 +119,7 @@ location\s*=\s*[A-Za-z_]|\.innerHTML\s*=|eval\(|new Function\(|\.src\s*=\s*[A-Za
 - **postMessage weak checks:** `e.origin.indexOf('target.com')>-1` → `https://target.com.attacker.tld`; `endsWith('target.com')` → `https://malicioustarget.com`; prefix regex `/^https:\/\/payments\.example\.com/` → `payments.example.com.attacker.tld`. Intigriti and Synack both show real cases feeding `location.href`/script src.
 - **Null-origin postMessage:** a handler comparing `e.origin === window.origin` is bypassable with a sandboxed iframe — both become `"null"`. Strict equality against a *literal* allowlist (or `window.location.origin`) is required.
 - **First-message race:** handlers that trust the first message can be won by flooding `postMessage` during frame load or firing from `about:blank` before navigation.
-- **jQuery angle:** bundles < 3.5.0 (CVE-2020-11022/11023) mutate attacker markup in `.html()`/`.append()` into executing code; confirm version before claiming it.
-
-### Validation and proof
-
+- **jQuery angle:** bundles < 3.5.0 (CVE-2020-11022/11023) mutate attacker markup in `.html()`/`.append()` into executing code; confirm version before claiming it.### Validation and proof
 ### Validation (false-positive discipline)
 
 Match the repo standard: a technique that *fires in DevTools* is not a finding until impact is **OOB-confirmed** and **state-proven**.
@@ -162,10 +152,7 @@ Match the repo standard: a technique that *fires in DevTools* is not a finding u
 - **SW persistence:** close all tabs, reopen, and show a fresh OOB hit with no XSS re-trigger — otherwise it's not persistent.
 - **CSS exfil proof:** OOB hit per correct character forming a real token, then use that token in a state-changing request.
 - **Self-XSS guard:** if only you can see the injected markup, prove a victim/admin renders it (IDOR/shared object) before reporting.
-- **Attribution markers:** use a unique canary in every OOB URL so background traffic can't be mistaken for your callback.
-
-### Escalation and related chains
-
+- **Attribution markers:** use a unique canary in every OOB URL so background traffic can't be mistaken for your callback.### Escalation and related chains
 ### Chain Table
 
 | DOM finding | Chain to | Impact |
@@ -177,10 +164,7 @@ Match the repo standard: a technique that *fires in DevTools* is not a finding u
 | Same-origin Service Worker via XSS | intercept all in-scope fetch + auth headers | Persistent ATO (Critical) |
 | dangerouslySetInnerHTML, no sanitizer | stored DOM-XSS | XSS → ATO |
 
----
-
-### Tools and wordlists
-
+---### Tools
 ### Tools
 
 ```bash
@@ -190,17 +174,11 @@ Match the repo standard: a technique that *fires in DevTools* is not a finding u
 # Verify any tool URL before citing it in a report; do not paste unverified repo links.
 ```
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://hacktricks.wiki/en/pentesting-web/xss-cross-site-scripting/dom-clobbering.html
-2. https://portswigger.net/web-security/dom-based/controlling-the-web-message-source
-
-### Additional notes
-
+2. https://portswigger.net/web-security/dom-based/controlling-the-web-message-source### Additional notes
 ### Grounding — public research this is distilled from
 
 - **DOM Clobbering / DOM-Invader** — Gareth Heyes & the PortSwigger Web Security Academy "DOM clobbering" topic; DOM-Invader ships a dedicated clobbering scanner. Sink taxonomy maps to the academy's DOM-based vulnerability labs.
@@ -359,16 +337,8 @@ grep -rnE "angular|vue|handlebars|mustache|nunjucks|alpinejs|\bv-|ng-app" recon/
 # Vue: {{_c.constructor('alert(1)')()}}    (varies by Vue 2/3 build)
 ```
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `dom`
-- `cbh` — `hunt-dom`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

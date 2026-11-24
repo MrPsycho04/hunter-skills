@@ -67,14 +67,11 @@ All disclosed reports are valid; do not filter to paid. Note recurring technique
 
 All 0 contributing upstream skills from  are merged and deduplicated in `references/unified-method.md`; full originals are preserved as `references/upstream-*.md`.
 
-## Complete merged upstream methodology
+## Unified upstream methodology
 
-Full deduplicated methodology merged from all contributing upstream skills. The authored orchestration instructions above remain authoritative where they conflict.
+Deduplicated methodology merged from the contributing upstream skills. The authored orchestration instructions above remain authoritative where they conflict.
 
-
-Collected from every contributing repository skill. Deduplicated by content hash; full originals are preserved in `references/upstream-*.md`.
-
-## Discovery and hunting method
+### Discovery and hunting method
 
 ### 12. API & Auth-Map Methodology
 
@@ -104,7 +101,7 @@ Running a large dork corpus across multiple engines:
 - **Shadow parameters:** even documented endpoints can have undocumented parameters — Salt Security research found 102 params on an endpoint whose spec listed 3. Use Param Miner/ffuf/`=1` preservation trick.
 - **Risk scoring for triage:** internet-facing vs internal, sensitive data (PII/PCI/PHI), traffic volume from logs, and whether an owner exists.
 
-## Signals and surfaces
+### Signals and surfaces
 
 ### 7.5 Pipeline Priority Order (highest signal density first)
 
@@ -135,7 +132,7 @@ Extract AWS account-ID from S3 region/error responses. GCP project ID from GCS e
 
 ---
 
-## Techniques, payloads and bypasses
+### Techniques and bypasses
 
 ### 15.3 Probe technique
 
@@ -158,7 +155,7 @@ Extract AWS account-ID from S3 region/error responses. GCP project ID from GCS e
 
 Web targets are increasingly behind Cloudflare / Akamai / Fastly / AWS CloudFront. The CDN itself is hard to attack; the **origin server** is often softly defended. Six techniques to find it.
 
-## Validation and proof
+### Validation and proof
 
 ### 28.3 Validation discipline
 
@@ -188,7 +185,7 @@ Web targets are increasingly behind Cloudflare / Akamai / Fastly / AWS CloudFron
 - **Host-based vs path-based discovery are complementary:** a forgotten `api-v1.example.com` host can serve the same routes as `/api/v1` on the main host; enumerate both and diff against the single documented spec.
 - **Retirement verification is part of the test:** confirm a deprecated route's credentials, DNS records, deployments, and consumer migration were all removed — an incomplete retirement leaves a zombie you can still reach.
 
-## Escalation and related chains
+### Escalation and related chains
 
 ### Related Skills & Chains
 
@@ -249,7 +246,7 @@ Web targets are increasingly behind Cloudflare / Akamai / Fastly / AWS CloudFron
 - **`hunt-cloud-misconfig`** — When the asset graph surfaces exposed buckets / actuators / Firebase. Workflow primitive: §15 Cloud Attack Surface findings (open S3, /actuator/env, /firebaseio.com/.json) hand off to `hunt-cloud-misconfig` for exploitation.
 - **`bb-methodology`** — When the engagement mode is bug-bounty rather than pure recon. Workflow primitive: this skill's §10 bug-bounty pivot modes are the bridge; once mode is confirmed, `bb-methodology` PART 0 + 5-phase workflow takes over.
 
-## Tools and wordlists
+### Tools
 
 ### 6. General OSINT (curated tool refs)
 
@@ -269,7 +266,7 @@ Web targets are increasingly behind Cloudflare / Akamai / Fastly / AWS CloudFron
 
 Hunchly, Kasm Workspaces, ArchiveBox, SingleFileZ.
 
-## Sources and related reading
+### Sources and related reading
 
 ### 4. Source Hygiene & Citations
 
@@ -331,7 +328,7 @@ When citing a source in your output, prefer durable references (CVE, vendor advi
 8. https://www.cloudflare.com/learning/security/api/what-is-shadow-api/ (shadow vs zombie definitions, API discovery)
 9. https://www.invicti.com/blog/web-security/how-to-detect-shadow-and-zombie-apis-automatically (spec reconstruction from live traffic, diff against docs)
 
-## Additional notes
+### Additional notes
 
 ### 0. When to use / When NOT
 
@@ -2195,11 +2192,9 @@ When unsure, document the hypothesis in the asset attrs — don't claim origin d
 
 ---
 
-## Companion methodology (merged, deduplicated)
+### Companion methodology (deduplicated)
 
-Full text of every non-SKILL.md methodology file from the contributing skills — payload banks, technique references, reconnaissance and attack-class guides.
-
-### Companion: hunting / README.md
+### hunting / README.md
 
 # `offensive-osint` skill
 
@@ -2300,7 +2295,7 @@ Run the prompts in [`../../tests/smoke-test-prompts.md`](../../tests/smoke-test-
 
 MIT — see [LICENSE](../../LICENSE).
 
-### Companion: hunting / references/breach-and-credentials.md
+### hunting / references/breach-and-credentials.md
 
 # Breach Data, Email-Pattern Inference, Email Harvest
 
@@ -2430,7 +2425,7 @@ Six parallel sources, dedup at the end:
 
 ---
 
-### Companion: hunting / references/dork-corpus.md
+### hunting / references/dork-corpus.md
 
 # Dork Corpus & GitHub Code-Search Dorks
 
@@ -2612,7 +2607,7 @@ Apply each template to `{target}` (root domain stem like `acme`), `{domain}` (fu
 
 ---
 
-### Companion: hunting / references/helpers-and-automation.md
+### hunting / references/helpers-and-automation.md
 
 # AI-Assisted OSINT, Archiving, Automation, Sidecar, Helpers
 
@@ -2845,7 +2840,7 @@ severity/category, and browse disclosed-report references — without leaving th
 
 ---
 
-### Companion: hunting / references/identity-fabric.md
+### hunting / references/identity-fabric.md
 
 # Identity Fabric — Concrete Endpoints
 
@@ -3152,7 +3147,7 @@ Iterate over a candidate-field wordlist (use SecLists `Discovery/Web-Content/gra
 
 ---
 
-### Companion: hunting / references/people-osint.md
+### hunting / references/people-osint.md
 
 # People, Username, Phone, Social, Public Records OSINT
 
@@ -3259,7 +3254,7 @@ Browser extensions: [GetProspect](https://chromewebstore.google.com/detail/email
 
 ---
 
-### Companion: hunting / references/probes-and-wordlists.md
+### hunting / references/probes-and-wordlists.md
 
 # Probes & Wordlists
 
@@ -4527,7 +4522,7 @@ puredns resolve <(awk -v d="$D" '{print $1"."d}' assetnote-best-dns-wordlist.txt
 
 ---
 
-### Companion: hunting / references/recon-stack.md
+### hunting / references/recon-stack.md
 
 # Subdomain & Infrastructure Recon
 
@@ -4811,7 +4806,7 @@ If a third-party shows the target's domain in PTR records (e.g., a hosting provi
 
 ---
 
-### Companion: hunting / references/recon-techniques.md
+### hunting / references/recon-techniques.md
 
 # Specialized Recon Techniques
 
@@ -5154,7 +5149,7 @@ For engagements that include a physical-touch component (badge access, tailgatin
 
 ---
 
-### Companion: hunting / references/saas-public-surfaces.md
+### hunting / references/saas-public-surfaces.md
 
 # Public SaaS Collaboration Surfaces
 
@@ -5294,7 +5289,7 @@ site:{platform} "{target-keyword}"
 
 ---
 
-### Companion: hunting / references/secret-patterns.md
+### hunting / references/secret-patterns.md
 
 # Secret-Pattern Catalog
 
@@ -5363,7 +5358,7 @@ The catalog runs against any text source: GitHub code, Postman workspaces, JS bo
 
 ---
 
-### Companion: hunting / references/secret-validators.md
+### hunting / references/secret-validators.md
 
 # Read-Only Secret Validators
 
@@ -5694,7 +5689,7 @@ curl -sk -m 10 -H "$H" https://api.openai.com/v1/fine_tuning/jobs | jq .
 
 ---
 
-### Companion: hunting / references/sector-notes.md
+### hunting / references/sector-notes.md
 
 # Sector-Specific Recon Notes
 
@@ -5768,7 +5763,7 @@ Most recon generalizes; some sectors have unique attack-surface elements worth f
 
 ---
 
-### Companion: hunting / references/severity-matrix.md
+### hunting / references/severity-matrix.md
 
 # Severity Decision Matrix
 
@@ -5878,7 +5873,7 @@ When in doubt, anchor on these worked examples (drawn from real engagements):
 
 ---
 
-### Companion: hunting / references/specialized-osint.md
+### hunting / references/specialized-osint.md
 
 # Threat Intel, Crypto, Media, Geo, Regional, Telegram OSINT
 
@@ -6079,7 +6074,7 @@ done < cves.txt | sort -t: -k2 -nr
 
 ---
 
-### Companion: hunting / references/tooling-install.md
+### hunting / references/tooling-install.md
 
 # Tooling Quick-Install
 
@@ -6269,7 +6264,7 @@ git clone https://github.com/pry0cc/axiom && cd axiom && ./interact/axiom-config
 
 ---
 
-### Companion: hunting / README.md
+### hunting / README.md
 
 # `osint-methodology` skill
 
@@ -6338,7 +6333,7 @@ Run the prompts in [`../../tests/smoke-test-prompts.md`](../../tests/smoke-test-
 
 MIT — see [LICENSE](../../LICENSE).
 
-### Companion: hunting / references/techniques.md
+### hunting / references/techniques.md
 
 # OSINT Methodology — External Red-Team Edition — Technique reference
 
@@ -6503,3 +6498,4 @@ When unsure, document the hypothesis in the asset attrs — don't claim origin d
 
 
 ---
+

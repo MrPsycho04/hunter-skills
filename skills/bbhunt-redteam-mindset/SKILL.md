@@ -4,14 +4,13 @@ description: "Mindset corrections that separate offensive testing from defensive
 agent_created: true
 ---
 
-# Red-team operator discipline — unified skill
+# Red-team operator discipline — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
-### Techniques, payloads and bypasses
-
+### Techniques and bypasses
 ### Mindset correction #7 — Multi-technique cross-validation
 
 For every "vulnerable" finding, prove via 2+ techniques:
@@ -29,10 +28,7 @@ For every "vulnerable" finding, prove via 2+ techniques:
 
 A single signal can be coincidence (network jitter, server hiccup, cache). Two distinct signals from the same root cause is definitive.
 
----
-
-### Escalation and related chains
-
+---### Escalation and related chains
 ### "Stop at PoC" means stop ESCALATING, not stop TESTING.
 
 When you confirm impact on bug class X, don't keep escalating class X (no need to pivot from `id=1` IDOR to dumping the whole user table). But classes Y and Z have not been tested yet. Run Y. Then Z. Then the rest of the Pattern Library.
@@ -55,10 +51,7 @@ When you confirm impact on bug class X, don't keep escalating class X (no need t
 - **`mid-engagement-ir-detection`** — Red-team mindset says "behavior changes ARE findings"; this skill operationalizes that. Engagement flow: red-team engagement underway → baseline established at session start → response patterns shift mid-test → `mid-engagement-ir-detection` captures the SOC-patch state as a NEW finding (defensive-action observed = client capability metric). Don't dismiss it as "the bug got fixed."
 - **`redteam-report-template`** — Red-team deliverable is NOT a bug-bounty report; different audience, different tone, different cadence. Engagement flow: findings collected throughout engagement → at session close, package via `redteam-report-template` (Subject / Observations / Description / Impact / Recommendation / PoC) for client-facing DOCX, not `report-writing` which is for H1/Bugcrowd/Intigriti platforms.
 - **`triage-validation`** — Red-team mindset includes "don't retract too fast" — the 4 retractions from an authorized engagement were mindset failures, not validation failures. Engagement flow: every finding through `triage-validation` 7-Question Gate, but with the red-team adjustment that "exploitable only with chain" is still a finding, not a no-finding.
-- **`evidence-hygiene`** — Red-team engagements often span weeks; without disciplined evidence capture the deliverable suffers. Engagement flow: red-team mindset triggered → set up `evidence-hygiene` capture cadence (screenshots, request/response dumps, timestamped logs) at session start, not at session close.
-
-### Additional notes
-
+- **`evidence-hygiene`** — Red-team engagements often span weeks; without disciplined evidence capture the deliverable suffers. Engagement flow: red-team mindset triggered → set up `evidence-hygiene` capture cadence (screenshots, request/response dumps, timestamped logs) at session start, not at session close.### Additional notes
 ### When to use this skill
 
 Trigger when:
@@ -470,13 +463,8 @@ After internalizing this mindset, layer the technique-specific skills:
 
 This skill is the operational discipline; those are the techniques.
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # redteam-mindset — Technique reference
 
@@ -518,17 +506,8 @@ A single signal can be coincidence (network jitter, server hiccup, cache). Two d
 
 
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `redteam-mindset`
-- `cbh` — `redteam-mindset`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 1 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

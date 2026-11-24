@@ -4,24 +4,20 @@ description: "Hunt alg none, key confusion, kid manipulation, weak secrets and s
 agent_created: true
 ---
 
-# JWT and cryptographic failure hunting — unified skill
+# JWT and cryptographic failure hunting — unified methodology
 
-> **Complete merged skill.** Everything from 1 upstream skills across cbh is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 1 upstream skills across cbh. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Validation and proof
-
 ### Validation discipline
 
 - Decode and confirm the token you sent actually carries the edited claims.
 - The win is **cross-identity data access**, not merely a 200. Show the foreign
   user data (e.g. other users' emails) in the response.
 - `alg:none` rejected (401) just means that flaw is patched — try key confusion
-  before concluding the app is safe.
-
-### Tools and wordlists
-
+  before concluding the app is safe.### Tools
 ### Forging the token (never hand-encode base64 — use a JWT tool)
 
 Use a purpose-built tool so encoding/signing is correct: **jwt_tool**
@@ -95,10 +91,7 @@ Works especially well combined with alg:none or weak-secret attacks.
 
 Match the `payload` shape to a REAL token from the app (decode one first) — keep
 its claim names, only change identity/role. A payload the app can't parse fails
-for the wrong reason and wastes the attempt.
-
-### Additional notes
-
+for the wrong reason and wastes the attempt.### Additional notes
 ### What actually pays
 
 A JWT is `header.payload.signature`, each base64url. The signature is the only
@@ -183,15 +176,8 @@ Point the forged token at a protected/admin endpoint and prove you read data you
 should not: an account/user listing (multiple users' emails), another user's
 object, or a completed admin action (the deleted-user confirmation). Reading the
 admin user list or performing the admin action with a forged token IS the exploit.
-A 200 that returns only your own data, or a 401, is not proof.
+A 200 that returns only your own data, or a 401, is not proof.## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `cbh` — `hunt-jwt-crypto`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

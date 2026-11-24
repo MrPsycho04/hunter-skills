@@ -1,8 +1,8 @@
 # bbhunt — unified bug-bounty skill suite
 
-A **96-skill** WorkBuddy suite for authorized bug-bounty and security testing. Every topic is a **complete unified skill**: all matching skills from all five reference repos are merged into one deduplicated methodology **inside `SKILL.md` itself** — not an abridged preview pointing at references. Corpus-backed topics also carry the full evidence mined from all 15,259 disclosed HackerOne reports: technique rankings, parameters, bypasses, case-study excerpts, approach patterns, the curated payload bank and the mined wordlists, all inline.
+A **96-skill** WorkBuddy suite for authorized bug-bounty and security testing. Each `SKILL.md` contains **methodology only**: the deduplicated union of all matching skills from the five reference repos, plus a corpus-backed method for the 34 vulnerability classes. Supporting assets — payloads, wordlists, evidence and case studies — live in that skill's `references/` directory.
 
-`SKILL.md` files average ~1,000 lines (SSRF: 3,780; XSS: 2,781; recon: 6,505). References exist only as provenance archives of unmodified originals.
+`SKILL.md` files average ~740 lines (SSRF: 2,444; XSS: 1,466). Full technique frequencies, bypass data, case studies and payload banks are one directory away in `references/`.
 
 ## Start here
 
@@ -23,15 +23,12 @@ Each skill directory contains:
 
 | File | Contents |
 |---|---|
-| `SKILL.md` | Corpus evidence snapshot (technique ranking, parameters, case studies), corpus-backed method, and the deduplicated union of every contributing skill's methodology |
-| `references/unified-method.md` | Complete extracted sections from every contributing SKILL.md **and** every companion methodology document (payload banks, technique guides, Cloudflare attack-class docs), deduplicated by content hash |
-| `references/upstream-*.md` | Full, unmodified original SKILL.md from each contributing repo, with source path and attribution |
-| `references/evidence.md` | Corpus technique frequencies, bypasses, impact language, parameters, approach patterns, full case studies and curated payload bank (class topics) |
-| `references/upstream-assets/` | Companion files from each contributing skill: payload/technique references, scripts and fixtures |
-| `references/corpus-wordlists/` | The corpus's mined `paths_*`, `params_*` and `payloads_*` lists for that class |
-| `upstream/` (repo root) | Complete unmodified file trees of all five source repositories — 640 files including docs, validators, schemas, wordlists and research scripts |
+| `SKILL.md` | Methodology only: corpus signal, corpus-backed method, and the deduplicated union of every contributing skill's methodology |
+| `references/evidence.md` | Corpus technique frequencies, bypasses, impact language, parameters, approach patterns and full case studies (class topics) |
+| `references/payloads.md` | Curated payload bank from the corpus plus deduplicated payload references from the upstream skills |
+| `references/wordlists/` | The corpus's mined `paths_*`, `params_*` and `payloads_*` lists for that class |
 
-Nothing from the source repos or the corpus was discarded — the merge is additive and traceable. The `SKILL.md` files are entry points (about 22k lines total); the substance lives in the union (about 81k lines), the preserved originals (about 80k lines), the corpus evidence (about 10k lines), the companion assets and wordlists, and the full upstream archive.
+Redundant merge artifacts (`unified-method.md`, `upstream-*.md`, `upstream-assets/` and the root `upstream/` archive) were intentionally deleted — their methodology is in `SKILL.md` and their data is in `references/`.
 
 ## Sources merged
 

@@ -4,14 +4,13 @@ description: "Subdomain enumeration, live-host discovery, URL crawling and JS an
 agent_created: true
 ---
 
-# Web2 recon pipeline — unified skill
+# Web2 recon pipeline — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Signals and surfaces
-
 ### Pre-Dive Hard Kill Signals
 
 1. Max bounty < $500 → not worth your time
@@ -54,10 +53,7 @@ Same distinction for CloudFront:
 - **"Error - 404"** with `Server: CloudFront` = distribution exists, origin returned 404 — NOT a takeover.
 - **"The request could not be satisfied"** with `X-Cache: Error from cloudfront` = origin missing entirely — potential takeover.
 
-Phase 2C verified both patterns live. Always check the EXACT response body string before filing a takeover finding — the takeover-scanner tools (subzy, subjack) match on multiple fingerprints and frequently false-positive on the "still owned, just empty" case.
-
-### Escalation and related chains
-
+Phase 2C verified both patterns live. Always check the EXACT response body string before filing a takeover finding — the takeover-scanner tools (subzy, subjack) match on multiple fingerprints and frequently false-positive on the "still owned, just empty" case.### Escalation and related chains
 ### Toolchain fallback (when `dnsx` / `httpx` crash)
 
 The projectdiscovery Go binaries (`dnsx`, `httpx`, `naabu`) occasionally `SIGSEGV` on macOS arm64 due to a cgo / system-resolver interaction. The crash signature is identical regardless of install method — both `brew install` and `go install github.com/projectdiscovery/<tool>@latest` produce binaries that segfault at the same address. Smoke-test once before relying on them in a real engagement:
@@ -89,10 +85,7 @@ Already covered in this file's Phase 2C addition. Quick reminder: dnsx/httpx may
 - **`security-arsenal`** — When the URL set is classified by `gf` and ready for active testing. Workflow primitive: `gf xss/ssrf/sqli/idor` output names become payload-class queries against `security-arsenal`'s payload library.
 - **`bb-methodology`** — When recon completes and Phase 1 transitions to Phase 2 (Mapping). Workflow primitive: hand the live host + URL set back to `bb-methodology` Phase 2 for endpoint mapping and Phase 3 vulnerability discovery routing.
 
----
-
-### Tools and wordlists
-
+---### Tools
 ### Default discovery path wordlist (paste into `swagger-paths.txt`)
 
 ```
@@ -211,10 +204,7 @@ employee-*         hr.*               jobs.*
 sso.*              auth.*             id.*
 ```
 
-Internal-looking subdomains often expose more surface than the marketing site — `partner.target.com` and `vendor-portal.target.com` frequently have weaker auth than the main app because they're scoped for "trusted" external users. Always send a probe to the long-tail wordlist after the standard subfinder run completes.
-
-### Additional notes
-
+Internal-looking subdomains often expose more surface than the marketing site — `partner.target.com` and `vendor-portal.target.com` frequently have weaker auth than the main app because they're scoped for "trusted" external users. Always send a probe to the long-tail wordlist after the standard subfinder run completes.### Additional notes
 ### SETUP (one-time)
 
 ```bash
@@ -711,16 +701,8 @@ A 404/403 on `/swagger` does NOT mean no spec is exposed. Many .NET projects rou
 
 Full attack-chain analysis is in `hunt-api-misconfig` → `NSwag / Swagger / OpenAPI Spec Exposure`.
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `web2-recon`
-- `cbh` — `web2-recon`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

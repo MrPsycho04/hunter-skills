@@ -4,14 +4,13 @@ description: "Hunt namespace squatting, dependency confusion, workflow injection
 agent_created: true
 ---
 
-# Software supply-chain recon — unified skill
+# Software supply-chain recon — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### A. Discovery checklist — concrete fingerprints, endpoints, headers, CVEs, misconfigs to look for
 
 - **2025-2026 threat-data baseline (use to prioritize recon effort, not as a finding by itself):** Safeguard's H1 2025 report tracked 847 confirmed supply-chain attacks (+34% YoY): npm 312, PyPI 198, Maven 89; **62% used typosquatting or dependency confusion**, **23% involved compromised maintainer accounts** (up from 14%). Detection time dropped to 4.2 days. npm malware detection caught 78% of typosquats within 24h; PyPI attacks grew 67% YoY with AI/ML mimic packages (`torch`, `transformers`, `langchain` variants) exfiltrating model weights and training data. Hugging Face is now a first-class squatting registry (1.1M models, hierarchical names).
@@ -19,10 +18,7 @@ agent_created: true
 - **Full typosquat generation taxonomy to enumerate candidates (Andrew Nesbitt / Purdue TypoSmart):** omission (`reqests`), repetition (`rrequests`), transposition (`reqeusts`), adjacent-key replacement (`requezts`), addition at start/end (`arequests`), vowel swaps, **bitsquatting** (single-bit flips: `coogle`), **combosquatting** (`lodash-js`, `lodash-utils`), hierarchical/scope confusion (`@angular/…` lookalikes), and Unicode homoglyph substitutions. Typosquat attacks have accumulated >1.2 billion weekly downloads across campaigns; OpenSSF's malicious-packages repo and Datadog's dataset have 17,000+ entries.
 - **Maintainer-account takeover is the highest-impact path:** Sept 2025 qix phishing ("2FA credentials need updating") → malicious versions of `debug`, `chalk`, `ansi-styles`, `supports-color`, `strip-ansi` and 13 more (2.6B weekly downloads combined), live ~2 hours, browser crypto-stealer. Look for: package repos with bus-factor-1 maintainers, no trusted publishing, long-lived npm tokens in CI secrets.
 - **Self-propagating worm era (extends CI/CD findings):** Shai-Hulud (Sep 2025), Shai-Hulud 2.0 (Nov 2025: `setup_bun.js`/`bun_environment.js`, self-hosted runner `SHA1Hulud`, 796 packages), Mini Shai-Hulud (May 2026: first npm+PyPI coordinated wave, 404 versions, CI cache-poisoning entry + npm OIDC exchange), CHAINDROP (Aug 2026: `keyv` + 400+ packages, `setup.mjs`/`math_init.js`, `bypass_2fa` gate). Propagation prerequisites to flag in recon: npm tokens with publish rights and 2FA bypass, `~/.npmrc` plaintext tokens, GitHub tokens with workflow scope.
-- **Supply-chain-as-a-service:** Safeguard identified ≥3 underground services offering typosquat networks and compromised maintainer accounts — lower barrier means higher candidate volume; automate triage.
-
-### Signals and surfaces
-
+- **Supply-chain-as-a-service:** Safeguard identified ≥3 underground services offering typosquat networks and compromised maintainer accounts — lower barrier means higher candidate volume; automate triage.### Signals and surfaces
 ### The supply-chain attack surface map
 
 ```
@@ -36,10 +32,7 @@ Target Org
 └── Build/release pipelines → injection if pull_request_target etc.
 ```
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### B. Techniques & bypasses — specific actionable techniques/payload shapes
 
 ```bash
@@ -68,10 +61,7 @@ grep -rn 'curl.*webhook.site\|base64 -d.*\|TruffleHog\|trufflehog' package.json 
 # node setup.mjs ; bun *Math_Symbol.js* / *math_init.js* ; runner from ~/.dev-env named SHA1HULUD
 ```
 
-Scope discipline reminder from the skill description: **recon and identification ONLY.** Publishing typosquat/dependency-confusion packages or typosquat attacks require explicit written sign-off (external-offensive) — enumerate candidates and report the exposure, never claim them.
-
-### Validation and proof
-
+Scope discipline reminder from the skill description: **recon and identification ONLY.** Publishing typosquat/dependency-confusion packages or typosquat attacks require explicit written sign-off (external-offensive) — enumerate candidates and report the exposure, never claim them.### Validation and proof
 ### C. Validation / proof bar — how to confirm and avoid false positives
 
 - **A lookalike name alone is not a finding.** Confirm it (a) mirrors a real dependency the target actually uses, (b) is registered by an unrelated party, (c) contains an install-time script or suspicious network target. Nesbitt's dataset maps malicious packages to intended targets precisely because `reqeusts` is obvious but `beautifulsoup-numpy` or `payments-core` are ambiguous — record the mapping rationale.
@@ -80,10 +70,7 @@ Scope discipline reminder from the skill description: **recon and identification
 - **Maintainer compromise claims** require vendor-confirmed advisories (npm/GitHub blog, Microsoft/Unit42/Wiz) plus evidence the target consumed the malicious version during the exposure window. Do not infer compromise from a package name in a threat-feed alone.
 - **Dependency-confusion confirmation** must show the package manager would resolve the public package over the private one (scope config, registry URL precedence, version comparison). When testing, use a benign canary package in an authorized lab — never a real payload.
 - **Worm exposure:** presence of an affected package version = inventory item; execution requires `preinstall` evidence or EDR/process telemetry. Remediation is not "remove the package" — JFrog/Microsoft: revoke credentials, inspect every writable repo branch, rebuild the host/runner from clean images.
-- **Severity rubric:** registered typosquat with install-time payload matching an in-use dependency = High/Critical (RCE in build); maintainer account with publish rights and no phishing-resistant 2FA = Critical (blast radius = all packages); benign name collision with no payload = Informational/low.
-
-### Escalation and related chains
-
+- **Severity rubric:** registered typosquat with install-time payload matching an in-use dependency = High/Critical (RCE in build); maintainer account with publish rights and no phishing-resistant 2FA = Critical (blast radius = all packages); benign name collision with no payload = Informational/low.### Escalation and related chains
 ### 2. 3CX VoIP softphone supply chain (CVE-2023-29059, March 2023)
 
 - **Flow:** DPRK-attributed Lazarus subgroup (UNC4736 / Labyrinth Chollima) trojanized the 3CX DesktopApp (Electron-based softphone) on both Windows and macOS. Initial entry was via a PREVIOUS supply-chain attack — an employee installed a backdoored copy of Trading Technologies' X_TRADER, the FIRST disclosed cascading supply-chain compromise (one supply-chain victim becomes another's vector).
@@ -112,10 +99,7 @@ Scope discipline reminder from the skill description: **recon and identification
 - **`cloud-iam-deep`** — CI runners have IAM credentials; supply-chain RCE there is a credential-exfil bonanza. Chain primitive: malicious package executes on GitHub Actions runner → reads `$AWS_ACCESS_KEY_ID` / `$GITHUB_TOKEN` from env → `cloud-iam-deep` enumeration → IAM-privilege-escalation chain → production cloud-plane access.
 - **`offensive-osint`** — Recon discipline overlaps heavily; SBOMs, JS bundles, GitHub org enumeration, Docker registry tags all live in both. Chain primitive: `offensive-osint` GitHub-org recon yields internal package names referenced in CI workflows → `supply-chain-attack-recon` cross-references these against public npm/PyPI for typosquat/confusion candidates.
 - **`hunt-cloud-misconfig`** — Container registries (Docker Hub, GHCR, ECR public) frequently expose private images by accident. Chain primitive: SBOM mining reveals `internal-tools-v2:latest` referenced → check Docker Hub for accidentally-public mirror → `hunt-cloud-misconfig` registry enum → pull image → extract secrets baked into layers.
-- **`triage-validation`** + **`redteam-report-template`** — Supply-chain RECON is in scope; actual publishing is EXTERNAL-OFFENSIVE and needs explicit written sign-off. Chain primitive: recon-only candidate list assembled → run through `triage-validation` 7-Question Gate (specifically: "can I demonstrate impact WITHOUT publishing?") → report as "dependency-confusion candidate inventory + reproduction steps" via `redteam-report-template`, never as a published-package PoC unless client signed off in writing.
-
-### Tools and wordlists
-
+- **`triage-validation`** + **`redteam-report-template`** — Supply-chain RECON is in scope; actual publishing is EXTERNAL-OFFENSIVE and needs explicit written sign-off. Chain primitive: recon-only candidate list assembled → run through `triage-validation` 7-Question Gate (specifically: "can I demonstrate impact WITHOUT publishing?") → report as "dependency-confusion candidate inventory + reproduction steps" via `redteam-report-template`, never as a published-package PoC unless client signed off in writing.### Tools
 ### Tooling
 
 | Tool | Purpose |
@@ -131,10 +115,7 @@ Scope discipline reminder from the skill description: **recon and identification
 | **`semgrep`** + supply-chain rules | Workflow injection detection |
 | **`osv-scanner`** | Match versions to known vulns |
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://slsa.dev/blog/2024/08/dep-confusion-and-typosquatting
@@ -151,10 +132,7 @@ Scope discipline reminder from the skill description: **recon and identification
 12. https://securitylabs.datadoghq.com/articles/shai-hulud-2.0-npm-worm
 13. https://www.elastic.co/security-labs/threat-command/shai-hulud-chaindrop-npm-supply-chain
 14. https://research.jfrog.com/post/shai-hulud-is-back-august/
-15. https://hosted-files.sched.co/owasp2025globalappseceu/f8/OWASP%20AppSec%20EU%202025%20-%20Hack-Proof%20Your%20Code_%20%20Exploring%20Mobile%20App%20Weaknesses%20with%20OWASP%20MAS.pdf
-
-### Additional notes
-
+15. https://hosted-files.sched.co/owasp2025globalappseceu/f8/OWASP%20AppSec%20EU%202025%20-%20Hack-Proof%20Your%20Code_%20%20Exploring%20Mobile%20App%20Weaknesses%20with%20OWASP%20MAS.pdf### Additional notes
 ### When to use
 
 Trigger when:
@@ -750,16 +728,8 @@ Twelve well-documented public cases, mapped to the recon surface above. Each ent
 - `redteam-report-template` — supply-chain findings need extra clarity on blast radius (one repo vs whole ecosystem)
 - `mid-engagement-ir-detection` — registering a name on public npm triggers nothing inside the client, but ANY publish action is loud and audit-trailed
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `supply-chain-attack-recon`
-- `cbh` — `supply-chain-attack-recon`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

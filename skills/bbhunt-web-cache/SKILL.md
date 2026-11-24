@@ -4,13 +4,13 @@ description: "Use for unkeyed headers, cache-key normalization differences, stat
 agent_created: true
 ---
 
-# Web Cache Poisoning and Deception — unified skill
+# Web Cache Poisoning and Deception — unified methodology
 
-> **Complete merged skill.** Everything from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 3 upstream skills across cbh, h1skills, hunting and grounded in 15,259 disclosed HackerOne reports. Payloads, wordlists and supporting data are in `references/`.
 
-## Corpus evidence — 30 valid HackerOne reports (9 paid / 30%)
+## Corpus signal — 30 valid reports (9 paid / 30%)
 
-Every disclosed report is valid; payment is an impact signal, not a validity test.
+Every disclosed report is valid; payment is an impact signal, not a validity test. Full technique frequencies, case studies and approach patterns: `references/evidence.md`.
 
 ### Techniques ranked across ALL valid reports
 
@@ -28,97 +28,6 @@ Every disclosed report is valid; payment is an impact signal, not a validity tes
 | second-order / stored / blind delivery | 3 |
 | HTTP method / verb tampering | 3 |
 | redirect chain / Location header | 2 |
-| webhook / OAuth / SAML / integration abuse | 2 |
-| internal service / port / container | 2 |
-| public source-code / repo review | 2 |
-| error message / stack trace probing | 2 |
-| response diff / status / length comparison | 2 |
-| DOM / HTML source inspection | 1 |
-| JWT / token / base64 decode | 1 |
-| OAST / DNS / HTTP callback proof | 1 |
-| admin / privileged-role context | 1 |
-| file upload / filename / extension | 1 |
-| replay / modify a captured request | 1 |
-
-### Parameters observed in writeups
-
-`token` (1), `xyzxyz` (1), `yeettest` (1), `postrequesttriggeredfirewall.png` (1), `cachebuster` (1), `dontpoisoneveryone` (1)
-
-### Bypass primitives observed
-
-`%00` (6091), `content-type` (9), `backslash` (4), `host header` (3), `transfer-encoding` (3), `chunked` (3), `null byte` (3), `open redirect` (2), `bypass` (2), `url-encoded` (1), `content type` (1)
-
-### Impact language observed
-
-`token` (12), `localhost` (2), `sensitive information` (2), `admin` (1), `unauthorized` (1), `api key` (1), `financial` (1)
-
-### Case studies — full excerpts (paid and unpaid)
-
-#### [1695604](https://hackerone.com/reports/1695604) — DoS Vulnerability via Cache Poisoning on cdn.shopify.com and shopify-assets.shopifycdn.com
-
-Shopify · $3800 · medium
-
-## Summary: There's a web cache poisoning vulnerability on cdn.shopify.com that allows the attacker to block access to any file hosted on the website. This vulnerability exists as the cache server deals with the backslash as a frontslash. However, the original server returns a 404 error when a backslash exists in the URL So, according to the caching server, these two URLs are the same However, the second one will return 404 from the original server So, when an attacker sends a request with replacing the slashes with backslashes for a certain file, the server will return *404 Not Found* error page, and this error will be saved into the cache and any upcoming requests to this file will return *404 Not Found* error. This scenario could be exploited to cause DoS on nearly every Shopify website as all the javascript and static files used by Shopify websites are hosted on cdn.shopify.com. ## Steps To Reproduce: 1. Open any file hosted on cdn.shopify.com (ex: and intercept the request using Burp Suite. which will look like this: 2. In order to make this request return *404 Not Found*, we will replace the slashes in the url with backslashes 3. Also, before doing any testing, you have to add a cache buster query parameter to the end of the URL to prevent DoS on all users using the website. (i.e. Add ?cachebuster={random-value} to the end of the URL). Now the new request will be: 4. Send
-
-#### [977851](https://hackerone.com/reports/977851) — Cache poisoning via X-Forwarded-Host in www.shopify.com/partners/blog
-
-Shopify · $1000 · low
-
-Hello, run in loop requests with - after some time You will notice in response {F981839} now remove - there still be our url: {F981841} i've logged to my VPS to verify this bug and downloaded poisoned page ( , it's contains links to collabolator: {F981844} {F981845} Looks like there is no URL keys so i stopped testing cause i'm breaking site functionally, but it was be worth to check if we can poison or try use other headers, if i get permission i can try other vectors on a older article to prevent distributing users. ## Impact poisoning links, eg. FB share button:
-
-#### [1271944](https://hackerone.com/reports/1271944) — Shopify.com Web Cache Deception vulnerability leads to personal information and CSRF tokens leakage
-
-Shopify · $800 · low
-
-# Shopify.com Web Cache Deception Vulnerability **Matteo Golinelli, July 21, 2021**. <█████████> <████> I am testing websites for possible Web Cache Deception vulnerabilities (you can find more about it [here]( and I discovered that `shopify.com` is vulnerable. Web cache deception (WCD) is an attack where an attacker tricks a caching proxy into erroneously storing private information transmitted over the Internet and subsequently gains unauthorized access to that cached data. This vulnerability allows a potential attacker to **steal personal** (and potentially *sensitive*) **information** of users of a website with a simple social engineering attack. The victim is only required to open a link in a browser on which they are authenticated on the given website to have their information mistakenly stored by the cache server and become accessible to the attacker. To confuse the cache server, I am using multiple path confusion techniques and by appending to the URL a random string followed by the extension *.css*. I discovered that by applying path confusion followed by a random file name and `.css` it is possible for an attacker to leak authenticated user's personal information. Using the slash character (`/`), the exploit URL can be formed as follows: - ` This URL will be interpreted as a CSS file from the cache server, resulting in the web page being cached (with the personal info
-
-#### [1848940](https://hackerone.com/reports/1848940) — URL Path Manipulation Enables Cache Poisoning of Amazon Affiliate Products in Shopify Linkpop
-
-Shopify · $500 · low
-
-# Summary The fix in report ████████ seems to prevent correctly an attacker from redirecting the request to another domain which was the main issue, however, there is still a way for that attacker to "poison" the cache usin the Amazon domain. I believe the regex used to parse the url is the cause. # Description If an attacker uses a crafted link such as anyone who will then try to use the "victim" product link will be shown the attacker controlled product. This way works even better because when you click the link button on the victim's page, it will even redirect to the attacker's product. # Steps to Reproduce 1. Have two Amazon products ID in hands (which haven't been cached yet) 1.1. Attacker Product ID: `██████` ( 1.2. Victim Product ID: `████` ( 2. In your attacker's Linkpop account, add a new Amazon product using the following crafted link ` and make sure to replace the placholders 2.1. Based on the ID's in step \#1, you could use the following link ` 3. Now, in the victim's Linkpop account, try to add the following product which is the "victim" product ID from step \#1. At that point you should be faced with the attacker's product (███) instead of the victim's product (███s). # Notes You can test the POC with the IDs I've provided. I haven't used them and luckily they won't be in the cache yet. If they are, you should notice it when adding the product as it will resolve 
-
-#### [1530066](https://hackerone.com/reports/1530066) — Web Cache Deception vulnerability on algolia.com leads to personal information leakage
-
-Algolia · $400 · medium
-
-A web cache deception(WCD) was found on our main website (algolia.com). An attacker could trick a caching proxy into storing private information transmitted over the internet from authenticated user. To do so, attacker would use simple social engineering where the victim is only required to open a link in a browser while being authenticated on the website. The attacker could then access the cached data, which can include personal and sensitive information of the victim. The exploit URL was formed by using a randomly named css file.
-
-#### [1219038](https://hackerone.com/reports/1219038) — Cache Poisoning DoS on updates.rockstargames.com
-
-Rockstar Games · no bounty — still valid · medium
-
-In this report, the researcher discovered that there was a cache poisoning weakness on `updates.rockstargames.com` due to an unkeyed header, `trailer`. By sending this header, an attacker could cause the cache to save a malformed response with status code 400. An example of such a request, as provided by the researcher: To resolve this issue, our team worked together with our CDN provider. The host no longer returns/saves a 400-code response when this header is sent in a request, and legitimate users can no longer be denied access to this content. For more details about the vulnerability, check out:
-
-#### [1976449](https://hackerone.com/reports/1976449) — DOS via cache poisoning on [developer.mozilla.org]
-
-Mozilla · no bounty — still valid · low
-
-## Summary: Hello, after some research it appears that it is possible for an attacker to perform a DOS attack on the page for an indefinite period. This is possible by adding an header and a value causing an error on the back-end side (error 404), the bad configuration of the cache makes it possible to save the response there and to serve it to users visiting the page, making the page completely inaccessible for an indefinite period. No information about the caching period is available in the response, but it is anyway possible to reinterpret the manipulation indefinitely. For obvious reasons I performed my tests using a cache-buster - adding a URL parameter as we will see in the POC - so as not to affect the user experience. ## Steps To Reproduce: 1. Pass your HTTP requests through your preferred proxy 2. Go to : then - in your proxy - send the request to your repeater 3. Add the parameter of your choice to the URL, it will serve as a cache-buster and will not "poison" the site visited by users. In other words, the DOS will only be effective on the URL containing your parameter, you probably know this but let me clarify: this is very important in order not to damage the services. 4. Add the following header : The request ready to send ( ) being my cache-buster : {F2339007} Once the request has been sent, the response will - as expected - contain a 404 error. Open another brows
-
-### Recurring approach patterns from real reports
-
-- 2× i was able to impact the core functionality by using a custom http
-- 1× i noticed if i made a request to your website intercepted the request and added the header
-- 1× well after that i tried going to hackerone com and i was instantly redirected to evil com
-- 1× i discovered an issue when by using single specially crafted url it was possible to cause service inaccessibility for all users who will visit the site as result of infinite redirect loop
-- 1× to ensure that problem exists and site inaccessible not only for me i checked it from the different ip addresses proxies tor
-- 1× we can see that the value of the applicationuri url prefix is bytes long which is close to the maximum number of bytes in the url i was able to send to the board greenhouse io server before receiving err connection closed
-- 1× as an example try to visit the following url where i added token onto the applicationuri above i have omitted the proof of concept that this exploit bricks a live job board from start to finish since it has already been proven in the previous report that we can cause a denial of service by changing the applicationuri in the js file
-- 1× in the above request i have added x forwarded host header
-- 1× below is what i added to my config
-- 1× summary i found the problem of cache poisoning in www acronis com
-- 1× in this report the researcher discovered that there was a cache poisoning weakness on updates rockstargames com due to an unkeyed header trailer
-- 1× by sending this header an attacker could cause the cache to save a malformed response with status code
-- 1× i am testing websites for possible web cache deception vulnerabilities you can find more about it here and i discovered that shopify com is vulnerable
-- 1× i discovered that by applying path confusion followed by a random file name and css it is possible for an attacker to leak authenticated user s personal information
-- 1× not implemented at i was able to impact core functionality by using an invalid custom http header to replace the javascript file from with message not implemented
-- 1× response supporting material references f1744429 crash501notimplemented png f1744430 firewalltriggeredwithcachepoison png f1744431 postrequesttriggeredfirewall png note i ve added in the user agent header to help with problem tracking
-- 1× also before doing any testing you have to add a cache buster query parameter to the end of the url to prevent dos on all users using the website
-- 1× i believe the regex used to parse the url is the cause
-- 1× i haven t used them and luckily they won t be in the cache yet
-- 1× impact an attacker is able to manipulate the caching system to its avantage by sending a crafted link which can trick victims to unintentionally link a spoofed amazon product to their linkpop accounts
-- 1× however we noticed that the x http method override head header is honored in the same way
 
 ## Corpus-backed method (this class)
 
@@ -146,18 +55,13 @@ Mozilla · no bounty — still valid · low
 - Cache poisoning -> stored XSS on a trusted page.
 - Cache deception -> authenticated page served to attacker.
 
-### Probes
-
-- Unkeyed header reflection, query-key normalization, static-extension suffix trick, cache-buster to isolate tests.
-
 ### Veteran tip
 
 Always use a unique cache-buster so a proof does not persist and harm other users.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Quick wins
 
 Start here. These are the highest-yield tests for this class.
@@ -249,10 +153,7 @@ Check for cache signals in the response: `X-Cache: HIT`, `CF-Cache-Status: HIT`,
 - Look for absolute URLs and script imports built from headers (`<script src="//host/resources/js/tracking.js">`), 302 redirects whose `Location` uses a header, error pages that reflect the request path, and "cart/token in URL" endpoints. These are the reflectors that make poisoned responses harmful.
 - Identify cacheable suffixes and prefixes: static extensions `.css`, `.js`, `.ico`, `.exe`, `.txt`; static directories `/static`, `/assets`, `/wp-content`, `/media`, `/templates`, `/public`, `/shared`; exact filenames `robots.txt`, `favicon.ico`, `index.html`. Filter HTTP history to 2xx with script/image/CSS MIME types to find live cache rules.
 - Fingerprint parser differences on both sides of the cache: origin delimiters (`;` matrix vars in Spring, `.` format in Rails, `%00` in OpenLiteSpeed, `%0A` in nginx rewrites), encodings, and dot-segment normalization. Cloudflare/Google Cloud/Fastly do **not** normalize paths before applying cache rules; CloudFront/Azure/Imperva do.
-- Check CDN-specific gotchas: Cloudflare Cache Deception Armor and its bypasses via uncommon extensions; the port missing from the key on Cloudflare/Fastly; duplicate-header handling (Cloudflare mitigation historically checked only the first header instance — second instance payload survives).
-
-### Signals and surfaces
-
+- Check CDN-specific gotchas: Cloudflare Cache Deception Armor and its bypasses via uncommon extensions; the port missing from the key on Cloudflare/Fastly; duplicate-header handling (Cloudflare mitigation historically checked only the first header instance — second instance payload survives).### Signals and surfaces
 ### Signal
 
 - Reports: **68** · paid: **16**
@@ -331,10 +232,7 @@ Forwarded
 X-HTTP-Method-Override
 ```
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### Payloads & probes
 
 - `X-Forwarded-Host: evil.com` `X-Host: evil.com` `X-Forwarded-Scheme: http`
@@ -588,10 +486,7 @@ True-Client-IP
 - Bypass: Check if CDN respects this header (some CDNs ignore it if an admin has overridden cache rules globally)
 - Bypass: Find adjacent cacheable endpoints that reflect the same sensitive data
 
----
-
-### Validation and proof
-
+---### Validation and proof
 ### Reporting bar
 
 - Prove real impact on a second controlled account or a safe callback.
@@ -638,10 +533,7 @@ True-Client-IP
 - Caching can be per-POP: confirm a poisoned response from multiple vantage points before claiming "all users" impact; some effects are regional.
 - Measure response-time deltas as a secondary cache signal: repeated misses should be slower than hits; a flat timing curve means the path may not be cached at all.
 - If a cache rule overrides `Cache-Control: no-store/private`, report that explicitly — it is the root cause and makes the impact systemic rather than endpoint-specific.
-- When chaining poisoned redirects into JS execution, confirm the victim page actually requests the poisoned resource (check the HTML for the script tag) rather than assuming it.
-
-### Escalation and related chains
-
+- When chaining poisoned redirects into JS execution, confirm the victim page actually requests the poisoned resource (check the HTML for the script tag) rather than assuming it.### Escalation and related chains
 ### Escalation chains
 
 - Cache poisoning -> stored XSS.
@@ -661,10 +553,7 @@ True-Client-IP
 - **`hunt-http-smuggling`** — Smuggling bypasses front-end cache-key normalization and WAF stripping of poison headers, hitting the cache server directly. Chain primitive: CL.TE smuggle delivers `X-Forwarded-Host: attacker.com` to the cache backend past the WAF that stripped it at the edge → poisoned entry stored under the victim's normal URL → de-sync poisoning where the smuggled request becomes the cached response for the next victim.
 - **`hunt-auth-bypass`** — Web Cache Deception turns authenticated pages into publicly-cached responses, leaking session-bound content to unauthenticated attackers. Chain primitive: `/account/profile.css` served as authenticated HTML, cached as static asset → attacker fetches same URL without auth and reads victim's email/tokens → session cookies in body → full ATO.
 - **`security-arsenal`** — Reach for the unkeyed-header wordlist (`X-Forwarded-Host`, `X-Host`, `X-Forwarded-Server`, `X-HTTP-Host-Override`, `Forwarded`, `X-Original-URL`) and the WCD path-extension list (`.css`, `.js`, `.jpg`, `.ico`, `;.css`, `%2e%2ecss`) before hand-fuzzing.
-- **`triage-validation`** — Run the Pre-Severity Gate before claiming Critical: the poisoned response MUST be reproducible from a separate IP/incognito without your poison headers. If only your own browser sees the effect, it's a self-cache and N/A.
-
-### Tools and wordlists
-
+- **`triage-validation`** — Run the Pre-Severity Gate before claiming Critical: the poisoned response MUST be reproducible from a separate IP/incognito without your poison headers. If only your own browser sees the effect, it's a self-cache and N/A.### Tools
 ### Tools
 
 `Burp` · `Web Cache Vulnerability Scanner` · `Param Miner`
@@ -702,10 +591,7 @@ nuclei -u https://target -t ~/nuclei-templates/http/vulnerabilities/generic/cach
 # authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
 ```
 
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Real-world examples
-
+Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.### Real-world examples
 ### Real Impact Examples
 
 **Scenario 1 — Mass DoS on CDN Asset Delivery (Shopify CDN)**
@@ -717,10 +603,7 @@ On a platform serving authenticated account pages, an attacker crafted a URL lik
 **Scenario 3 — Affiliate Link Hijacking via URL Path Manipulation (Shopify Linkpop)**
 An attacker discovered that the Linkpop affiliate link service would cache responses based on URL path but reflected a manipulated product destination URL in the cached HTML. By visiting a specially crafted path before legitimate users, the attacker poisoned the cache to redirect affiliate clicks to an attacker-controlled domain instead of the legitimate Amazon product. Victims clicking what appeared to be valid merchant links were sent to attacker infrastructure, enabling credential phishing and loss of affiliate commission revenue for the legitimate merchant.
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### Query the corpus
 
 ```sh
@@ -756,10 +639,7 @@ python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class web-
 4. https://portswigger.net/research/web-cache-entanglement
 5. https://portswigger.net/research/bypassing-web-cache-poisoning-countermeasures
 6. https://hacktricks.wiki/en/pentesting-web/cache-deception/index.html
-7. https://portswigger.net/bappstore/17d2949a985c4b7ca092728dba871943
-
-### Additional notes
-
+7. https://portswigger.net/bappstore/17d2949a985c4b7ca092728dba871943### Additional notes
 ### Parameters observed
 
 `for[]` · `for` · `dontpoisoneveryone` · `cachebuster` · `cb` · `cachebust` · `yeettest` · `token` · `qwKzzSR` · `xyzxyz` · `hackerone` · `petIncluded` · `filterByTotalPrice` · `ssr` · `email` · `authenticity_token` · `letme` · `enable_registration` · `redirectTo` · `referrer_page_location`
@@ -839,331 +719,8 @@ The following real, verified bug-bounty / coordinated-disclosure cases extend th
 
 ### Origin header → ACAO cache poisoning
 
-Add `Origin` to the unkeyed-header set. Test whether it is reflected into `Access-Control-Allow-Origin` and then cached: `curl -H "Origin: evil.example" URL -I` on two consecutive hits. A cached attacker/`*` ACAO breaks CORS for legit users (cache-DoS); a cached permissive ACAO enables cross-user data reads. Disclosed: reports/591302.
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# Web Cache — Combined Field Guide — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payloads & probes
-
-
-
-- `X-Forwarded-Host: evil.com` `X-Host: evil.com` `X-Forwarded-Scheme: http`
-
-- `/account/profile.css` `/account/profile%2ecss` `/account/profile;.css`
-
-- Cache buster -> `?cb=123` then poison the canonical URL
-
-
-
-## Payload fragments observed
-
-
-
-Recurring payloads from this class's writeups. Adapt, don't paste blindly.
-
-
-
-| Seen | Fragment |
-
-|---:|---|
-
-| 5× | `%00` |
-
-| 1× | `GET /assets/static/js/8.9572d249.chunk.js?hackerone=poc HTTP/2 / Host: hackerone.com / x-forwarded-scheme: http` |
-
-| 1× | `</script` |
-
-| 1× | `</sc"ript>` |
-
-| 1× | `GET /releases/hashes-exodus-21.2.12.txt?cachebuster=hackerone HTTP/1.1 / Host: downloads.exodus.com / Authorization: SharedKeyLite myaccount` |
-
-| 1× | `https://amazon.ca/dp/[VICTIM-PRODUCT-ID]/../[ATTACKER-PRODUCT-ID]` |
-
-| 1× | `https://amazon.ca/dp/███/../████████` |
-
-| 1× | `GET /assets/webpack/commons-pages.admin.sessions-pages.groups.omniauth_callbacks-pages.ldap.omniauth_callbacks-pages.omn-c3aaf8c4.3f9d44ba.c` |
-
-| 1× | `GET /patches/gtaiv/notes_title_update_6/GTAIVPC_TU6_Patch_Notes_FR.txt?donotpoisoneveryone=1 HTTP/1.1 / Host: updates.rockstargames.com / tr` |
-
-| 1× | `X-Forwarded-Host : foobar.pl"><img src=x onerror=blah>` |
-
-| 1× | `GET /u/x.css HTTP/1.1 / Host: try.discourse.org / <meta name="csrf-token" content="aYBW0N/1nfI1PHBa24YNx+...+BJJX+Fg==" />` |
-
-| 1× | `GET /u/x.css HTTP/1.1` |
-
-| 1× | `POST /users/$username/preferences/email.json HTTP/1.1 / / _method=PUT&email=$attacker_email&authenticity_token=$csrf_token` |
-
-| 1× | `/u/$rand.css` |
-
-| 1× | `<% woff2_url = "#{asset_path("fontawesome-webfont.woff2")}?#{font_domain}&v=4.7.0".html_safe %> / <link rel="preload" href="<%=woff2_url%>` |
-
-| 1× | `GET /?xx HTTP/1.1 / Host: meta.discourse.org / X-Forwarded-Host: cacheattack'"><script>alert(document.domain)</script>` |
-
-| 1× | `https://blackfan.ru/bugbounty/webcachedeception.php?url=https://meta.discourse.org/?cacheattack&payload=%22%3E%3Cscript%3Ealert(document.dom` |
-
-| 1× | `https://help.shopify.com/es/manual/your-account/copyright-and-trademark/<RANDOM_STRING>.css` |
-
-| 1× | `https://hatchful.shopify.com/furniture-logo-maker%25%32%46random.css` |
-
-| 1× | `curl -i -s -k -X $'GET' \ / -H $'Host: federation.data.gov' -H $'Accept-Encoding: gzip, deflate' -H $'Connection: close' \ / $'https://feder` |
-
-
-
-## Parameters observed
-
-
-
-`for[]` · `for` · `dontpoisoneveryone` · `cachebuster` · `cb` · `cachebust` · `yeettest` · `token` · `qwKzzSR` · `xyzxyz` · `hackerone` · `petIncluded` · `filterByTotalPrice` · `ssr` · `email` · `authenticity_token` · `letme` · `enable_registration` · `redirectTo` · `referrer_page_location`
-
-
-
-## Wordlists
-
-
-
-Mined from this class's writeups and ready for `ffuf`/`feroxbuster`. Paths and parameters recur across programs; verify each hit.
-
-
-
-| File | Entries |
-
-|---|---:|
-
-| `~/.local/share/hackerone-reports/wordlists/paths_web-cache.txt` | 53 |
-
-| `~/.local/share/hackerone-reports/wordlists/params_web-cache.txt` | 29 |
-
-| `~/.local/share/hackerone-reports/wordlists/paths.txt` (global) | 500 |
-
-| `~/.local/share/hackerone-reports/wordlists/params.txt` (global) | 400 |
-
-
-
-```sh
-
-W=~/.local/share/hackerone-reports/wordlists
-
-ffuf -u https://target/FUZZ -w $W/paths_web-cache.txt \
-
-     -mc all -fc 404 -fs 0 -rate 40
-
-ffuf -u 'https://target/api?FUZZ=canary' -w $W/params_web-cache.txt \
-
-     -mr 'canary|error|invalid|not found' -rate 40
-
-```
-
-
-
-## Nuclei
-
-
-
-Find unkeyed headers and cache-deception paths manually; templates only cover known patterns.
-
-
-
-```sh
-
-nuclei -u https://target -tags cache \
-
-       -severity low,medium,high,critical -rl 40 -o nuclei_web-cache.txt
-
-nuclei -u https://target -t ~/nuclei-templates/http/fuzzing/cache-poisoning-fuzz.yaml \
-
-       -rl 40 -o nuclei_web-cache_cache-poisoning-fuzz.txt
-
-nuclei -u https://target -t ~/nuclei-templates/http/vulnerabilities/generic/cache-poisoning.yaml \
-
-       -rl 40 -o nuclei_web-cache_cache-poisoning.txt
-
-# authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
-
-```
-
-
-
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-
-
-## Payload & Detection Patterns
-
-
-
-**Confirm caching behavior:**
-
-```bash
-
-# Send twice, compare Age header
-
-curl -s -I "https://target.com/page" | grep -i "age\|x-cache\|cf-cache"
-
-curl -s -I "https://target.com/page" | grep -i "age\|x-cache\|cf-cache"
-
-```
-
-
-
-**Test unkeyed X-Forwarded-Host:**
-
-```bash
-
-curl -s -H "X-Forwarded-Host: evil.attacker.com" \
-
-  "https://target.com/page" | grep -i "evil.attacker.com"
-
-```
-
-
-
-**Test Web Cache Deception (path appending):**
-
-```bash
-
-# Authenticated session cookie required
-
-curl -s -b "session=YOUR_SESSION" \
-
-  "https://target.com/account/profile.css"
-
-
-
-# Then fetch without auth from another client
-
-curl -s "https://target.com/account/profile.css"
-
-```
-
-
-
-**Force cache miss to test poison without hitting cached version:**
-
-```bash
-
-# Use a unique cache-busting query param to land on a fresh key — do NOT rely on
-
-# client-sent "Cache-Control: no-cache" (per RFC 7234 it requests revalidation, not
-
-# skip-storage, and Cloudflare/Fastly/Akamai generally ignore it on cacheable assets).
-
-curl -s -H "X-Forwarded-Host: canary.attacker.com" \
-
-     "https://target.com/page?cb=$RANDOM"
-
-```
-
-
-
-**DoS via poisoned error response:**
-
-```bash
-
-curl -s -H "X-Forwarded-Host: aaaaaaaaaaa.invalid" \
-
-  "https://target.com/js/app.js" -I
-
-# Check if next clean request returns error
-
-curl -s -I "https://target.com/js/app.js" | grep "HTTP/"
-
-```
-
-
-
-**Grep patterns in Burp/ZAP response history:**
-
-```
-
-# Headers indicating cache hit
-
-X-Cache: HIT
-
-CF-Cache-Status: HIT
-
-Age: [1-9]
-
-
-
-# Reflected unkeyed input in body
-
-evil\.attacker\.com
-
-canary\d+\.
-
-
-
-# Web cache deception indicators
-
-Content-Type: text/css  (but response is HTML/JSON)
-
-Cache-Control: public.*max-age  (on authenticated endpoint)
-
-```
-
-
-
-**Parameter pollution test:**
-
-```bash
-
-curl -s "https://target.com/page?cb=1&param=CANARY_VALUE" | grep CANARY_VALUE
-
-# Then check if clean request returns poisoned version
-
-curl -s "https://target.com/page?cb=1"
-
-```
-
-
-
-**Burp Suite Intruder wordlist for unkeyed headers:**
-
-```
-
-X-Forwarded-Host
-
-X-Host
-
-X-Forwarded-Server
-
-X-HTTP-Host-Override
-
-Forwarded
-
-X-Original-URL
-
-X-Rewrite-URL
-
-X-Forwarded-Scheme
-
-X-Forwarded-Proto
-
-True-Client-IP
-
-```
-
-
-
----
-
-
-
-### Origin header → ACAO cache poisoning
-
-Add `Origin` to the unkeyed-header set. Test whether it is reflected into `Access-Control-Allow-Origin` and then cached: `curl -H "Origin: evil.example" URL -I` on two consecutive hits. A cached attacker/`*` ACAO breaks CORS for legit users (cache-DoS); a cached permissive ACAO enables cross-user data reads. Disclosed: reports/591302.
-
-### Companion: hunting / references/techniques.md
+Add `Origin` to the unkeyed-header set. Test whether it is reflected into `Access-Control-Allow-Origin` and then cached: `curl -H "Origin: evil.example" URL -I` on two consecutive hits. A cached attacker/`*` ACAO breaks CORS for legit users (cache-DoS); a cached permissive ACAO enables cross-user data reads. Disclosed: reports/591302.### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # Web Cache — Combined Field Guide — Technique reference
 
@@ -1475,112 +1032,13 @@ python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class web-
 
 
 
----
+---## Probes
 
-## Corpus wordlists (mined)
+- Unkeyed header reflection, query-key normalization, static-extension suffix trick, cache-buster to isolate tests.
 
-### `params_web-cache.txt`
+## Supporting data
 
-```text
-for[]
-for
-dontpoisoneveryone
-cachebuster
-cb
-cachebust
-yeettest
-token
-qwKzzSR
-xyzxyz
-hackerone
-petIncluded
-filterByTotalPrice
-ssr
-email
-authenticity_token
-letme
-enable_registration
-redirectTo
-referrer_page_location
-g4mm4
-donotpoisoneveryone
-fetch
-my_cache_buster
-url
-payload
-cache
-yig1bt7ai4
-type
-```
-
-### `paths_web-cache.txt`
-
-```text
-/embed/job_board/js
-/embed/job_app
-/embed/job_board
-/wp-json/
-/dataset/consumer-complaint-database
-/websites/%22If%20you
-/static
-/pocs/twitter-upload-xss
-/minNightlyPrice/0
-/traveler/profile/edit
-/search/keywords:soissons-france-(xss
-/signup
-/dp/[VICTIM-PRODUCT-ID
-/dp/█████████
-/dp/███
-/dp/███████
-/collections/product-recommendations
-/collections/trending-themes
-/patches/gtaiv/notes_title_update_6/GTAIVPC_TU6_Patch_Notes_FR.txt
-/posts/cache-poisoning-at-scale/
-/name=
-/OmerGil/web-cache-deception-attack
-/X-Discourse-Username
-/users/
-/preferences/email.json
-/x-www-form-urlencoded
-/u/
-/script&gt;&amp;2&v=4.7.0
-/bugbounty/webcachedeception.php
-/web-cache-deception-attack-revisited/
-/es/manual/your-account/copyright-and-trademark/
-/s/csp-log
-/s/smule_groups/user_groups/fossnow27
-/v3/
-/user/check_email
-/v2/
-/s/smule_groups/user_groups/user_name
-/yeettest
-/zh-cn/careers/
-/zh-cn/cloud/cyber-protect/
-/r/enjv2g5042bg
-/4618984/account
-/my_collection/
-/web-tools/dns-checker/
-/static-frontend/amo-6203ce93d8491106ca21.js/notexist
-/ip-ranges.json
-/wp-json
-/Advisories/SQUID-2019_4.txt
-/Features/DynamicSslCert
-/html/alert.html
-/en/register/confirmation/success
-/package/fastify
-/cdn-cgi/beacon/expect-ct
-```
-
-## Source skills merged into this topic
-
-- `h1skills` — `hackerone-web-cache`
-- `hunting` — `web-cache`
-- `cbh` — `hunt-cache-poison`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 2 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/evidence.md` — corpus technique frequencies, case studies, approach patterns
+- `references/payloads.md` — curated payload bank + upstream payload references
+- `references/wordlists/` — 2 mined paths/params/payload lists
 - `bbhunt-methodology` — orchestrator, state machine and class router

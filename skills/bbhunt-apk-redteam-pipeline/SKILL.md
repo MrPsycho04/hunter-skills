@@ -4,14 +4,13 @@ description: "Acquire, decompile, grep, instrument and test an in-scope APK end 
 agent_created: true
 ---
 
-# Android APK red-team pipeline — unified skill
+# Android APK red-team pipeline — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### A. Discovery checklist — concrete artifacts, endpoints, patterns, tools to look for
 
 - **Map findings to OWASP MASVS v2 groups (MASVS-STORAGE, -CRYPTO, -AUTH, -NETWORK, -PLATFORM, -CODE, -RESILIENCE, -PRIVACY)** and cite MASTG test IDs. MASWE-0004 (sensitive data hardcoded in package), MASWE-0018 (no authz on app components), MASWE-0028 (insecure identity pinning), MASWE-0029 (insecure deep links) are the highest-yield weakness categories.
@@ -20,10 +19,7 @@ agent_created: true
 - **Network security config & pinning sources:** `res/xml/network_security_config.xml` `<domain-config><pin-set>` with digest hashes; pinned certs in `res/raw/` and `assets/`; OkHttp `CertificatePinner.check`; BoringSSL/Cronet native pinning; TrustManager implementations.
 - **Secret grep sources:** decompiled Java (`jadx`), native `.so` strings, `resources.arsc`, asset files, and `strings` output. Patterns: `api[_-]?key|secret|password|token|BEGIN RSA|AKIA|AIza|sk_live`, hardcoded `http://` URLs, `ECB`, constant IVs, `TODO`/staging hostnames.
 - **WebViews:** `setJavaScriptEnabled`, `addJavascriptInterface`, `loadUrl` with attacker-controlled input, `setAllowFileAccess`, `shouldOverrideUrlLoading`, local-resource access (MASWE-0033/0034/0035).
-- **Tooling:** `apktool`, `jadx`, `dex2jar`/`JD-GUI`, `MobSF` (automated static scan), `drozer` (IPC exploitation), `frida`/`objection`/Xposed (dynamic), `apk-mitm` (no-root repack bypass), `frida-multiple-unpinning`, `apk-mitm`/`apktool b` + `apksigner` for repackaging, `mitmproxy`/Burp, `adb shell pm path` → `adb pull` for installed APKs.
-
-### Techniques, payloads and bypasses
-
+- **Tooling:** `apktool`, `jadx`, `dex2jar`/`JD-GUI`, `MobSF` (automated static scan), `drozer` (IPC exploitation), `frida`/`objection`/Xposed (dynamic), `apk-mitm` (no-root repack bypass), `frida-multiple-unpinning`, `apk-mitm`/`apktool b` + `apksigner` for repackaging, `mitmproxy`/Burp, `adb shell pm path` → `adb pull` for installed APKs.### Techniques and bypasses
 ### Cert-pinning bypass (universal)
 
 ```javascript
@@ -60,10 +56,7 @@ frida -U -l frida-script-pinning-bypass.js -f <package_id> --no-pause
 - **Intent injection:** proxy components that forward attacker-controlled Intents to `startActivity()`/`sendBroadcast()` act like web open redirects — drive non-exported components or content providers. WebView `Intent.parseUri()` is a classic sink. Fastest pivot is `adb shell am start -n <pkg>/.Activity --es extra <value>` or a drozer `sendIntent` with malicious extras.
 - **Deep-link fuzzing:** `adb shell am start -a android.intent.action.VIEW -d 'myapp://...?param=<payload>'`; test path traversal, SQLi in query params, oversize inputs, token/secret leakage via referrer, and WebView loads from a `url=` parameter. Verify App Link association (`/.well-known/assetlinks.json`) per MASTG-TECH-0174.
 - **Runtime traffic routing through objection:** `android proxy set <ip> <port>` redirects only the target app's traffic to mitmproxy; combine with `android sslpinning disable`. Watch for third-party SDKs that use their own trust stores and remain un-pinned.
-- **Signing/version checks:** record the APK signature scheme and version; a valid signature says who built it, nothing about safety. Repackaging invalidates it — if the app crashes after repack, look for integrity/root/Frida detection (MASVS-RESILIENCE).
-
-### Validation and proof
-
+- **Signing/version checks:** record the APK signature scheme and version; a valid signature says who built it, nothing about safety. Repackaging invalidates it — if the app crashes after repack, look for integrity/root/Frida detection (MASVS-RESILIENCE).### Validation and proof
 ### C. Validation / proof bar — how to confirm and avoid false positives
 
 - **Pinning is a speed bump, not a control** — MASVS files pinning under resilience; the finding is what the now-visible API exposes. Do not report "missing pinning" alone as Critical; test every app as if pinning were already defeated.
@@ -85,10 +78,7 @@ frida -U -l frida-script-pinning-bypass.js -f <package_id> --no-pause
 - **Evidence hygiene:** redact session cookies and other users' PII in captured traffic and screenshots before attaching them to a report (`evidence-hygiene`).
 
 - **Native-library pass:** extract `.so` files (`MASTG-TECH-0157`) and run `strings`/radare2 on them — pinning, crypto keys, and endpoints hidden from DEX often remain in native code.
-- **Anti-reversing signals to log, not automatically report:** obfuscators/packers (MASTG-TECH-0165), root/emulator/debugger detection, and certificate pinning are resilience controls; document them and focus severity on the data/access primitive they guard.
-
-### Escalation and related chains
-
+- **Anti-reversing signals to log, not automatically report:** obfuscators/packers (MASTG-TECH-0165), root/emulator/debugger detection, and certificate pinning are resilience controls; document them and focus severity on the data/access primitive they guard.### Escalation and related chains
 ### Related Skills & Chains
 
 - **`cloud-iam-deep`** — APK secret extraction frequently yields live AWS/GCP/Azure credentials. Chain primitive: jadx string-grep produces AWS Access Key ID + Secret → `cloud-iam-deep` `aws sts get-caller-identity` → role/policy enumeration → IAM privilege-escalation path (one of 24 documented AWS escalation patterns) → cloud-plane takeover. Same flow applies to GCP service-account JSON and Azure shared-access-signature tokens extracted from APK resources.
@@ -103,10 +93,7 @@ frida -U -l frida-script-pinning-bypass.js -f <package_id> --no-pause
 - **`hunt-api-misconfig`** — APK endpoint inventory hands you the API surface for free; mass-assignment, JWT, and CORS bugs are typical. Chain primitive: APK reveals `/v1/users/me` and `/v1/admin/users` → `hunt-api-misconfig` mass-assignment probes (`{is_admin:true}`) against `/v1/users/me` → admin role escalation → access to `/v1/admin/users`.
 - **`hunt-rce`** — Hardcoded JWT signing secrets (HS256) extracted from APK enable arbitrary token forging. Chain primitive: APK strings yield HS256 secret → forge admin token → access admin API → if API has eval/template/sink → `hunt-rce` to server. Also: exported components with intent-injection sinks can reach `Runtime.exec` if app is local-installed.
 - **`offensive-osint`** — APK is one node in the broader org recon graph; pair with breach corpora and cert transparency. Chain primitive: APK reveals internal API hostname `api2.example.com` → `offensive-osint` certificate-transparency lookup → discover sibling subdomains → expanded attack surface.
-- **`redteam-report-template`** — APK findings need clear "what the binary leaks" framing because client engineers often dismiss mobile-static findings as "obfuscation problem." Chain primitive: validated finding (token/URL/secret extracted) → `triage-validation` 7-Question Gate (specifically: "does this credential still authenticate today?") → `redteam-report-template` packaging with explicit binary version + extraction reproduction steps.
-
-### Tools and wordlists
-
+- **`redteam-report-template`** — APK findings need clear "what the binary leaks" framing because client engineers often dismiss mobile-static findings as "obfuscation problem." Chain primitive: validated finding (token/URL/secret extracted) → `triage-validation` 7-Question Gate (specifically: "does this credential still authenticate today?") → `redteam-report-template` packaging with explicit binary version + extraction reproduction steps.### Tools
 ### Tooling install (one-time)
 
 ```bash
@@ -125,10 +112,7 @@ download-apk() {
 }
 ```
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://mas.owasp.org/MASTG/knowledge/android/MASVS-PLATFORM/MASTG-KNOW-0019 (deep-link types, App Link verification, assetlinks.json rules)
@@ -141,10 +125,7 @@ download-apk() {
 8. https://tranlynhathao.github.io/blog/2025/android-app-security-assessment (MASVS-mapped static-to-dynamic checklist, manifest attributes)
 9. https://httptoolkit.com/blog/android-reverse-engineering (static patch vs Frida, method-boundary hooking, `Java.use` pattern)
 10. https://bipi.in/blog/android-pentest-apk-frida-ssl-pinning-bypass (Frida setup, one-liner hook, exported-component abuse, native pinning)
-11. https://www.yingtongli.me/blog/2025/11/08/mitm-frida.html (objection proxy set + custom pinning via jadx discovery)
-
-### Additional notes
-
+11. https://www.yingtongli.me/blog/2025/11/08/mitm-frida.html (objection proxy set + custom pinning via jadx discovery)### Additional notes
 ### When to use this skill
 
 Trigger when:
@@ -508,16 +489,8 @@ mitmproxy --listen-port 8080
 - `evidence-hygiene` — extracted secrets need redaction before report inclusion
 - `redteam-mindset` — APK reverse on day-1 of an engagement, not as an afterthought
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `apk-redteam-pipeline`
-- `cbh` — `apk-redteam-pipeline`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

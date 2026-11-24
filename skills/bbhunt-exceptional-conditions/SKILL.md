@@ -4,14 +4,13 @@ description: "Feed malformed, unexpected input to make an endpoint fail open or 
 agent_created: true
 ---
 
-# Exceptional-condition mishandling — unified skill
+# Exceptional-condition mishandling — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Web-Research Methodology Additions (2026)
 
 > Fresh-source pass: OWASP Top 10 **A10:2025 Mishandling of Exceptional Conditions** (official page), MITRE CWE mappings, and the PortSwigger error-disclosure lab. This extends the existing "send what the code didn't anticipate" section with the full 2025 category and its fail-open/state-corruption angles.
@@ -34,10 +33,7 @@ agent_created: true
 5. **Look beyond the response body to *state*.** OWASP scenario #3: a multi-step transaction (debit → credit → log) interrupted mid-flight that does not roll back (fails open) → drained account or double-send. OWASP scenario #1: exceptions during file upload that don't release resources → resource exhaustion/DoS. These are fail-open findings, not disclosure findings, and can be High/Critical.
 6. **Check the environment-dependent error paths.** Memory pressure, network timeouts, permission denial, and missing optional services often have completely different (and unhandled) error handling than the happy path. Force upstream failures via invalid credentials/hosts where in scope.
 7. **Look at error-handling *consistency*, not just individual endpoints.** OWASP explicitly recommends centralized handling and a global exception handler because "one application should not [have] multiple functions for handling exceptional conditions." In practice that means fuzz the same malformed input across many endpoints: the one that returns a different, verbose shape is where the global handler was bypassed.
-8. **Check rate/resource limits on the error path itself.** OWASP's prevention guidance calls for rate limiting, quotas, and throttling so exceptional conditions are not trivially reachable at scale. An error page that is both verbose *and* unthrottled is a cheap reconnaissance primitive — and repeated identical errors can be collapsed into statistics rather than echoed verbatim.
-
-### Signals and surfaces
-
+8. **Check rate/resource limits on the error path itself.** OWASP's prevention guidance calls for rate limiting, quotas, and throttling so exceptional conditions are not trivially reachable at scale. An error page that is both verbose *and* unthrottled is a cheap reconnaissance primitive — and repeated identical errors can be collapsed into statistics rather than echoed verbatim.### Signals and surfaces
 ### What counts as a leak (the success signal)
 
 A finding is confirmed when the response body contains a cross-framework error-disclosure signature:
@@ -50,10 +46,7 @@ A finding is confirmed when the response body contains a cross-framework error-d
 - **.NET:** `Server Error in '/' Application`, a `[System.XxxException: ...]` YSOD.
 
 A clean JSON error (`{"error":"Invalid input"}`) with no internals is NOT a
-finding — that's correct handling. Disclosure of internal structure is.
-
-### Techniques, payloads and bypasses
-
+finding — that's correct handling. Disclosure of internal structure is.### Techniques and bypasses
 ### B. Techniques & bypasses — specific actionable techniques/payload shapes
 
 1. **Take a known-good request and break ONE assumption at a time** (existing), but now also break: parameter presence (`{"rating":5}` → `{}`), parameter count (add `{"extra":"x"}`), divisor values (`?per=0`), and content-type (`text/plain` body with JSON content, form body where JSON expected).
@@ -62,10 +55,7 @@ finding — that's correct handling. Disclosure of internal structure is.
 4. **CWE-636 fail-open probe.** On any authorization or payment step, trigger an exception *after* the auth decision but *before* the state change: does the error path default to allow, or does it roll back and deny? Example shape: send a valid token plus a malformed body that throws during deserialization — check whether the action still executes.
 5. **State-corruption / rollback test.** For a multi-step operation, interrupt it mid-flight (drop the connection, force a 500 on step 2, or race two requests) and query final state. A partial commit = fail-open state corruption (OWASP scenario #3), not a mere verbose error.
 6. **Error-page fingerprinting chain.** Capture framework/version from the stack trace, then map to known CVEs. A disclosed absolute path also enables `path-traversal`; a disclosed ORM enables `sqli`; a disclosed deserialization stack enables `deserialization`. Always attempt the chain before writing up disclosure alone.
-7. **Resource-exhaustion check.** Repeat an erroring request that allocates resources (upload, image processing); watch for leaked locks/handles and eventual DoS (OWASP scenario #1). Pair this with the OWASP prevention advice to add quotas and throttling — the absence of both is what turns a handled error into an availability bug.
-
-### Validation and proof
-
+7. **Resource-exhaustion check.** Repeat an erroring request that allocates resources (upload, image processing); watch for leaked locks/handles and eventual DoS (OWASP scenario #1). Pair this with the OWASP prevention advice to add quotas and throttling — the absence of both is what turns a handled error into an availability bug.### Validation and proof
 ### Validation discipline
 
 - Capture the exact leaked artifact (path, ORM class, version, stack frame) —
@@ -90,10 +80,7 @@ finding — that's correct handling. Disclosure of internal structure is.
 - Capture the exact leaked artifact (path, ORM class, version, stack frame) —
   that's the evidence. "It returned 500" alone is not disclosure.
 - Note what the leak enables next (e.g. a disclosed SQL error → hunt-sqli; a
-  disclosed absolute path → hunt-lfi).
-
-### Sources and related reading
-
+  disclosed absolute path → hunt-lfi).### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://top10.owasp.org/2025/A10_2025-Mishandling_of_Exceptional_Conditions/ (official A10:2025 page — 24 CWEs, score table, three failings, prevention, scenarios #1–#3; webfetched)
@@ -101,10 +88,7 @@ finding — that's correct handling. Disclosure of internal structure is.
 3. https://cwe.mitre.org/data/definitions/209.html (CWE-209: Generation of Error Message Containing Sensitive Information)
 4. https://nhimg.org/owasp-top-10-a10-guide (A10:2025 as reconnaissance, CWE-209/CWE-550, error messages as recon)
 5. https://www.raventek.com/exception-handling-for-federal-application-security/ (fail-open/default-allow, raw stack trace, debug mode, key technical weaknesses)
-6. https://www.invicti.com/web-application-vulnerabilities/stack-trace-disclosure-java (disable debug mode in production, custom error pages)
-
-### Additional notes
-
+6. https://www.invicti.com/web-application-vulnerabilities/stack-trace-disclosure-java (disable debug mode in production, custom error pages)### Additional notes
 ### What actually pays
 
 Well-built apps catch errors and return a clean, generic message. A broken app,
@@ -148,16 +132,8 @@ body contains a stack trace or framework error page is the signal.
 - **Stack trace / ORM / path / version disclosed** → `info-disclosure`, then chain to `sqli` / `path-traversal` / `deserialization` where the leaked artifact enables it.
 - **Error path defaults to allow, or a transaction partially commits** → `authz-bypass` / `fintech-graphql` / `race-condition` (fail-open state corruption is usually the higher-severity finding).
 - **Oversized/unterminated input crashes a native parser** → `memory-corruption`; **oversized input exhausts a managed runtime** → `dos`.
-- **A missing parameter changes a security decision** (e.g. omitting a role or scope field) → `api-misconfig` mass-assignment / `authz-bypass`.
+- **A missing parameter changes a security decision** (e.g. omitting a role or scope field) → `api-misconfig` mass-assignment / `authz-bypass`.## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `exceptional-conditions`
-- `cbh` — `hunt-exceptional-conditions`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

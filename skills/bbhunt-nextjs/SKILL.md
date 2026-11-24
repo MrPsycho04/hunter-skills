@@ -4,14 +4,13 @@ description: "Hunt Server Actions, middleware auth bypass, ISR cache poisoning, 
 agent_created: true
 ---
 
-# Next.js-specific vulnerability hunting — unified skill
+# Next.js-specific vulnerability hunting — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### A. Discovery checklist — concrete fingerprints, endpoints, headers, CVEs to look for
 
 - **CVE-2025-29927 — middleware authorization bypass (CVSS 9.1, GHSA-f82v-jwr5-mffw).** Affects self-hosted/Node-server Next.js **11.1.4 → 13.5.6**, **14.x < 14.2.25**, **15.x < 15.2.3** (also 12.3.5/13.5.9 fix lines). A single header skips middleware entirely: `X-Middleware-Subrequest`. **Vercel-hosted apps are automatically protected** — this is a self-hosted finding. Fingerprint middleware-protected routes by the response headers `x-middleware-rewrite`, `x-middleware-next`, `x-middleware-redirect` (often on a non-200 redirect to `/login` or `/unauthorized`).
@@ -27,10 +26,7 @@ agent_created: true
 - **App Router vs Pages Router matters.** CVE-2025-55182 affects App Router / RSC; a pure Pages Router app with no `react-server` bundle is not reachable through the Flight protocol. Distinguish by the presence of `react-server-dom-webpack`/`-turbopack` chunks and `Next-Action` headers.
 - **Server Action identifier discovery:** extract 40-hex action IDs from the RSC payload / JS chunks (`createActionURL`, `$$ACTION_`, `Next-Action:`). The middleware bypass header can be combined with a direct `POST` carrying the action ID and an empty Cookie header to test for client-side-only enforcement.
 - **CSP-bypass angle:** if middleware is what injects `Content-Security-Policy`, CVE-2025-29927 also removes CSP. Re-test any known reflected-XSS sink with the bypass header — CSP loss converts an otherwise unexploitable reflection into a live XSS (cross-reference `xss`).
-- **Cache-poisoning angle:** if middleware sets cache-control headers on protected routes, the bypass can cause privileged content to be cached and served to unauthenticated users. Confirm with a second clean client and `x-nextjs-cache` / `age` headers before calling it poisoning rather than plain reflection.
-
-### Signals and surfaces
-
+- **Cache-poisoning angle:** if middleware sets cache-control headers on protected routes, the bypass can cause privileged content to be cached and served to unauthenticated users. Confirm with a second clean client and `x-nextjs-cache` / `age` headers before calling it poisoning rather than plain reflection.### Signals and surfaces
 ### Crown Jewel Targets
 
 Next.js-specific bugs that bypass auth or reach SSRF = High/Critical.
@@ -56,10 +52,7 @@ __NEXT_DATA__ in HTML            SSR props leaked to client
 x-nextjs-* response headers      Confirms Next.js
 ```
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### B. Techniques & bypasses — specific actionable techniques/payload shapes
 
 - **Middleware bypass differential (concrete, low-noise):**
@@ -104,10 +97,7 @@ curl -s -o /dev/null -w "%{http_code}" https://$TARGET/admin/dashboard \
   -H "x-middleware-subrequest: middleware:middleware:middleware:middleware:middleware"
 # also: -H "x-middleware-subrequest: src/middleware"  and  "pages/_middleware"
 # 200 on a middleware-gated route = bypassed. Fixed 12.3.5 / 13.5.9 / 14.2.25 / 15.2.3.
-```
-
-### Validation and proof
-
+```### Validation and proof
 ### Validation
 
 ✅ Server Action: action executes without valid session, returns data or mutates state
@@ -145,10 +135,7 @@ curl -s -o /dev/null -w "%{http_code}" https://$TARGET/admin/dashboard \
 - Server Action auth bypass → data mutation: High/Critical
 - Image SSRF → cloud metadata: Critical
 - Middleware bypass → admin panel: High
-- Source map exposure only: Low-Medium
-
-### Escalation and related chains
-
+- Source map exposure only: Low-Medium### Escalation and related chains
 ### Chain Table
 
 | Next.js finding | Chain to | Impact |
@@ -160,10 +147,7 @@ curl -s -o /dev/null -w "%{http_code}" https://$TARGET/admin/dashboard \
 | Source map exposed | Reconstruct TS source → find hardcoded secrets | Further vulns |
 | `__NEXT_DATA__` leaks | Server-side secrets in HTML | API keys / tokens |
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://projectdiscovery.io/blog/nextjs-middleware-authorization-bypass
@@ -175,10 +159,7 @@ curl -s -o /dev/null -w "%{http_code}" https://$TARGET/admin/dashboard \
 7. https://zhero-web-sec.github.io/research-and-things/nextjs-and-the-corrupt-middleware
 8. https://www.ncsc.gov.uk/news/vulnerability-affecting-nextjs-web-development-framework
 9. https://unit42.paloaltonetworks.com/cve-2025-55182-react-and-cve-2025-66478-next/
-10. https://greynoise.io/blog/cve-2025-55182-react2shell-opportunistic-exploitation-in-the-wild-what-the-greynoise-observation-grid-is-seeing-so-far
-
-### Additional notes
-
+10. https://greynoise.io/blog/cve-2025-55182-react2shell-opportunistic-exploitation-in-the-wild-what-the-greynoise-observation-grid-is-seeing-so-far### Additional notes
 ### Phase 1 — Fingerprint & Version Detection
 
 ```bash
@@ -341,13 +322,8 @@ if m:
 "
 ```
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # HUNT-NEXTJS — Next.js / SSR Framework Vulnerabilities — Technique reference
 
@@ -411,17 +387,8 @@ curl -s -o /dev/null -w "%{http_code}" https://$TARGET/admin/dashboard \
 
 # 200 on a middleware-gated route = bypassed. Fixed 12.3.5 / 13.5.9 / 14.2.25 / 15.2.3.
 
-```
+```## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `nextjs`
-- `cbh` — `hunt-nextjs`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 1 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

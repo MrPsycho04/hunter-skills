@@ -4,14 +4,13 @@ description: "Hunt origin reflection, null-origin trust, regex bypasses, preflig
 agent_created: true
 ---
 
-# CORS misconfiguration hunting — unified skill
+# CORS misconfiguration hunting — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### A. Discovery checklist — concrete places, params, headers, infra signals to look
 
 - Any response with `Access-Control-*` headers but no explicit origin is a strong hint that ACAO is generated from the request `Origin`. Some apps emit CORS headers *only* when an Origin is present — always add `Origin:` before concluding "no CORS."
@@ -21,10 +20,7 @@ agent_created: true
 - Probe preflight (`OPTIONS` with `Origin`, `Access-Control-Request-Method`, `Access-Control-Request-Headers`) on APIs that use PUT/DELETE/custom auth headers — a permissive preflight means the attacker origin can issue authenticated state changes, not just reads.
 - Look for the "context-dependent trust" case: the app doesn't trust itself but trusts related domains/subdomains. A dangling CNAME in a trusted subdomain then becomes a CORS read primitive (cross-reference subdomain-takeover).
 - Check for Private Network Access behavior: `Access-Control-Request-Private-Network: true` in preflight, `Access-Control-Allow-Private-Network: true` in response. Chrome's PNA rollout has been in flux — test both the compliant flow and the "incomplete enforcement" behavior; `0.0.0.0` and public-IP-from-LAN quirks are version-dependent.
-- Inventory adjacent primitives that bypass CORS entirely: JSONP/`callback` params (XSSI), CORS-escape proxies (no victim credentials), and origin checks inside postMessage handlers.
-
-### Signals and surfaces
-
+- Inventory adjacent primitives that bypass CORS entirely: JSONP/`callback` params (XSSI), CORS-escape proxies (no victim credentials), and origin checks inside postMessage handlers.### Signals and surfaces
 ### Crown Jewel Targets
 
 - **Reflect-any-origin + credentials** — server echoes the `Origin` header AND
@@ -71,10 +67,7 @@ tokens, CSRF tokens, or other secrets in the body.
 - **postMessage missing/loose origin check** — handler that processes
   `event.data` without strictly validating `event.origin`.
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### Phase 3 — Subdomain / trusted-origin regex bypass
 
 The right payload depends on **which** regex flaw the server has. Identify the
@@ -209,10 +202,7 @@ done
 ```
 A bypass is real only if the server reflects **your registerable origin** into
 `ACAO` with `ACAC: true`. `evil.target.com` reflecting back is NOT a bug unless
-you can actually control a `*.target.com` host (then see Phase 6 / hunt-subdomain).
-
-### Validation and proof
-
+you can actually control a `*.target.com` host (then see Phase 6 / hunt-subdomain).### Validation and proof
 ### Validation discipline (read before submitting)
 
 - **Browser proof mandatory.** curl reflecting a header is NOT exploitation.
@@ -249,10 +239,7 @@ you can actually control a `*.target.com` host (then see Phase 6 / hunt-subdomai
 - Re-run the exact PoC twice and confirm reproducibility; note any browser-specific requirement (Safari backtick payloads, IE/Edge CRLF) so triage uses the right browser.
 - Check cache behavior explicitly: if you claim cache poisoning, show the cached response being served on a clean request without the malicious header, and verify `Vary: Origin` is absent.
 - For preflight findings, show an actual authenticated state-changing cross-origin request succeeding (not just reflective headers on OPTIONS).
-- Defensive framing: replace dynamic reflection with an exact-match allowlist, never whitelist `null`, never allow HTTP origins on an HTTPS app, add `Vary: Origin`, and remember CORS is not a substitute for server-side authorization.
-
-### Escalation and related chains
-
+- Defensive framing: replace dynamic reflection with an exact-match allowlist, never whitelist `null`, never allow HTTP origins on an HTTPS app, add `Vary: Origin`, and remember CORS is not a substitute for server-side authorization.### Escalation and related chains
 ### Chain Table
 
 | CORS finding | Chain to | Impact |
@@ -277,10 +264,7 @@ you can actually control a `*.target.com` host (then see Phase 6 / hunt-subdomai
 | Dangling trusted subdomain | hunt-subdomain takeover → host 5c there | Full credentialed read |
 | postMessage no/loose origin check | hunt-dom: inject iframe, send crafted message | DOM XSS / client auth bypass |
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://portswigger.net/research/exploiting-cors-misconfigurations-for-bitcoins-and-bounties
@@ -289,10 +273,7 @@ you can actually control a `*.target.com` host (then see Phase 6 / hunt-subdomai
 4. https://portswigger.net/research/introducing-the-url-validation-bypass-cheat-sheet
 5. https://portswigger.net/research/new-crazy-payloads-in-the-url-validation-bypass-cheat-sheet
 6. https://www.vaadata.com/en/blog/understanding-and-preventing-cors-misconfiguration
-7. https://www.intigriti.com/researchers/blog/hacking-tools/exploiting-cors-misconfiguration-vulnerabilities
-
-### Additional notes
-
+7. https://www.intigriti.com/researchers/blog/hacking-tools/exploiting-cors-misconfiguration-vulnerabilities### Additional notes
 ### What actually pays (and what does not)
 
 CORS pays High **only** when an attacker-controlled origin can perform a
@@ -470,16 +451,8 @@ grep -rEn "addEventListener\(['\"]message" recon/$TARGET/ --include="*.js" \
 postMessage is a separate class from HTTP CORS — impact is DOM-side (XSS,
 client-side auth bypass). See hunt-dom for exploitation depth.
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `cors`
-- `cbh` — `hunt-cors`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

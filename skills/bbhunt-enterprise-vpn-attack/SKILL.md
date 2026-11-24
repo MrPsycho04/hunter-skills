@@ -4,24 +4,20 @@ description: "Hunt external SSL VPN and remote-access appliances across major ve
 agent_created: true
 ---
 
-# Enterprise VPN appliance attack matrix — unified skill
+# Enterprise VPN appliance attack matrix — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### A. Discovery checklist — concrete fingerprints, endpoints, headers, CVEs, misconfigs to look for
 
 - **Ivanti Connect Secure — the 2026 zero-day chain (CISA KEV Oct 13/30 2026).** Three CVEs chained for unauth RCE + credential theft: **CVE-2026-104935** (auth bypass by spoofing, CWE-290, CVSS 8.6, remote unauth command execution; affects ICS <25.1.3.0 / 25.1.1.1+ / 25.1.2.2+ / 22.8R2.4+; 22.7.x NOT affected), **CVE-2026-111357** (missing auth for critical function → local priv esc, CWE-306/862/345, CVSS 8.8), **CVE-2026-118527** (predictable filenames → arbitrary upload, CWE-340, CVSS 4.3). Earlier 2025 KEVs: **CVE-2025-22457** (stack overflow) and **CVE-2025-0282** (stack overflow; RESURGE malware variant undermines mitigations). **Critical detection caveat: Ivanti's Integrity Checker Tool may not detect CVE-2026-104935 exploitation — commands execute in memory; CISA requires network + memory forensics.** EoL: 22.8 on 2027-01-31.
 - **Citrix NetScaler ADC/Gateway — Sept-Oct 2026 zero-day cluster.** **CVE-2026-88771** (improper input validation → unauth RCE, CVSS 9.5, no preconditions — all deployments; KEV 9/27/26), **CVE-2026-88772** (memory overflow → RCE/DoS, affects **DTLS enabled on VPN vServer** — default on; KEV 9/27/26), **CVE-2026-88773** (HTTP request smuggling via HTTP URL-based policy expression), **CVE-2026-88774** (feature policy bypass), **CVE-2026-88775/76/77** (memory overflows with gateway/AAA vServer, Oracle LB vServer, or non-HTTP L7 LB/CS/CGNAT configs), **CVE-2026-88778** (TCP ISN prediction when Enhanced ISN Generation disabled), **CVE-2026-88779** (SAML SP/IdP DoS; can force a reboot to detonate code injected via 88771 — KEV 10/4/26), **CVE-2026-107406** (SAML SP/IdP memory overflow RCE/DoS; earlier patches insufficient). Affected: 14.1 < 14.1-73.37, 13.1 < 13.1-64.23, FIPS/NDcPP variants. Older still: CVE-2025-7775 (memory overflow RCE, KEV 2025-08-26), CVE-2026-3055 (SAML IdP out-of-bounds read).
 - **Cisco ASA/FTD — 2025-2026 exploitation wave.** ArcaneDoor: **CVE-2025-20362 / CVE-2025-20333** (VPN web services, 5500-X, ED 25-03) plus a **persistence mechanism in FXOS that survives upgrading to the "fixed" Sept 2025 releases** (Cisco event response updated Apr 2026). 2026 zero-days: **CVE-2026-20349** (heap inspection, unauth crafted HTTP → SSL VPN device reload; requires WebVPN, IKEv2 client-services, or FTD ZTNA), **CVE-2026-76418** (secondary authentication configured on a tunnel group → crafted SSL VPN connection request → reload; CVSS 8.6, KEV 10/29/26). Fingerprint config with `show running-config webvpn` / `crypto ikev2`. Shadowserver tracked >51,000 exposed Cisco ASA SSL VPN devices.
 - **Fortinet FortiOS:** **CVE-2025-25249** (cw_acd heap overflow, CVSS 9.8/8.1, KEV 9/9/26; workaround = remove `fabric` from `allowaccess` or block UDP 5246-5249 CAPWAP) and **CVE-2025-61624** (CLI path traversal, admin read-write, arbitrary file write/delete, KEV 10/16/26). Also 2026 KEVs for Check Point VPN and Palo Alto (see CISA 2026 roundups).
-- **Palo Alto/Check Point:** include in the 5-KEV fall-2026 firewall roundup (CISA KEV 9/9-10/29/2026) — two pre-auth, one DoS, two need privileged login. Always check the configuration preconditions rather than banner-only.
-
-### Techniques, payloads and bypasses
-
+- **Palo Alto/Check Point:** include in the 5-KEV fall-2026 firewall roundup (CISA KEV 9/9-10/29/2026) — two pre-auth, one DoS, two need privileged login. Always check the configuration preconditions rather than banner-only.### Techniques and bypasses
 ### B. Techniques & bypasses — specific actionable techniques/payload shapes
 
 ```bash
@@ -43,20 +39,14 @@ curl -sk "https://$TARGET/+CSCOE+/logon.html" | grep -iE 'logon|group_list|secon
 # Cisco ArcaneDoor: patching is NOT enough — FXOS persistence survives; collect FXOS image.
 ```
 
-Chain priority for reporting: **Ivanti 104935 + 111357 + 118527** (unauth RCE → local priv esc → persistence upload) and **Citrix 88771 → 88779** (RCE → forced reboot to re-detonate injected code) are the two multi-CVE chains that turn a "patched" appliance into a confirmed compromise.
-
-### Validation and proof
-
+Chain priority for reporting: **Ivanti 104935 + 111357 + 118527** (unauth RCE → local priv esc → persistence upload) and **Citrix 88771 → 88779** (RCE → forced reboot to re-detonate injected code) are the two multi-CVE chains that turn a "patched" appliance into a confirmed compromise.### Validation and proof
 ### C. Validation / proof bar — how to confirm and avoid false positives
 
 - **Never prove a VPN CVE by crashing or writing to the appliance.** These are critical-infrastructure devices: use version/build fingerprint + configuration precondition + (where available) non-destructive indicators. CISA's KEV entries with "forensic triage required" mean you must hunt for prior compromise (memory/network forensics, IOCs) *in addition to* checking patch state.
 - **Patch-status traps:** Ivanti 22.7.x is NOT affected by 104935 but is EoL; Citrix patches for 88771-88778 do NOT cover 88779/107406; Cisco ArcaneDoor persistence survives the Sept 2025 fixed release. A "patched" banner is therefore not proof of safety — document each specific CVE applicability.
 - **Configuration gates are the finding, not the CVE number:** secondary auth on a tunnel group (Cisco 76418), DTLS on VPN vServer (Citrix 88772), fabric on `allowaccess` (Fortinet 25249), pass-through modules (analogous to Okta checks). If the config is absent, downgrade to Informational.
 - **Do not trust single-path 404s:** keep the existing "test 3+ CVEs per vendor" rule; vendors backport fixes without bumping version strings.
-- **If a CVE is confirmed, assume breach:** CISA/Ivanti guidance is factory reset + rebuild cloud/virtual images + reissue all certs/API keys/passwords + reset domain creds twice and revoke Kerberos tickets in hybrid deployments. Capture this as a remediation note in the report; "we patched" is not containment for in-memory or FXOS-resident tradecraft.
-
-### Escalation and related chains
-
+- **If a CVE is confirmed, assume breach:** CISA/Ivanti guidance is factory reset + rebuild cloud/virtual images + reissue all certs/API keys/passwords + reset domain creds twice and revoke Kerberos tickets in hybrid deployments. Capture this as a remediation note in the report; "we patched" is not containment for in-memory or FXOS-resident tradecraft.### Escalation and related chains
 ### Related Skills & Chains
 
 - **`rce`** — Every major VPN appliance (Pulse Secure, Fortinet, Citrix, Ivanti, Palo Alto) has shipped pre-auth path-traversal-to-RCE in the last 24 months. Chain primitive: VPN appliance CVE (e.g., Ivanti ICS CVE-2024-21887, Citrix Bleed CVE-2023-4966, Fortinet CVE-2024-21762) → `rce` pre-auth path traversal → arbitrary file write into web-root → request the file → web-shell as `root` → VPN config + LDAP bind credentials extracted.
@@ -73,10 +63,7 @@ Chain priority for reporting: **Ivanti 104935 + 111357 + 118527** (unauth RCE �
 - **`hunt-saml`** — VPN SAML SP misconfig persists even on fully-patched appliances. Chain primitive: appliance patched against latest CVE but `/saml/metadata` reachable → IdP fingerprinted → `hunt-saml` XSW or comment-injection against IdP → forged assertion → VPN session established without password/MFA.
 - **`vmware-vcenter-attack`** — Post-VPN-foothold the natural next pivot is vCenter. Chain primitive: VPN web-shell → cred extraction from VPN appliance config (LDAP bind, RADIUS shared secret) → reuse against internal vCenter → if scope permits, `vmware-vcenter-attack` → datacenter takeover.
 - **`hunt-ntlm-info`** — Some VPN appliances expose anonymous NTLM on management paths. Chain primitive: VPN admin portal NTLM Type-2 capture → `hunt-ntlm-info` AV_PAIR decode → internal AD forest name → `m365-entra-attack` Entra spray on synced tenant.
-- **`mid-engagement-ir-detection`** + **`redteam-report-template`** — VPN appliance CVE exploitation is high-noise; SOC patches fast. Chain primitive: confirmed CVE → baseline capture via `mid-engagement-ir-detection` → if appliance updates mid-test, capture the patched-state as a SECOND finding → run both findings through `triage-validation` → package via `redteam-report-template` with explicit critical-infrastructure framing.
-
-### Tools and wordlists
-
+- **`mid-engagement-ir-detection`** + **`redteam-report-template`** — VPN appliance CVE exploitation is high-noise; SOC patches fast. Chain primitive: confirmed CVE → baseline capture via `mid-engagement-ir-detection` → if appliance updates mid-test, capture the patched-state as a SECOND finding → run both findings through `triage-validation` → package via `redteam-report-template` with explicit critical-infrastructure framing.### Tools
 ### Nuclei templates for fast triage
 
 Nuclei has high-quality templates for most of the above CVEs. Single command sweeps:
@@ -89,10 +76,7 @@ nuclei -u https://target/ \
 
 Add `-as` (auto-scan) for broader vuln coverage but slower.
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://www.cisa.gov/news-events/alerts/2026/10/13/cisa-urges-patching-newly-exploited-vulnerabilities-ivanti-connect-secure
@@ -108,10 +92,7 @@ Add `-as` (auto-scan) for broader vuln coverage but slower.
 11. https://www.cyber.gc.ca/en/alerts-advisories/al26-018-vulnerability-affecting-cisco-asa-secure-firewall-threat-defense-software-remote-access-ssl-vpn-cve-2026-20349
 12. https://crwlr.io/blog/firewall-cve-watch-november-2026
 13. https://www.cisa.gov/news-events/alerts/2026/09/09/cisa-adds-four-known-exploited-vulnerabilities-catalog
-14. https://www.cisa.gov/known-exploited-vulnerabilities-catalog
-
-### Additional notes
-
+14. https://www.cisa.gov/known-exploited-vulnerabilities-catalog### Additional notes
 ### When to use this skill
 
 Trigger when recon surfaces:
@@ -473,47 +454,8 @@ Look for:
 - `mid-engagement-ir-detection` — appliances generate noisy logs; watch for IPS rules being deployed mid-engagement
 - `redteam-mindset` — banner-stripped ≠ "not vulnerable"; keep digging via behavioral fingerprints
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# enterprise-vpn-attack — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Nuclei templates for fast triage
-
-
-
-Nuclei has high-quality templates for most of the above CVEs. Single command sweeps:
-
-
-
-```bash
-
-nuclei -u https://target/ \
-
-  -tags vpn,cisco-asa,fortinet,citrix,palo-alto,pulse-secure,sonicwall,f5 \
-
-  -severity high,critical -rl 5
-
-```
-
-
-
-Add `-as` (auto-scan) for broader vuln coverage but slower.
-
-
-
----
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # enterprise-vpn-attack — Technique reference
 
@@ -717,17 +659,9 @@ curl -sk --path-as-is 'https://target/dana-na/../dana/html5acc/guacamole/../../.
 
 
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `enterprise-vpn-attack`
-- `cbh` — `enterprise-vpn-attack`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 2 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/payloads.md` — curated payload bank + upstream payload references
 - `bbhunt-methodology` — orchestrator, state machine and class router

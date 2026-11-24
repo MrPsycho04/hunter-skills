@@ -4,14 +4,13 @@ description: "Hunt IAM over-permission, public storage, metadata exposure and in
 agent_created: true
 ---
 
-# Cloud misconfiguration hunting — unified skill
+# Cloud misconfiguration hunting — unified methodology
 
-> **Complete merged skill.** Everything from 3 upstream skills across cbh, hunting, research is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 3 upstream skills across cbh, hunting, research. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### A. Discovery checklist — concrete places, params, headers, infra signals to look
 
 - OWASP Top 10:2025 moved Security Misconfiguration to A02 — cloud storage/identity permissions and exposed default content are explicitly in scope. Prioritize findings that yield data read, write, or credentials over checklist noise.
@@ -24,10 +23,7 @@ agent_created: true
 - Determine IMDS version from response shape. IMDSv1 answers plain GETs with no token; IMDSv2 requires `PUT /latest/api/token` with `X-aws-ec2-metadata-token-ttl-seconds` and then the token header. Datadog's 2025 study still finds instances allowing both, and flags the attack path "public EC2 running IMDSv1 + SSRF."
 - Storage exposure sweep: public S3/GCS/Azure Blob listing, permissive bucket/container policies (public `PutObjectAcl`/`PutObject`), public RDS snapshots, public Lambda function URLs, public GCP Cloud Run, exposed Azure Function Apps. Check `?list-type=2`, anonymous `ListBucket`, and ACL/Policy GETs.
 - Client-side secrets: JS bundles, `.env`, source maps, mobile APKs with hardcoded AWS keys / identity pool IDs / CloudWatch RUM config (see the existing CloudWatch RUM section).
-- Exposed management surfaces: Jenkins script console, RabbitMQ/AMQP with default creds, Kubernetes dashboard/kubelet, docker.sock — but defer K8s/CI-specific exploitation to their owning skills.
-
-### Techniques, payloads and bypasses
-
+- Exposed management surfaces: Jenkins script console, RabbitMQ/AMQP with default creds, Kubernetes dashboard/kubelet, docker.sock — but defer K8s/CI-specific exploitation to their owning skills.### Techniques and bypasses
 ### B. Techniques & bypasses — specific actionable techniques/payload shapes
 
 - Classic IMDSv1 SSRF chain:
@@ -42,10 +38,7 @@ agent_created: true
 - Redirect/allowlist bypasses for the URL parameter: decimal/octal/hex IP forms, `0x7f000001`, `2130706433`, `[::ffff:127.0.0.1]`, `169.254.169.254.nip.io`, `@`-userinfo, `#`/`?` fragments, trailing dots, and DNS rebinding.
 - Abusing Cognito Identity Pools from leaked JS: `GetId` -> `GetCredentialsForIdentity` with an unauthenticated role -> temporary AWS creds. Combine with the existing CloudWatch RUM weaponization section.
 - Cloud metadata abuse seen in the wild (Mandiant UNC2903, F5 Labs March 2025 campaign): automated scanning for SSRF then IMDS credential theft. Use this as evidence of real-world exploitability, not theoretical impact.
-- Anonymous bucket write test (authorized): `aws s3 cp marker.txt s3://bucket/ --no-sign-request` — but do not leave artifacts; use a clearly labeled marker and remove it.
-
-### Validation and proof
-
+- Anonymous bucket write test (authorized): `aws s3 cp marker.txt s3://bucket/ --no-sign-request` — but do not leave artifacts; use a clearly labeled marker and remove it.### Validation and proof
 ### Validation checklist (before reporting)
 
 1. Extract `identityPoolId` from page source.
@@ -79,10 +72,7 @@ agent_created: true
 - Bucket naming: if a bucket name appears in JS/APK, test `s3://<name>` anonymously across likely regions — a `ListBucket` failure in one region is not proof across all.
 - Watch for IMDS abuse indicators: Wiz notes rare processes touching IMDS and unusual metadata paths are the highest-signal detections — use this for the defensive recommendation.
 - The 2025 F5 Labs campaign showed a four-day burst of EC2 metadata exploitation; cite real-world scanning when a program questions impact.
-- For GCP, a leaked service-account JSON is a direct credential (no SSRF needed) — activate it and enumerate project roles.
-
-### Escalation and related chains
-
+- For GCP, a leaked service-account JSON is a direct credential (no SSRF needed) — activate it and enumerate project roles.### Escalation and related chains
 ### Local-verification toolchain
 
 For testing cloud-misconfig findings against a local AWS sim before/instead of hitting real cloud:
@@ -155,10 +145,7 @@ Defenders watching egress see traffic to a known-good AWS hostname; DLP doesn't 
 - **`hunt-ssrf`** — Metadata service is reachable only from inside the VPC; SSRF is the bridge. Chain primitive: SSRF + cloud misconfig (IMDSv1 still enabled) → instance role keys → S3/RDS data read.
 - **`supply-chain-attack-recon`** — Exposed CI/CD endpoints and SBOMs reveal internal package names. Chain primitive: Exposed Jenkins/GitLab + internal package name leak → npm/PyPI dependency-confusion publish → CI build pwn.
 - **`security-arsenal`** — Load the Cloud Bucket Wordlist (target-prod / target-backup / target-staging permutations) and the Admin-Panel Path List for fast enumeration.
-- **`triage-validation`** — Apply the Unique-Marker gate: any "writable bucket" claim requires a write of a unique marker file and a read-back from a clean session before report submission.
-
-### Sources and related reading
-
+- **`triage-validation`** — Apply the Unique-Marker gate: any "writable bucket" claim requires a write of a unique marker file and a read-back from a clean session before report submission.### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://hackingthe.cloud/aws/exploitation/ec2-metadata-ssrf
@@ -167,10 +154,7 @@ Defenders watching egress see traffic to a known-good AWS hostname; DLP doesn't 
 4. https://www.f5.com/labs/articles/campaign-targets-amazon-ec2-instance-metadata-via-ssrf
 5. https://cloud.google.com/blog/topics/threat-intelligence/cloud-metadata-abuse-unc2903
 6. https://securitylabs.datadoghq.com/articles/misconfiguration-spotlight-imds
-7. https://www.datadoghq.com/blog/cloud-security-study-learnings-2025
-
-### Additional notes
-
+7. https://www.datadoghq.com/blog/cloud-security-study-learnings-2025### Additional notes
 ### S3 / GCS / Azure Blob
 
 ```bash
@@ -283,17 +267,8 @@ No CVE assigned specifically to AWS RUM as of 2026-05. The attack class is docum
 - **NotSoSecure / Claranet — "Exploiting weak configurations in Amazon Cognito" (Nov 2023)** — explicitly calls out RUM as one of three SDKs commonly leaking the pool ID. [notsosecure.com](https://www.notsosecure.com/exploiting-weak-configurations-in-amazon-cognito/)
 - **HackTricks Cloud — `aws-cognito-unauthenticated-enum`** — canonical playbook. [cloud.hacktricks.wiki](https://cloud.hacktricks.wiki/en/pentesting-cloud/aws-security/aws-unauthenticated-enum-access/aws-cognito-unauthenticated-enum.html)
 - **Datadog Security Labs — "Following AWS Logs Backwards: Cognito Identity Pool Abuse" (2024)** — telemetry showing real-world abuse rates. [securitylabs.datadoghq.com](https://securitylabs.datadoghq.com/articles/abusing-aws-cognito-misconfigurations/)
-- **aws-observability/aws-rum-web GitHub issues #213, #404** — community discussion of the bundled-snippet security model. [github.com/aws-observability/aws-rum-web](https://github.com/aws-observability/aws-rum-web/issues)
+- **aws-observability/aws-rum-web GitHub issues #213, #404** — community discussion of the bundled-snippet security model. [github.com/aws-observability/aws-rum-web](https://github.com/aws-observability/aws-rum-web/issues)## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `cloud-misconfig`
-- `research` — `hunt-cloud-misconfig`
-- `cbh` — `hunt-cloud-misconfig`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

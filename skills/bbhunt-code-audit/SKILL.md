@@ -4,24 +4,20 @@ description: "Orchestrate isolated agents through reconnaissance, coverage-led h
 agent_created: true
 ---
 
-# Coverage-led source-code security audit — unified skill
+# Coverage-led source-code security audit — unified methodology
 
-> **Complete merged skill.** Everything from 1 upstream skills across cloudflare is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 1 upstream skills across cloudflare. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Sources and related reading
-
 ### Respect source visibility
 
 Deployment controls, proxy behavior, provider settings, browser headers, identity policy, broker ACLs, packaging, and topology are real controls. If they are required and absent from the repository, do not assume either presence or absence. Use `needs_validation` with the exact missing fact and a safe owner-observed or local plan.
 
 ### Recommend the smallest effective source fix
 
-For each confirmed finding, identify the invariant the code must enforce and the narrowest source change that enforces it at the last trusted decision point. Prefer specific repository-relative changes and regression tests over generic hardening advice. The audit describes fixes; it does not modify target source.
-
-### Additional notes
-
+For each confirmed finding, identify the invariant the code must enforce and the narrowest source change that enforces it at the last trusted decision point. Prefer specific repository-relative changes and regression tests over generic hardening advice. The audit describes fixes; it does not modify target source.### Additional notes
 ### Operating modes
 
 This skill is guidance by default. Loading it does not authorize the complete audit workflow or file creation.
@@ -194,13 +190,8 @@ Do not end the run before one of exactly two terminal states: (a) all Phase 6 ar
 7. Emitting prose-only hunter results that cannot be deduplicated or verified.
 8. Re-reporting carried same-source prior confirmed records or using them as exemplars that anchor the hunt.
 9. Assigning severity to `needs_validation` records.
-10. Writing the report before independent verification or letting prose and JSON disagree.
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: cloudflare / AI-AND-LLM.md
+10. Writing the report before independent verification or letting prose and JSON disagree.### Companion methodology (deduplicated)
+### cloudflare / AI-AND-LLM.md
 
 # AI, LLM, and Agent Hunting
 
@@ -286,7 +277,7 @@ The assembled context contains credentials, another user's data, private source,
 5. For MCP identity claims, verify the authenticated connection, request correlation, tool namespace, and effective credential. Mark `needs_validation` if external server identity or deployment routing is required.
 6. Return `confirmed` findings only with a complete source trace and meaningful result. Return `needs_validation` for a specific unresolved boundary fact and state the bounded local or owner-observed check needed to resolve it.
 
-### Companion: cloudflare / ATTACK-CLASSES.md
+### cloudflare / ATTACK-CLASSES.md
 
 # Attack Classes
 
@@ -419,7 +410,7 @@ This agent does not need to be creative. It needs to be thorough and literal. Ch
 
 **Important**: For any finding this agent reports, it must verify the full code path, not just surface appearance. If a cookie is missing `HttpOnly`, check whether the cookie contains security-sensitive data and whether JS needs to read it by design. If an error message contains a field name, check whether the field is ever actually populated with sensitive data. A flag is not a finding — trace the impact before reporting.
 
-### Companion: cloudflare / CLIENT-SIDE.md
+### cloudflare / CLIENT-SIDE.md
 
 # Client-Side and Browser Hunting
 
@@ -505,7 +496,7 @@ A client source controls redirect or navigation without scheme and destination p
 4. For messaging, CORS, WebSocket, and XS-Leaks, show exact origin/source validation and the protected state or action exposed. Confirm that CSP, COOP/CORP, cookies, and SameSite policy do not already block it.
 5. Return `confirmed` findings only with a complete client path and bounded local evidence. Return `needs_validation` with the precise deployed header, extension permission, browser version, or renderer behavior an owner must verify.
 
-### Companion: cloudflare / CLOUD-AND-DEPLOYMENT.md
+### cloudflare / CLOUD-AND-DEPLOYMENT.md
 
 # Cloud and Deployment Hunting
 
@@ -594,7 +585,7 @@ An edge or serverless runtime assumes a secret, API, filesystem, isolation, or t
 4. Local validation may render templates, evaluate policy, inspect container/user namespaces in an isolated fixture, or run an emulator with dummy identities. Do not probe live endpoints or alter shared cloud resources.
 5. Return `confirmed` only with a complete active source trace and concrete boundary result. Return `needs_validation` with the exact deployed policy, identity attachment, overlay, network, or drift observation needed.
 
-### Companion: cloudflare / DATA-ISOLATION-AND-LIFECYCLE.md
+### cloudflare / DATA-ISOLATION-AND-LIFECYCLE.md
 
 # Data Isolation and Lifecycle Hunting
 
@@ -681,7 +672,7 @@ Backup, undo, undelete, or replica recovery restores data, credentials, membersh
 4. If external cache, object storage, replicas, analytics, backup, or retention policy is required, classify `needs_validation` and state the owner-observed check.
 5. Return `confirmed` only with complete lineage and concrete boundary impact. Return `needs_validation` with the exact unresolved storage, ACL, invalidation, retention, or restore fact.
 
-### Companion: cloudflare / DESKTOP-MOBILE-AND-LOCAL-IPC.md
+### cloudflare / DESKTOP-MOBILE-AND-LOCAL-IPC.md
 
 # Desktop, Mobile, and Local IPC Hunting
 
@@ -773,7 +764,7 @@ Notification, widget, shortcut, share sheet, biometric prompt, or deferred opera
 4. Keep local tests bounded and use dummy content/accounts. Stop after proving the boundary result; do not extend proof into persistence or broader system modification.
 5. Return `confirmed` only with a complete source and local evidence chain. Return `needs_validation` with the exact OS, manifest, signing, ACL, or device-lifecycle fact required.
 
-### Companion: cloudflare / HUNTING.md
+### cloudflare / HUNTING.md
 
 # Vulnerability Hunting
 
@@ -1027,7 +1018,7 @@ The run profile bounds this loop. A `quick` run has exactly one hunter wave foll
 
 A budget bounds it the same way. Before assigning each wave, compare remaining budget against its hunter count, the validation reserve, the immediate post-wave critic, and the retained final-clean critic (`quick` reserves only its single final post-wave critic). Shrink the hunter wave to fit, taking units in priority order. If those mandatory reserves do not fit, launch no hunter from that wave and mark its planned units `deferred` with reason `budget_cannot_reserve_critics_and_validation`. Critic-proposed units enter the same ranked queue rather than extending the budget. If surviving candidates exceed the validation reserve, follow the incomplete-run rule in `SKILL.md`: stop hunting, validate in fingerprint order, retain unvalidated units as unresolved candidates, and never present them as findings.
 
-### Companion: cloudflare / MEMORY-SAFETY-AND-BINARY.md
+### cloudflare / MEMORY-SAFETY-AND-BINARY.md
 
 # Memory Safety, Binary, and Kernel Hunting
 
@@ -1131,7 +1122,7 @@ A device node, admin socket, helper, or management API validates shape but not t
 4. For concurrency, use a deterministic schedule or sanitizer trace. For binary loading, prove the checked identity differs from the mapped identity and name the lower-trust writer.
 5. Return `confirmed` findings only with exact input, source trace, and observed result. Return `needs_validation` for a specific unresolved reachability, ABI, build, deployment, or runtime fact and state the bounded check needed.
 
-### Companion: cloudflare / PROTOCOLS-RPC-AND-MESSAGING.md
+### cloudflare / PROTOCOLS-RPC-AND-MESSAGING.md
 
 # Protocols, RPC, and Messaging Hunting
 
@@ -1215,7 +1206,7 @@ Several consumers jointly implement one authorization or business transition, bu
 4. For authorization and isolation, verify all interceptor, broker ACL, gateway, and consumer layers visible in source. External attachments make the candidate `needs_validation`.
 5. Return `confirmed` only with the complete message lifecycle and observed meaningful result. Return `needs_validation` with the exact broker, service identity, route, or delivery fact required.
 
-### Companion: cloudflare / RECONNAISSANCE.md
+### cloudflare / RECONNAISSANCE.md
 
 # Reconnaissance
 
@@ -1374,7 +1365,7 @@ The ledger is the coverage claim. An architecture summary, agent count, or gener
 
 Run `node <skill-dir>/validate-coverage-ledger.cjs <output-dir>/coverage-ledger.json` after seeding, after every parent update, and before Phase 6. The validator rejects input beyond 5 MiB, 64 nesting levels, 10,000 units, 1,000 entries in a nested collection, or 500,000 traversed values, and caps reported validation errors at 100. In practice the 5 MiB byte limit holds roughly 2,000-5,000 realistic units, so it binds before the 10,000-unit cap. Fix every error before assigning work or making a coverage claim.
 
-### Companion: cloudflare / RESOURCE-EXHAUSTION-AND-AVAILABILITY.md
+### cloudflare / RESOURCE-EXHAUSTION-AND-AVAILABILITY.md
 
 # Resource Exhaustion and Availability Hunting
 
@@ -1455,7 +1446,7 @@ A restart, restore, fallback, or cleanup path rebuilds unbounded state, ignores 
 4. Prioritize by low requester work, unauthenticated reachability, cross-tenant scope, persistence, and poor recovery; do not validate with availability impact.
 5. Return `confirmed` only with safe local proof and meaningful shared effect. Return `needs_validation` with the exact upstream limit, topology, quota, or recovery observation an owner must check.
 
-### Companion: cloudflare / SUPPLY-CHAIN-AND-RELEASE.md
+### cloudflare / SUPPLY-CHAIN-AND-RELEASE.md
 
 # Supply Chain and Release Hunting
 
@@ -1531,7 +1522,7 @@ An extension package gains host authority beyond its declared scope, a lower-tru
 4. Keep local validation bounded: use a harmless fixture repository, dummy credential marker, local registry/config, and non-production artifact namespace. Do not publish or alter a real release.
 5. Return `confirmed` only with a complete source-visible handoff and meaningful result. Return `needs_validation` with the precise branch, runner, registry, signing, or deployment fact an owner must observe.
 
-### Companion: cloudflare / VALIDATION-AND-REPORTING.md
+### cloudflare / VALIDATION-AND-REPORTING.md
 
 # Validation, Structured Output, Verification, and Reporting
 
@@ -1720,7 +1711,7 @@ HTTP is one possible native interface, not the default. A library finding may us
 
 Keep the report proportional to the evidence. A clean run may have zero confirmed records. State that result and the remaining coverage/validation limits without inventing LOW findings.
 
-### Companion: cloudflare / WEB-PROTOCOL-AND-AUTH.md
+### cloudflare / WEB-PROTOCOL-AND-AUTH.md
 
 # HTTP-Protocol and Authentication Hunting
 
@@ -1826,16 +1817,8 @@ Expired, revoked, missing, or renewal-failed certificates cause silent fallback 
 3. For token, MFA, passkey, account-link, recovery, API-key, and mTLS findings, cite the verification line and missing principal/session/resource/origin/audience/action/assurance binding. Prove the server accepts the invalid transition or credential.
 4. For CSRF, name the ambient credential, state-changing route, accepted cross-site request shape, browser cookie policy, and missing effective check. Read-only actions and routes requiring a non-ambient bearer token do not qualify.
 5. Verify framework and library defaults. If version or configuration is unknown, use `needs_validation`; do not turn an unverified critical claim into a lower-severity confirmed finding.
-6. Return `confirmed` only with a complete source trace and observable unauthorized identity, state, or disclosure. For `needs_validation`, name the missing fact and safe local or owner-observed check that resolves it.
+6. Return `confirmed` only with a complete source trace and observable unauthorized identity, state, or disclosure. For `needs_validation`, name the missing fact and safe local or owner-observed check that resolves it.## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `cloudflare` — `security-audit`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 38 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

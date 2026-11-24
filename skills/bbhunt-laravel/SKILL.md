@@ -4,14 +4,13 @@ description: "Hunt debug leakage, Telescope/Horizon exposure, Ignition RCE, sign
 agent_created: true
 ---
 
-# Laravel-specific vulnerability hunting — unified skill
+# Laravel-specific vulnerability hunting — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### A. Discovery checklist — concrete fingerprints, endpoints, headers, CVEs to look for
 
 - **APP_KEY reuse is the dominant 2024–2026 pattern.** Synacktiv + GitGuardian (July 2025) harvested **267,952 APP_KEYs** from public sources and **625,059 `XSRF-TOKEN` ciphers** from 672,481 public Laravel sites; ~**3.56%** of keys could be recovered without ever touching the target, and ~1,091 hosts were still one request away from CVE-2018-15133 RCE. Top reused keys are vendor defaults (UltimatePOS, XPanel, Invoice Ninja `RR++yx2rJ9kdxbdh3+AmbHLDQu+Q76i++co9Y8ybbno=`, Snipe-IT `3ilviXqB9u6DX1NRcyWGJ+sjySF+H18CPDGb3+IVwMQ=`, the legacy `SomeRandomString` / `SomeRandomStringOf32CharsExactly` defaults). Hash any discovered key against these corpora first.
@@ -29,10 +28,7 @@ agent_created: true
 - **Dashboard surfaces:** `/telescope`, `/telescope/api/requests|commands|redis|environment`, `/horizon`, `/horizon/api/stats`, `/horizon/api/jobs/failed` — failed job payloads routinely contain tokens/PII. Telescope's `/telescope/api/environment` is the single highest-value endpoint when accidentally public (full env dump).
 - **Encrypter internals worth remembering for triage:** `encrypt()` produces AES-256-CBC over `serialize($value)` plus an HMAC in `mac`; GCM mode leaves `mac` empty and uses `tag`. `decrypt($payload, $unserialize = true)` defaults to `unserialize()` — that default is the root of every RCE chain in this class. A JSON blob with `"tag": null` or `"tag": ""` tells you which cipher path to attack with your tooling.
 - **Reuse heuristics from the 2025 top-10 dataset:** an APP_KEY shared by >100 internet hosts is almost certainly a product default; if the target also exposes that product's distinctive cookie name or route (`/route/{hash}`, a 40-char session cookie), you can jump straight to its known CVE rather than brute-forcing.
-- **Web-framework fingerprint sanity check:** Laravel session cookies are `httponly; samesite=lax` and `XSRF-TOKEN` is NOT httponly; if you see these attributes but no `laravel_session`, the app may use a custom `SESSION_COOKIE` name — derive it from the `Set-Cookie` list, not from a hardcoded wordlist.
-
-### Signals and surfaces
-
+- **Web-framework fingerprint sanity check:** Laravel session cookies are `httponly; samesite=lax` and `XSRF-TOKEN` is NOT httponly; if you see these attributes but no `laravel_session`, the app may use a custom `SESSION_COOKIE` name — derive it from the `Set-Cookie` list, not from a hardcoded wordlist.### Signals and surfaces
 ### Crown Jewel Targets
 
 Laravel debug mode enabled in production = instant RCE via Ignition (CVE-2021-3129).
@@ -44,10 +40,7 @@ Laravel debug mode enabled in production = instant RCE via Ignition (CVE-2021-31
 - **Signed URL manipulation** — if `URL::signedRoute` validates wrong params → bypass signed URL → unauthorized actions
 - **.env exposure** — `APP_KEY` leaked → decrypt all encrypted cookies → forge session → ATO
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### B. Techniques & bypasses — specific actionable techniques/payload shapes
 
 - **Turn any single default install into a fleet RCE.** Collect the `XSRF-TOKEN` cipher from the target, run `laravel_crypto_killer.py bruteforce -v <cipher>` against a wordlist of known public/default APP_KEYs, then `decrypt -k <key> -v <cipher>` to confirm plaintext. A matched key on a second host proves the reused-secret class across the estate.
@@ -63,10 +56,7 @@ curl -s -H "Cookie: XSRF-TOKEN=<ciphertext>" http://TARGET/login   # Snipe-IT
 - **No-key paths:** if key recovery fails, go for `APP_DEBUG=true` (Whoops/Ignition) → CVE-2021-3129, or CVE-2025-34060-style stream-filter PHP wrappers (`php://filter/...`) to read `config/app.php`, or `?--env=local` (CVE-2024-52301) to flip into a debug/seeded config. Each can hand you the APP_KEY that unlocks the cookie chain.
 - **Mass-assignment / signed-URL primitives from the baseline still apply** and chain well: `is_admin:true` on `/api/profile` or `/api/register`, and mutating non-signature parameters of a `?signature=` URL (remove signature, add `extra=`, change `user=`) to test whether all parameters are covered.
 - **Ignition debug-mode details:** after `GET /_ignition/health-check` confirms the endpoint, the public exploit writes a base64-decoded payload into `../storage/logs/laravel.log` via `makeViewVariableOptionalSolution`, then includes the log through a crafted `viewFile` path. Two conditions must both hold — `APP_DEBUG=true` AND writable `storage/logs` — so a bare debug page with a read-only log dir may not be exploitable.
-- **Key-generation hygiene note:** `php artisan key:generate` on install breaks the entire default-key class; a target whose `.env.example` still contains a real key is the vulnerable configuration. In reports, recommend removing APP_KEY from distributed products and forcing generation at install time (Synacktiv's primary recommendation).
-
-### Validation and proof
-
+- **Key-generation hygiene note:** `php artisan key:generate` on install breaks the entire default-key class; a target whose `.env.example` still contains a real key is the vulnerable configuration. In reports, recommend removing APP_KEY from distributed products and forcing generation at install time (Synacktiv's primary recommendation).### Validation and proof
 ### Validation
 
 ✅ Ignition RCE: `id` command output returned in response
@@ -104,10 +94,7 @@ curl -s -H "Cookie: XSRF-TOKEN=<ciphertext>" http://TARGET/login   # Snipe-IT
 - Ignition RCE: Critical
 - Telescope/Horizon with sensitive data: High
 - .env with APP_KEY: Critical
-- Mass assignment to admin: Critical
-
-### Escalation and related chains
-
+- Mass assignment to admin: Critical### Escalation and related chains
 ### Chain Table
 
 | Laravel finding | Chain to | Impact |
@@ -119,10 +106,7 @@ curl -s -H "Cookie: XSRF-TOKEN=<ciphertext>" http://TARGET/login   # Snipe-IT
 | Signed URL bypass | Unauthorized actions (unsubscribe any user, etc.) | Medium-High |
 | Mass assignment | Set is_admin=true → privilege escalation | Critical |
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://www.synacktiv.com/en/publications/laravel-appkey-leakage-analysis
@@ -130,10 +114,7 @@ curl -s -H "Cookie: XSRF-TOKEN=<ciphertext>" http://TARGET/login   # Snipe-IT
 3. https://nvd.nist.gov/vuln/detail/cve-2024-52301
 4. https://nvd.nist.gov/vuln/detail/cve-2021-3129
 5. https://github.com/synacktiv/laravel-crypto-killer
-6. https://github.com/ambionics/phpggc
-
-### Additional notes
-
+6. https://github.com/ambionics/phpggc### Additional notes
 ### Phase 1 — Fingerprint Laravel
 
 ```bash
@@ -297,16 +278,8 @@ php phpggc Laravel/RCE5 system 'id' | base64
 # python3 laravel_cookie_forge.py --key "$APP_KEY" --payload "PHPGGC_PAYLOAD"
 ```
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `laravel`
-- `cbh` — `hunt-laravel`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

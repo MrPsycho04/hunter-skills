@@ -4,14 +4,13 @@ description: "Enumerate API version history and undocumented paths, then test th
 agent_created: true
 ---
 
-# Shadow and zombie API discovery — unified skill
+# Shadow and zombie API discovery — unified methodology
 
-> **Complete merged skill.** Everything from 1 upstream skills across cbh is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 1 upstream skills across cbh. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Escalation and related chains
-
 ### Related Skills & Chains
 
 - **`hunt-api-misconfig`** — owns exploitation once a spec or endpoint is in hand (mass
@@ -25,10 +24,7 @@ agent_created: true
 - **`apk-redteam-pipeline`** / **`ios-redteam-pipeline`** — mobile builds routinely hardcode an
   older API version; every mobile-sourced endpoint is a version-diff candidate.
 - **`hunt-brute-force`** — a rate-limit regression found here is only a complete finding once
-  chained to actual brute-forceable impact (login, OTP, enumeration).
-
-### Additional notes
-
+  chained to actual brute-forceable impact (login, OTP, enumeration).### Additional notes
 ### OWASP API9 — Improper Inventory Management (Shadow / Zombie APIs)
 
 As an API evolves, old versions and internal/staging routes routinely stay reachable without
@@ -159,15 +155,8 @@ are the finding.
 | Old version accepts payloads the current version now validates/sanitizes | High (chain to the underlying injection class) |
 | Version is reachable but behaviorally identical to current | Informational |
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `cbh` — `hunt-shadow-api`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

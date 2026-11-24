@@ -4,13 +4,13 @@ description: "Use for 2FA bypass, OTP brute force/replay, factor-disabling logic
 agent_created: true
 ---
 
-# MFA, OTP and Password-Recovery Flaws — unified skill
+# MFA, OTP and Password-Recovery Flaws — unified methodology
 
-> **Complete merged skill.** Everything from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 3 upstream skills across cbh, h1skills, hunting and grounded in 15,259 disclosed HackerOne reports. Payloads, wordlists and supporting data are in `references/`.
 
-## Corpus evidence — 159 valid HackerOne reports (29 paid / 18%)
+## Corpus signal — 159 valid reports (29 paid / 18%)
 
-Every disclosed report is valid; payment is an impact signal, not a validity test.
+Every disclosed report is valid; payment is an impact signal, not a validity test. Full technique frequencies, case studies and approach patterns: `references/evidence.md`.
 
 ### Techniques ranked across ALL valid reports
 
@@ -28,116 +28,6 @@ Every disclosed report is valid; payment is an impact signal, not a validity tes
 | HTTP method / verb tampering | 8 |
 | XML / SOAP / SAML / XXE | 6 |
 | third-party data / paste / breach reuse | 5 |
-| DOM / HTML source inspection | 5 |
-| parameter pollution / duplicate keys | 5 |
-| internal service / port / container | 5 |
-| subdomain / DNS / cert-transparency recon | 5 |
-| file upload / filename / extension | 5 |
-| response diff / status / length comparison | 4 |
-|  HosT/absolute-URL reset poisoning | 4 |
-| race / concurrency / timing | 4 |
-| second-order / stored / blind delivery | 4 |
-| JWT / token / base64 decode | 4 |
-| WAF / sanitizer / filter bypass | 3 |
-| API docs / Swagger / introspection | 3 |
-| error message / stack trace probing | 2 |
-| JS bundle / source-map inspection | 2 |
-| OAST / DNS / HTTP callback proof | 2 |
-| parser confusion / normalization | 2 |
-| git history / exposed .git | 2 |
-| template injection (SSTI) | 2 |
-| search-engine dorking | 1 |
-| verbose debug / framework fingerprint | 1 |
-| redirect chain / Location header | 1 |
-| webhook / OAuth / SAML / integration abuse | 1 |
-| browser DevTools / network tab | 1 |
-| swap object ID / parameter value | 1 |
-| cloud metadata / IAM abuse | 1 |
-| public bucket / storage exposure | 1 |
-| employee / developer public info | 1 |
-
-### Parameters observed in writeups
-
-`username` (5), `password` (4), `template` (3), `name` (3), `class` (2), `invite_code` (2), `token` (2), `response` (2), `max-age` (2), `age` (2), `version` (1), `attempts` (1), `minutes` (1), `hours` (1), `utf8` (1), `_method` (1), `authenticity_token` (1), `commit` (1), `type` (1), `mobile_no` (1), `csrf_token` (1), `eyjpzci6mn0` (1), `session` (1), `user` (1), `uuid` (1), `eyjpzci6mh0` (1), `preview_markup` (1), `preview_data` (1), `phpmyadmin` (1), `action` (1)
-
-### Bypass primitives observed
-
-`bypass` (39), `content-type` (25), `bypassed` (14), `blacklist` (4), `content type` (3), `bypassing` (2), `second order` (2), `out-of-band` (1), `transfer-encoding` (1), `chunked` (1), `blind` (1), `polyglot` (1), `normalizer` (1), `null byte` (1)
-
-### Impact language observed
-
-`password` (345), `admin` (139), `token` (95), `secret` (37), `credential` (34), `account takeover` (14), `localhost` (8), `unauthorized` (8), `payment` (6), `funds` (3), `sensitive data` (3), `api key` (2), `financial` (1), `privilege escalation` (1)
-
-### Case studies — full excerpts (paid and unpaid)
-
-#### [125505](https://hackerone.com/reports/125505) — Possibility to brute force invite codes in riders.uber.com
-
-Uber · $5000 · severity n/a
-
-When adding new promotion codes for free rides, one could brute force invitation codes since there is no protection against brute force attacks. When going to payment page, it's possible to apply promotion code. If we intercept this request, we can brute force codes, since there is no captcha or limit for tries. In the pictures bellow, we can see the brute force in question with 3 types of different responses that allow us, to see if the code is valid, expired or invalid. Responses length: * 1951 - Valid code * 1931 - Not valid * 1921 - Code Expired Because there is a option to customize codes, and since all the codes that are customized begin with uber, we were able drop the time of the brute force, to a more practical attack. Finally, we could use a code to get a free ride. An attacker could use this vulnerability to ride in uber for free, creating multiple accounts, each one using one code.
-
-#### [1363672](https://hackerone.com/reports/1363672) — Bypass a fix for report #708013
-
-Shopify · $3500 · medium
-
-## Summary: `customerAccessTokenCreate` mutation in the Storefront API does not correctly throttle login attempts. An issue in similar report was already fixed, however, there is still a bypass. ## Steps To Reproduce: 1. Grab a Storefront API Token (I got it from the Buy Button App) 2. Make a request to the Storefront GraphQL endpoint (you can use mine): The actual creds are ███████ - █████████ 3. Send requests until you get `Login attempt limit exceeded` 4. Add a whitespace at the end of email. 5. Observe that you have bypassed the limit though the email is still valid (to prove it try `{email: \"█████ \", password: \"███\" }` and get the token) Video PoC: ███████ ##Possible remediation: Consider whitespace as a character. I would also recommend to try some other stuff like empty character ( and null byte in different forms. ## Supporting Material: I hope I don't need to write too much about the attack scenario, PoC script for bruteforce and Impact as the very same report was already accepted. ## Impact If the brute force attack succeeds, the attacker will gain access to user's Shopify account, including contact information and order history.
-
-#### [125707](https://hackerone.com/reports/125707) — Possibility to enumerate and bruteforce promotion codes in Uber iOS App
-
-Uber · $3000 · medium
-
-Due to the lack of rate limiting on the promo code redemption endpoint, it was possible to enumerate promo codes. The response also leaked metadata about the user, including the country of the user, their name and profile photo. Thanks, @r0t! Uber has a feature in the iOS app to apply a promotion code right after we register an account. Since there was no protection against brute force attacks, we were able to enumerate promotion codes, like in report #125505. This is a similar bug but leaks more information than #125505: * Promo code value * Country * Inviter’s name * Inviter’s picture
-
-#### [178293](https://hackerone.com/reports/178293) — Misconfiguration in Two Factor Authorisation
-
-Shopify · $1500 · severity n/a
-
-Hey There seems to be a weird misconfiguration which leads to bypass of two factor authorisation #### Scenario 1. Let's assume you have setup Two Factor Authorisation with Google Authenticator 2. You now activate `Google Apps` from `Login services` at 3. Now your try to "Sign In with Google" ` What's weird is no two factor code is required and you directly land in Admin Panel #### Issue Issue here is Two Factor Authorisation is disabled as soon as you "Sign In with Google" and now you cannot even enable it because you can't see any Two Factor Authenticator Tab in Accounts And now when you try to simple login with correct credentials you can access Admin Panel without Two Factor Code from Google Authenticator at ` Also there is no indication to via mail or notification that Two Factor Authorisation has been disabled when Two Factor Authorisation is disabled While it shouldn't be disabled in the first place
-
-#### [100509](https://hackerone.com/reports/100509) — Pre-generation of 2FA secret/backup codes seems like an unnecessary risk
-
-HackerOne · $1000 · severity n/a
-
-If you manage to get a malicious script running in HackerOne, requesting ` and parsing out the two factor authentication form will yield either… - the 2FA secret key and backup codes that *will* be used if 2FA is enabled for the first time this session - the backup codes that *will* be used if 2FA is already being used and the codes are regenerated during this session While *activating* 2FA or *confirming* backup codes regeneration requires knowledge of the user's password/TOTP code, reading the values out from the DOM does not (again, provided that you've compromised the user's session and are running script in their domain) A theoretical attack might play out like this: - A victim clicks a link or something in HackerOne which triggers XSS (which seems unlikely, but …) - The XSS makes a request to ` to obtain the victim's potential 2FA secret and backup codes. Possibly the attacker is able to abuse a password manager's behavior to obtain the victim's username/password at this point. - Because of the strange behavior that occurred when they clicked the link, the victim possibly closes and re-opens the window (in an attempt to stop whatever the script is doing) and then enables 2FA on their account - The attacker would now know the 2FA secret and backup codes that are currently being used for the victim's account While achieving this attack seems rather unlikely, it seems that i
-
-#### [743545](https://hackerone.com/reports/743545) — Bruteforce password recovery code
-
-Bumble · no bounty — still valid · severity n/a
-
-## Summary It's possible to bruteforce recovery code from SMS as iOS application doesn't have limits for incorrect inputs. I have tried 50+ different combinations until I reached code from SMS. ## Steps To Reproduce 1. Click "Use another option" on application startup view 1. Enter your phone number 1. Click "Forgotten number" 1. Click "OK" on pop-up window 1. Bruteforce 4 digits code ## PoC video ## Mitigation 1. Limit quantity of attempts to enter recovery code 1. Don't store recovery code on target device to compare it with user's input ## Details Devices: Iphone SE (13.2), Iphone 6s (12.4) App: Bumble (5.140.0) ## Impact Account takeover.
-
-#### [587910](https://hackerone.com/reports/587910) — Password not checked when disabling 2FA on HackerOne
-
-HackerOne · no bounty — still valid · low
-
-Hi, when I was submitted a report to a program that request `2FA` ON, I notice that if you try to disable this option will ask for `backup code - password` and if you enter a random password in the request filed and a correct `backup code` it will be successfully disabled the `2FA` without check if the password was correct or not. #PoC 1. go to your account and activate the `2FA` from `/settings/auth` 2. after active this option click on `Disabled` icon beside `Two-factor authentication`. 3. a new window will open asking for `Authentication or backup code - Password` to confirm the disabled. {F494646} 4. in the first box enter a valid `Authentication or backup code` and in the password filed enter any random/wrong password and click save. 5. the option will be disabled successful without check the validation of the password. #graphql Request ## Impact user can disable `Two-factor authentication` without entering a valid password
-
-### Recurring approach patterns from real reports
-
-- 2× by sending a very long password characters usually this problem is caused by a vulnerable password hashing implementation
-- 1× it was enabled for over hours since i was told it didn t exist but i stumbled upon the link and then saw all my sms messages on a web page
-- 1× i saw two authentication code text messages on my phone for the two fraudulent bitcoin purchases of and to max out the daily limit
-- 1× i have found similar easy way to bruteforce invite codes but in different manner
-- 1× invited you to make money with your car h1 another devastating thing i have found here is invite codes are already public in google which if an attacker uses he can ride with uber always for free with invites codes new account
-- 1× i didn t used any of the invite codes
-- 1× i also took a quick look at and noticed there is no reference to this coming up
-- 1× description 2fa in short testing out your 2fa implementation i noticed that there is limited protection against brute forcing
-- 1× password guessing in addition to the above i noticed that there is also limited protection against guessing a password
-- 1× based on other systems i ve tested potential mitigations include 2fa only allow attempts at a token after different attempts at different tokens lock the user account and email the victim password brute forcing once an account is locked do not validate the password of a user i hope this helps
-- 1× set up a proxy server i used burp
-- 1× in my case i added upto time and it hit into my mail box upto time
-- 1× as in report a security researcher discovered that following another change from report we used the wrong encoding for the manually entered secret
-- 1× it accomplishes this by opening connections to the target web server and sending a partial request
-- 1× the researcher found a method to brute force the 2fa code request in the www ubnt com login page
-- 1× stats api token can be generated at i ve used my profile and and my token to check brute force the correct token returned with ok status impact an attacker could view the stats of an user
-- 1× i have found that type checking for api key is insufficient in rubygems org s source code
-- 1× references finally the references i used for this report you might consider checking this also for even more ways to fortify your web application
-- 1× url i have tried to recover the password for some emails test test com exists teste teste com br does not exists after i clicked the reset my password s button the website informed that the email did not exist
-- 1× i have tried different combinations until i reached code from sms
-- 1× i was able to validate that the login of hotornot is vulnerable to bruteforcing
-- 1× summary i tried to guess on my account
-- 1× i sent out nearly requests and i was virtually banned on request about
-- 1× but when i changed my ip and tried logging in i was logged into the account without any additional checks description your web authentication endpoint post currently protects against credentials brute force attacks only by requests rate limiting based on ip
 
 ## Corpus-backed method (this class)
 
@@ -166,18 +56,13 @@ Hi, when I was submitted a report to a program that request `2FA` ON, I notice t
 - Missing rate limit -> OTP brute force -> ATO.
 - MFA disable CSRF -> persistent access.
 
-### Probes
-
-- Skip /verify step; replay a used code; change email/user param at verify; rotate IP/session between attempts.
-
 ### Veteran tip
 
 Treat the recovery path as part of MFA — most real bypasses are in reset/disable, not in the OTP check itself.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Quick wins
 
 Start here. These are the highest-yield tests for this class.
@@ -246,10 +131,7 @@ This is the go-to when there is no leaked code and no skip/replay path. Some app
 - Look for OTP validation on a different endpoint than issuance — a code minted on `/api/otp/request` may be accepted at `/api/mfa/verify` with no session binding.
 - Test whether the OTP endpoint accepts a code for any user by parameter (`user_id`, `email`, `phone`) — this is the "missing integrity" class seen in Snapchat's upvoted report.
 - Check how many wrong attempts trigger logout/lockout, and whether the counter resets on a *successful* re-login (macro-driven brute force depends on this).
-- For passkey/WebAuthn/passwordless flows, check whether a fallback (SMS/email) bypasses the phishing-resistant factor entirely — the fallback is the attack surface.
-
-### Signals and surfaces
-
+- For passkey/WebAuthn/passwordless flows, check whether a fallback (SMS/email) bypasses the phishing-resistant factor entirely — the fallback is the attack surface.### Signals and surfaces
 ### Signal
 
 - Reports: **285** · paid: **60**
@@ -273,10 +155,7 @@ This is the go-to when there is no leaked code and no skip/replay path. Some app
 
 Parameters, endpoints, and fields that commonly carry this bug:
 
-`otp` `mfa` `2fa` `password` `reset` `recovery` `backup`
-
-### Techniques, payloads and bypasses
-
+`otp` `mfa` `2fa` `password` `reset` `recovery` `backup`### Techniques and bypasses
 ### Payloads & probes
 
 - OTP -> `000000`, reuse old code, race multiple codes
@@ -424,10 +303,7 @@ Recurring payloads from this class's writeups. Adapt, don't paste blindly.
 # Test: skip /mfa entirely, access /dashboard directly with pre-mfa cookie
 # If app grants access without MFA = auth flow bypass = Critical
 curl -s -b "session=PRE_MFA_SESSION" https://target.com/dashboard
-```
-
-### Validation and proof
-
+```### Validation and proof
 ### Reporting bar
 
 - Prove real impact on a second controlled account or a safe callback.
@@ -460,10 +336,7 @@ curl -s -b "session=PRE_MFA_SESSION" https://target.com/dashboard
 - Distinguish "MFA not enforced" from "MFA satisfied by a different factor": document which factor was actually bypassed and which preconditions (password, session, cookie) the attacker held.
 - Push fatigue, SIM swap, and phishing-proxied OTPs are real-world threats but are not server-side app bugs — label them as threat-model notes, not reportable findings, unless the app has a specific control that fails.
 - Backup/recovery-code findings need a clean proof that the code was not issued to the attacker legitimately for that account — use two controlled accounts.
-- Redact OTP values, session cookies, and other-user PII in screenshots; keep the request/response pair that demonstrates the tampering.
-
-### Escalation and related chains
-
+- Redact OTP values, session cookies, and other-user PII in screenshots; keep the request/response pair that demonstrates the tampering.### Escalation and related chains
 ### Escalation chains
 
 - MFA bypass -> ATO.
@@ -505,10 +378,7 @@ OTP reuse = persistent session hijack = High
 - **`hunt-auth-bypass`** — MFA-step-skip is auth-flow bypass at the workflow layer. Chain primitive: pre-MFA cookie issued after password step + direct navigation to `/dashboard` skipping `/mfa` route + server only middleware-gates `/mfa` not `/dashboard` = full post-auth access from password-only state → MFA never enforced because the route gate was misplaced.
 - **`hunt-misc`** — Recovery-code dump via `/api/me` is a misc-class info disclosure that becomes Critical when chained. Chain primitive: `/api/me` returns full user object including `backup_codes` array (plaintext, never rotated) → attacker with any read-IDOR or XSS exfils backup codes → uses one backup code → MFA satisfied → ATO without OTP knowledge.
 - **`security-arsenal`** — Pull the OTP-brute-force payload section (000000-999999 wordlist generator, ffuf rate-limit-evasion patterns with `-t 5 -p 0.5-2`, distributed-IP rotation via proxychains) and the JWT-token-replay table when "MFA satisfied" claim lives in a JWT claim that can be forged.
-- **`triage-validation`** — Run the Pre-Severity Gate before claiming Critical on an MFA bypass that only works when the attacker already has the password. Standalone MFA bypass is High; chained-with-password-oracle is Critical; chained-with-cookie-theft-only is Critical. The chain question separates the two.
-
-### Tools and wordlists
-
+- **`triage-validation`** — Run the Pre-Severity Gate before claiming Critical on an MFA bypass that only works when the attacker already has the password. Standalone MFA bypass is High; chained-with-password-oracle is Critical; chained-with-cookie-theft-only is Critical. The chain question separates the two.### Tools
 ### Tools
 
 `Burp` · `Turbo Intruder` · `ffuf`
@@ -546,10 +416,7 @@ nuclei -u https://target -t ~/nuclei-templates/http/token-spray \
 # authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
 ```
 
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Sources and related reading
-
+Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.### Sources and related reading
 ### Query the corpus
 
 ```sh
@@ -579,10 +446,7 @@ python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class mfa-
 
 1. https://portswigger.net/web-security/authentication/multi-factor
 2. https://www.cobalt.io/blog/bypassing-the-protections-mfa-bypass-techniques-for-the-win
-3. https://portswigger.net/web-security/race-conditions
-
-### Additional notes
-
+3. https://portswigger.net/web-security/race-conditions### Additional notes
 ### Parameters observed
 
 `password` · `username` · `template` · `authenticity_token` · `invite_code` · `commit` · `hash` · `phone` · `token` · `api_key[]` · `id` · `next` · `_method` · `type` · `mobile_no` · `csrf_token` · `data` · `uuid` · `redirect` · `product`
@@ -662,165 +526,8 @@ asyncio.run(race())
 Backup codes: typically 8 alphanumeric = 36^8 = ~2.8T (too large)
 BUT: check if backup codes are only 6-8 digits = 1-10M range = feasible with no rate limit
 Also test: can backup codes be reused after exhaustion? Some apps regenerate predictably.
-```
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# MFA And Passwords — Combined Field Guide — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payloads & probes
-
-
-
-- OTP -> `000000`, reuse old code, race multiple codes
-
-- MFA -> call the post-MFA endpoint directly
-
-- Password -> `password[]=x`, type juggling
-
-- Enumeration -> response length/timing variants
-
-
-
-## Payload fragments observed
-
-
-
-Recurring payloads from this class's writeups. Adapt, don't paste blindly.
-
-
-
-| Seen | Fragment |
-
-|---:|---|
-
-| 2× | `> POST /users/sign_in HTTP/1.1 / > Host: 159.xxx.xxx.xxx / > ... / > ----------1881604860 / > Content-Disposition: form-data; name="user[otp` |
-
-| 2× | `{{temaplte:38dhs_admins_only_header.html}}` |
-
-| 1× | `{email: \"█████ \", password: \"███\" }` |
-
-| 1× | `POST /login/confirm HTTP/1.1 / Host: cs.money / Content-Length: 28 / Connection: close / Cookie: steamid=<victim_steam_id>; / {"token":"foo` |
-
-| 1× | `HTTP/1.1 400 Bad Request / Content-Encoding: gzip / Content-Type: application/json; charset=utf-8 / Date: Tue, 31 Jan 2017 17:45:43 GMT / X-` |
-
-| 1× | `Throttler\sleepDelay` |
-
-| 1× | `{"username":"admin"}` |
-
-| 1× | `/api/system/verification-codes/[0-9]{6}` |
-
-| 1× | `{"password":"<NEW PASSWORD>","code":"<BRUTEFORCED SMS TOKEN>","securityCode":"<RETRIEVED SECURITY CODE>"}` |
-
-| 1× | `<methodName> system.listMethods </methodName>` |
-
-| 1× | `curl -u "RANDOM1:RANDOM2" -X PROPFIND https://server/public.php/webdav` |
-
-| 1× | `[...]OCA\\\\DAV\\\\Connector\\\\Sabre\\\\Auth->validateUserPass('matthes', '***THE_PASSWORD***')[...]` |
-
-| 1× | `/php/restaurantSmsHandler.php?type=app-download-sms&mobile_no=<NUMBER>&csrf_token=<TOKEN>` |
-
-| 1× | `/php/restaurantSmsHandler.php?type=order-app-download-sms&mobile_no=<NUMBER>&csrf_token=<TOKEN>` |
-
-| 1× | `/php/restaurantSmsHandler.php?type=app-download-sms&mobile_no=[8127410000,8317030000,...]&csrf_token=<TOKEN>` |
-
-| 1× | `$ curl --globoff 'http://localhost:3000/api/v1/gems?api_key[]=key1&api_key[]=key2' / > Access Denied. Please sign up for an account at https` |
-
-| 1× | `SecureRandom.hex (32)` |
-
-| 1× | `$response->throttle()` |
-
-| 1× | `using the way ''{{temaplte:38dhs_admins_only_header.html}}'' in 'create new' via 'preview feature', nothing. The other variable name, which` |
-
-| 1× | `{id:"2"}` |
-
-
-
-## Parameters observed
-
-
-
-`password` · `username` · `template` · `authenticity_token` · `invite_code` · `commit` · `hash` · `phone` · `token` · `api_key[]` · `id` · `next` · `_method` · `type` · `mobile_no` · `csrf_token` · `data` · `uuid` · `redirect` · `product`
-
-
-
-## Wordlists
-
-
-
-Mined from this class's writeups and ready for `ffuf`/`feroxbuster`. Paths and parameters recur across programs; verify each hit.
-
-
-
-| File | Entries |
-
-|---|---:|
-
-| `~/.local/share/hackerone-reports/wordlists/paths_mfa-and-passwords.txt` | 150 |
-
-| `~/.local/share/hackerone-reports/wordlists/params_mfa-and-passwords.txt` | 75 |
-
-| `~/.local/share/hackerone-reports/wordlists/paths.txt` (global) | 500 |
-
-| `~/.local/share/hackerone-reports/wordlists/params.txt` (global) | 400 |
-
-
-
-```sh
-
-W=~/.local/share/hackerone-reports/wordlists
-
-ffuf -u https://target/FUZZ -w $W/paths_mfa-and-passwords.txt \
-
-     -mc all -fc 404 -fs 0 -rate 40
-
-ffuf -u 'https://target/api?FUZZ=canary' -w $W/params_mfa-and-passwords.txt \
-
-     -mr 'canary|error|invalid|not found' -rate 40
-
-```
-
-
-
-## Nuclei
-
-
-
-Test OTP brute-force limits, reuse, and direct post-MFA endpoint access manually.
-
-
-
-```sh
-
-nuclei -u https://target -tags auth-bypass,default-login,token-spray,login \
-
-       -severity low,medium,high,critical -rl 40 -o nuclei_mfa-and-passwords.txt
-
-nuclei -u https://target -t ~/nuclei-templates/http/default-logins \
-
-       -rl 40 -o nuclei_mfa-and-passwords_default-logins.txt
-
-nuclei -u https://target -t ~/nuclei-templates/http/token-spray \
-
-       -rl 40 -o nuclei_mfa-and-passwords_token-spray.txt
-
-# authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
-
-```
-
-
-
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Companion: hunting / references/techniques.md
+```### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # MFA And Passwords — Combined Field Guide — Technique reference
 
@@ -1246,255 +953,13 @@ OTP reuse = persistent session hijack = High
 
 
 
----
+---## Probes
 
-## Corpus wordlists (mined)
+- Skip /verify step; replay a used code; change email/user param at verify; rotate IP/session between attempts.
 
-### `params_mfa-and-passwords.txt`
+## Supporting data
 
-```text
-password
-username
-template
-authenticity_token
-invite_code
-commit
-hash
-phone
-token
-api_key[]
-id
-next
-_method
-type
-mobile_no
-csrf_token
-data
-uuid
-redirect
-product
-account_id
-reset_password_token
-name
-email
-signup_source
-ver
-dial_code
-ric
-preview_data
-payload
-attestation
-device_id
-dsig
-dtoken1i
-fidelius_client_init
-height
-max_video_height
-max_video_width
-reactivation_confirmed
-req_token
-screen_height_in
-screen_height_px
-screen_width_in
-screen_width_px
-timestamp
-width
-submit
-usp
-google_apps
-utf8
-issue_search
-nonce
-act
-action
-plan
-company
-country
-confirmation_token
-content
-captcha
-login_code
-load[]
-org_invite
-backup
-app
-primary_phone_number
-country_code
-phone_number
-url
-code
-dodaac
-age
-firstname
-lastname
-user
-```
-
-### `paths_mfa-and-passwords.txt`
-
-```text
-/login
-/xmlrpc.php
-/signin
-/cdn-cgi/beacon/expect-ct
-/password
-/api
-/drive/
-/join/
-/wp-admin/load-scripts.php
-/my-diary/
-/scauth/otp/droid/logout
-/graphql
-/web-client/api/user/login
-/admin/
-/authorise/
-/nim/otp
-/admin/auth/login
-/password/edit
-/nim
-/uploads
-/robots.txt
-/templates
-/attack-box
-/r3c0n_server_4fdk59
-/s3cr3t-ar3a
-/scauth/otp/login
-/QV80pD0wZsE
-/account/details/
-/account/register/
-/security
-/Passwords
-/us/hosting/produktmatrix_vserver/vserver-produktmatrix
-/vps.php
-/pricing/
-/ipv6/
-/signup
-/partner_with_us/ownership
-/restaurant-onboard-diy/v2/verify-auto-claim-otp
-/restaurant-onboard-diy/v2/send-auto-claim-otp
-/api/2020-07/graphql
-/settings/auth
-/users
-/api/2fa
-/api/2fa/verify
-/profile
-/customerInsurance
-/account/support
-/login/confirm
-/account/security
-/cloudflare-r2-payment-bypass/
-/api-auth/login/
-/v1/account/destroy
-/remote.php/dav/calendars/ha.ckitbharat3@gmail.com/app-generated--deck--board-5269/
-/registration/confirm-phone
-/api/passenger/v2/profiles/edit
-/auth/post_login
-/admin/settings/account
-/american-airlines-reminders/
-/american-airlines-reminders/api/v1/reminders
-/gitlab-org/gitlab-ce/issues
-/online-calculator/binomial.aspx
-/pentesting-web/2fa-bypass
-/wp/xmlrpc.php
-/api/system/verification-codes/
-/api/system/verification-codes
-/api/system/email-account/password
-/roomlogin/user/
-/users/sign_in
-/nin/
-/sign-in
-/api/v1/login
-/blog/web-security/xml-rpc-protocol-ip-disclosure-attacks/
-/installer-log.txt
-/signup/
-/publications/docs/ripe-552
-/submission_requirements
-/wp-json/wp/v2/users
-/accounts
-/accounts/transfer_money
-/public.php/webdav
-/index.php/s/7ARMkjXJXAEz2kr
-/index.php/login
-/share/████████/password
-/share/
-/share/███
-/share/██████
-/session
-/basecamp/2479412/signin
-/hooks/catch/3b7uh7/
-/statsapi/
-/statsapi/authtoken/
-/accounts/password
-/██████████and
-/contact
-/api-public/contact/send
-/nim/submit
-/api/idp/v1/token
-/php/developer
-/manage/password
-/sign_up/enter_password
-/oauth/token
-/security/
-/password/reset/
-/accounts/reset/
-/send_login_code
-/verify_login_code
-/apply
-/wordpress-vulnerability-dos/
-/2018/02/how-to-dos-29-of-world-wide-websites.html
-/cgi-bin/cvename.cgi
-/wp-admin
-/accounts/36430415/security
-/account/settings/2fa_sms
-/slackcsrf.html
-/php/restaurantSmsHandler.php
-/api/v1/gems
-/admin/users/61715715/2fa/confirm
-/admin/settings/account/61826947
-/admin/settings/account/61715715
-/admin/users/61715715/2fa/send_sms
-/admin/users/61826947/2fa/send_sms
-/services/signup/setup
-/users/testqr
-/users/displayqr
-/internal_api/v0.2/login
-/s_search/query_dodaac.asp
-/███████/s_search/query_ric.asp
-/█████████/s_search/query_dodaac.asp
-/s_search/query_ric.asp
-/upchieve
-/auth/realms/master/protocol/openid-connect/auth
-/rt/users/apply-clients-promotions
-/login/setupchallenge
-/apps
-/phpmyadmin
-/something
-/r3c0n_server_4fdk59/picture
-/api/staff
-/texts/2020-06-10-h1-2006-ctf-writeup-2cf34abd3ed/
-/swag-shop
-/evil-quiz
-/people-rater
-/signup-manager
-/forum
-/rebinder.html
-/r3c0n_server_4fdk59/album
-/hate-mail-generator
-/wp-login.php
-/wordpress/wp-login.php
-/admin/mysql
-```
-
-## Source skills merged into this topic
-
-- `h1skills` — `hackerone-mfa-and-passwords`
-- `hunting` — `mfa-and-passwords`
-- `cbh` — `hunt-mfa-bypass`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 2 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/evidence.md` — corpus technique frequencies, case studies, approach patterns
+- `references/payloads.md` — curated payload bank + upstream payload references
+- `references/wordlists/` — 2 mined paths/params/payload lists
 - `bbhunt-methodology` — orchestrator, state machine and class router

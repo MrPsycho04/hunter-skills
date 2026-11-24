@@ -4,14 +4,13 @@ description: "Hunt external AWS/Azure/GCP IAM abuse, STS chaining, IMDS, K8s SA 
 agent_created: true
 ---
 
-# Cloud IAM privilege-escalation chains — unified skill
+# Cloud IAM privilege-escalation chains — unified methodology
 
-> **Complete merged skill.** Everything from 3 upstream skills across cbh, hunting, research is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 3 upstream skills across cbh, hunting, research. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### A. Discovery checklist — concrete fingerprints, endpoints, headers, CVEs, misconfigs to look for
 
 - **IMDS-via-SSRF is an active 2025 exploitation trend, not a historical demo.** F5 Labs observed a March 2025 campaign scanning EC2 IMDS through vulnerable web apps (paths `/meta-data/`, `/meta-data/iam/security-credentials/<role>`, `/user-data`); Wiz disclosed in-the-wild **CVE-2025-51591** (Pandoc `<iframe src>` SSRF, CVSS 6.5) used to reach `/latest/meta-data/iam/info` and `/latest/meta-data/iam/security-credentials/`. Mandiant's **UNC2903** used Adminer **CVE-2021-21311** for the same goal. Add `169.254.169.254`, IPv6 `[fd00:ec2::254]`, and these exact paths to every SSRF wordlist.
@@ -20,10 +19,7 @@ agent_created: true
 - **Newer AWS privesc pairs to enumerate beyond classic `iam:PassRole`+Lambda:** `iam:PassRole`+`ecs:RunTask` (command override + `assignPublicIp=ENABLED`), `iam:PassRole`+`ecs:StartTask`/`RegisterContainerInstance`, `iam:PassRole`+`glue:CreateDevEndpoint`, `iam:PassRole`+`datapipeline:CreatePipeline/PutPipelineDefinition/ActivatePipeline`, `iam:UpdateAssumeRolePolicy`+`sts:AssumeRole`, `lambda:UpdateFunctionCode` on an existing privileged function. Security Hub's exposure findings name the same shapes: "Has pass role create executor path", "Has swap role existing executor path", "Has role chain escalation path", "Has inject code privileged executor path", "Has credential minting path".
 - **Azure/Entra workload identity — two distinct token surfaces.** VMs: IMDS `169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=...` with header `Metadata: true`. App Services/Functions expose NO link-local IMDS: they inject `IDENTITY_ENDPOINT` + `IDENTITY_HEADER`, and the header must be replayed as `X-IDENTITY-HEADER`. An SSRF/LFI that can read those env vars is therefore the equivalent primitive.
 - **GCP:** access tokens minted from a leaked service-account JSON are effectively non-revocable (1-hour life; the only remediation is disabling the SA, which breaks production). Cached tokens live in `~/.config/gcloud/credentials.db`. P4SA (per-product service account) impersonation chains are a 2025 bug-bounty class: a Google SecOps SOAR bugSWAT 2025 winning report escalated from Basic-role "Manual Actions" to full admin via an over-broad `roles/iam.serviceAccountTokenCreator` binding on a GKE-init P4SA.
-- **Cognito addendum (extends the section already in this skill):** AWS best practice requires BOTH `cognito-identity.amazonaws.com:aud` AND `:amr` conditions in identity-pool trust policies; a guest role missing either is the misconfiguration to flag. Master switch is "Enable access to unauthenticated identities"; "automatic limitations placed on unauthenticated roles" are weaker than they sound.
-
-### Techniques, payloads and bypasses
-
+- **Cognito addendum (extends the section already in this skill):** AWS best practice requires BOTH `cognito-identity.amazonaws.com:aud` AND `:amr` conditions in identity-pool trust policies; a guest role missing either is the misconfiguration to flag. Master switch is "Enable access to unauthenticated identities"; "automatic limitations placed on unauthenticated roles" are weaker than they sound.### Techniques and bypasses
 ### B. Techniques & bypasses — specific actionable techniques/payload shapes
 
 ```bash
@@ -97,10 +93,7 @@ Quick lookup — if you have any of these IAM actions, escalate via the listed t
 
 Many of the destructive ones are out-of-scope for an external red-team; document the path, don't always execute.
 
----
-
-### Validation and proof
-
+---### Validation and proof
 ### AWS — read-only validation (the safe first step)
 
 ```bash
@@ -173,10 +166,7 @@ az vm list --output table
 - **App Service vs VM:** do NOT claim "no IMDS = not vulnerable." Check `IDENTITY_ENDPOINT`/`IDENTITY_HEADER` first. Azure token creation has no dedicated log — TrustOnCloud's detection research shows MI abuse must be detected by baselining sign-in behavior against the identity's normal pattern, so a "no alert fired" observation is not evidence of no abuse.
 - **GCP:** an access token is not revocable and a leaked SA JSON keeps minting them. Report the key exposure + SA roles, but do not claim "we revoked it" — validate with `gcloud auth list` and a read-only API call, and note rotation/disable as the client's remediation.
 - **P4SA/impersonation:** prove the *chain* end-to-end (`getAccessToken` on a higher SA → an action only that SA can do), not the mere presence of a `roles/iam.serviceAccountTokenCreator` binding — match the Google bugSWAT case.
-- **Cognito:** still require all three artifacts from the existing section (`get-caller-identity`, permission enumeration, concrete data pull). `NotAuthorizedException` on `GetId` = unauth disabled = no finding; `Roles` with deny-all policy = Informational only.
-
-### Escalation and related chains
-
+- **Cognito:** still require all three artifacts from the existing section (`get-caller-identity`, permission enumeration, concrete data pull). `NotAuthorizedException` on `GetId` = unauth disabled = no finding; `Roles` with deny-all policy = Informational only.### Escalation and related chains
 ### AWS — STS / cross-account / role chaining
 
 ```bash
@@ -224,10 +214,7 @@ AWS Cognito has two distinct services often confused: **User Pools** (auth provi
 - **`supply-chain-attack-recon`** — CI/CD often holds long-lived deploy credentials. Chain primitive: Exposed GitHub Actions OIDC misconfig + assume-role permission → `cloud-iam-deep` cross-account role assumption.
 - **`m365-entra-attack`** — Azure Managed Identity overlaps Entra service principals. Chain primitive: SSRF on Azure App Service → Managed Identity token → `m365-entra-attack` Graph API enumeration → cross-tenant escalation.
 - **`security-arsenal`** — Load the Cloud IAM Privilege-Escalation Payload Pack (24+ AWS, 8+ Azure, 6+ GCP escalation patterns with `aws cli` one-liners).
-- **`triage-validation`** — Apply the Server-State-vs-Policy gate: a permissive IAM policy alone is not a finding; demonstrate actual privileged action (e.g., read prod secret, create cross-account role) before reporting.
-
-### Tools and wordlists
-
+- **`triage-validation`** — Apply the Server-State-vs-Policy gate: a permissive IAM policy alone is not a finding; demonstrate actual privileged action (e.g., read prod secret, create cross-account role) before reporting.### Tools
 ### Tooling reference
 
 | Tool | Cloud | Purpose |
@@ -247,10 +234,7 @@ AWS Cognito has two distinct services often confused: **User Pools** (auth provi
 | **kube-hunter** | K8s | Auto-scan cluster from inside/outside |
 | **kubectl-trace** | K8s | Trace processes (post-foothold) |
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://www.f5.com/labs/articles/campaign-targets-amazon-ec2-instance-metadata-via-ssrf
@@ -266,10 +250,7 @@ AWS Cognito has two distinct services often confused: **User Pools** (auth provi
 11. https://redcanary.com/blog/threat-detection/gcp-service-accounts
 12. https://cloud.google.com/iam/docs/service-account-impersonation
 13. https://jdsec.cloud/posts/2026-01-17-privilege-escalation-via-a-service-account-impersonation-chain
-14. https://docs.aws.amazon.com/cognito/latest/developerguide/identity-pools-security-best-practices.html
-
-### Additional notes
-
+14. https://docs.aws.amazon.com/cognito/latest/developerguide/identity-pools-security-best-practices.html### Additional notes
 ### When to use
 
 Trigger when:
@@ -664,13 +645,8 @@ Without all three, triagers downgrade to Medium. The 60-second test is `GetId �
 
 Cross-reference: `hunt-cloud-misconfig` → `CloudWatch RUM weaponization` covers the specific RUM-embedded variant of this attack class.
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # cloud-iam-deep — Technique reference
 
@@ -744,18 +720,8 @@ Many of the destructive ones are out-of-scope for an external red-team; document
 
 
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `cloud-iam-deep`
-- `research` — `cloud-iam-deep`
-- `cbh` — `cloud-iam-deep`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 1 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

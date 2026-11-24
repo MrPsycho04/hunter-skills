@@ -4,14 +4,13 @@ description: "Route to local cloned tools and wordlists by phase. Unified from 2
 agent_created: true
 ---
 
-# Local bug-bounty toolkit router — unified skill
+# Local bug-bounty toolkit router — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Quick Wins Checklist
 
 - [ ] Subdomain takeover (`subjack`, `subzy`)
@@ -31,10 +30,7 @@ agent_created: true
 **Laravel**: `/horizon`, `/telescope`, `/.env`, `/storage/logs/laravel.log`
 **WordPress**: `/wp-json/wp/v2/users`, `/xmlrpc.php`, `/?author=1`
 **Node.js**: `/.env`, `/graphql` (introspection), `/_debug`
-**AWS Cognito**: `/oauth2/userInfo` (leaks Pool ID), CORS reflects arbitrary origins
-
-### Signals and surfaces
-
+**AWS Cognito**: `/oauth2/userInfo` (leaks Pool ID), CORS reflects arbitrary origins### Signals and surfaces
 ### A->B BUG SIGNAL METHOD (Cluster Hunting)
 
 **When you find bug A, systematically hunt for B and C nearby.** This is one of the most powerful methodologies in bug bounty. Single bugs pay. Chains pay 3-10x more.
@@ -63,10 +59,7 @@ Cache poisoning → build output manipulation → backdoored deployment
 Impostor commit → pinned action hijack → all downstream repos affected
 OIDC token theft → cloud metadata → S3/GCS read → customer data
 Self-hosted runner → container escape → internal network pivot
-```
-
-### Techniques, payloads and bypasses
-
+```### Techniques and bypasses
 ### SSRF IP Bypass Table (11 Techniques)
 
 | Bypass | Payload | Notes |
@@ -206,10 +199,7 @@ curl -s https://raw.githubusercontent.com/shuvonsec/claude-bug-bounty/main/SKILL
 
 Then in Claude Code, this skill loads automatically when you ask about bug bounty, recon, or vulnerability hunting.
 
----
-
-### Validation and proof
-
+---### Validation and proof
 ### Gate 0: Reality Check (30 seconds)
 
 ```
@@ -226,10 +216,7 @@ Then in Claude Code, this skill loads automatically when you ask about bug bount
 [ ] The answer is more than "see non-sensitive data"
 [ ] There's a real victim: another user's data, company's data, financial loss
 [ ] I'm not relying on the user doing something unlikely
-```
-
-### Escalation and related chains
-
+```### Escalation and related chains
 ### Known A->B->C Chains
 
 | Bug A (Signal) | Hunt for Bug B | Escalate to C |
@@ -360,10 +347,7 @@ When payout is being downgraded, use these counters:
 - **`web2-recon`** — When recon needs to be run via specific tool invocations. Workflow primitive: this skill names the local install path (e.g., `~/tools/SecretFinder/.venv/bin/activate`); `web2-recon` is the pipeline that strings those tool paths together.
 - **`offensive-osint`** — When the operational arsenal (probes, regexes, wordlists) needs a tool to execute it. Workflow primitive: `offensive-osint` provides the regex / probe; this skill provides the local trufflehog / jhaddix / SecLists clone that runs it.
 - **`security-arsenal`** — When the payload library needs a tool to fire payloads at scale. Workflow primitive: `security-arsenal` is the payload syntax; this skill names the ffuf / dalfox / ghauri install that delivers them.
-- **`bb-methodology`** — When Phase 1 (Recon) or Phase 3 (Discovery) needs tooling routed. Workflow primitive: `bb-methodology`'s "Tool Routing by Phase" table is general; this skill resolves the abstract tool names to concrete local paths.
-
-### Tools and wordlists
-
+- **`bb-methodology`** — When Phase 1 (Recon) or Phase 3 (Discovery) needs tooling routed. Workflow primitive: `bb-methodology`'s "Tool Routing by Phase" table is general; this skill resolves the abstract tool names to concrete local paths.### Tools
 ### Tools to Install When Needed
 
 | Tool | Use | Install |
@@ -427,10 +411,7 @@ grep -rn "as u8\|as u16\|as u32\|as usize" --include="*.rs" | grep -v "checked\|
 
 - [SecLists](https://github.com/danielmiessler/SecLists) -- Comprehensive wordlists
 - [HowToHunt](https://github.com/KathanP19/HowToHunt) -- Step-by-step vuln hunting
-- [DefaultCreds](https://github.com/ihebski/DefaultCreds-cheat-sheet) -- Default credentials
-
-### Sources and related reading
-
+- [DefaultCreds](https://github.com/ihebski/DefaultCreds-cheat-sheet) -- Default credentials### Sources and related reading
 ### Source Code Recon
 
 ```bash
@@ -448,10 +429,7 @@ grep -rn "fetch(\|axios\." --include="*.ts" | grep "req\.\|params\.\|query\."
 
 # Dangerous patterns (Solidity)
 grep -rn "tx\.origin\|delegatecall\|selfdestruct\|block\.timestamp" --include="*.sol"
-```
-
-### Additional notes
-
+```### Additional notes
 ### THE ONLY QUESTION THAT MATTERS
 
 > **"Can an attacker do this RIGHT NOW against a real user who has taken NO unusual actions -- and does it cause real harm (stolen money, leaked PII, account takeover, code execution)?"**
@@ -1648,79 +1626,8 @@ This requires [prerequisites] and leaves [detection/reversibility].
 - [HackTricks](https://book.hacktricks.xyz) -- Attack technique reference
 - [PayloadsAllTheThings](https://github.com/swisskyrepo/PayloadsAllTheThings) -- Payload reference
 - [Solodit](https://solodit.cyfrin.io) -- 50K+ searchable audit findings (Web3)
-- [ProjectDiscovery Chaos](https://chaos.projectdiscovery.io) -- Free subdomain datasets
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# Bug Bounty Master Workflow — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Wordlists
-
-- [SecLists](https://github.com/danielmiessler/SecLists) -- Comprehensive wordlists
-
-- [HowToHunt](https://github.com/KathanP19/HowToHunt) -- Step-by-step vuln hunting
-
-- [DefaultCreds](https://github.com/ihebski/DefaultCreds-cheat-sheet) -- Default credentials
-
-
-
-## Payload Databases
-
-- [XSSHunter](https://xsshunter.trufflesecurity.com/) -- Blind XSS detection
-
-- [interactsh](https://app.interactsh.com) -- OOB callback server
-
-
-
----
-
-
-
-# INSTALLATION (Claude Code Skill)
-
-
-
-To use this as a Claude Code skill, copy this file to your skills directory:
-
-
-
-```bash
-
-# Option A: Clone the repo and link the skill
-
-git clone https://github.com/shuvonsec/claude-bug-bounty.git ~/.claude/skills/bug-bounty
-
-ln -s ~/.claude/skills/bug-bounty/SKILL.md ~/.claude/skills/bug-bounty/SKILL.md
-
-
-
-# Option B: Direct copy
-
-mkdir -p ~/.claude/skills/bug-bounty
-
-curl -s https://raw.githubusercontent.com/shuvonsec/claude-bug-bounty/main/SKILL.md \
-
-  -o ~/.claude/skills/bug-bounty/SKILL.md
-
-```
-
-
-
-Then in Claude Code, this skill loads automatically when you ask about bug bounty, recon, or vulnerability hunting.
-
-
-
----
-
-### Companion: hunting / references/techniques.md
+- [ProjectDiscovery Chaos](https://chaos.projectdiscovery.io) -- Free subdomain datasets### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # Bug Bounty Master Workflow — Technique reference
 
@@ -1824,17 +1731,9 @@ ffuf -w subs.txt -u https://FUZZ.target.com -ac
 
 **Node.js**: `/.env`, `/graphql` (introspection), `/_debug`
 
-**AWS Cognito**: `/oauth2/userInfo` (leaks Pool ID), CORS reflects arbitrary origins
+**AWS Cognito**: `/oauth2/userInfo` (leaks Pool ID), CORS reflects arbitrary origins## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `bb-local-toolkit`
-- `cbh` — `bb-local-toolkit`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 2 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/payloads.md` — curated payload bank + upstream payload references
 - `bbhunt-methodology` — orchestrator, state machine and class router

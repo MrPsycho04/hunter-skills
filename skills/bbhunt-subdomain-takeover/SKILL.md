@@ -4,13 +4,13 @@ description: "Use for dangling DNS records pointing to unclaimed or misconfigure
 agent_created: true
 ---
 
-# Subdomain Takeover — unified skill
+# Subdomain Takeover — unified methodology
 
-> **Complete merged skill.** Everything from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 3 upstream skills across cbh, h1skills, hunting and grounded in 15,259 disclosed HackerOne reports. Payloads, wordlists and supporting data are in `references/`.
 
-## Corpus evidence — 72 valid HackerOne reports (12 paid / 17%)
+## Corpus signal — 72 valid reports (12 paid / 17%)
 
-Every disclosed report is valid; payment is an impact signal, not a validity test.
+Every disclosed report is valid; payment is an impact signal, not a validity test. Full technique frequencies, case studies and approach patterns: `references/evidence.md`.
 
 ### Techniques ranked across ALL valid reports
 
@@ -28,93 +28,6 @@ Every disclosed report is valid; payment is an impact signal, not a validity tes
 | header injection (Host / X-Forwarded / etc.) | 2 |
 | DOM / HTML source inspection | 1 |
 | cloud metadata / IAM abuse | 1 |
-| public bucket / storage exposure | 1 |
-| intercept & replay request in Burp | 1 |
-| employee / developer public info | 1 |
-| Content-Type / body-format switch | 1 |
-
-### Parameters observed in writeups
-
-`summary` (1), `concept` (1), `mitigation` (1), `example` (1), `cdn.grab.com` (1)
-
-### Bypass primitives observed
-
-`host header` (8), `bypass` (7), `trailing dot` (4), `content-type` (3)
-
-### Impact language observed
-
-`credential` (7), `sensitive information` (3), `password` (3), `admin` (2), `unauthorized` (1)
-
-### Case studies — full excerpts (paid and unpaid)
-
-#### [154425](https://hackerone.com/reports/154425) — Subdomain takeover on http://fastly.sc-cdn.net/
-
-Snapchat · $3000 · severity n/a
-
-Hey team, I've found a snapchat cdn domain here which had a test instance of fastly setup but did not remove the dns record when the service was cancelled. This allowed me to create a Fastly instance to take it over. I've confirmed this is a snapchat property via Censys ( though the risk here seems minimal at best as this domain does not appear to be used anywhere on any snapchat properties. Repro steps: * Visit Recommended fix: Removal of this record is recommended.
-
-#### [352869](https://hackerone.com/reports/352869) — Subdomain Takeover Via Insecure CloudFront Distribution cdn.grab.com
-
-Grab · $1000 · medium
-
-Good day, I truly hope it treats you awesomely on your side of the screen :) I have found that your website cdn.grab.com is pointed via a cname to a cloudfront instance cdn.grab.com => *.cloudfront.net This was not registered on Amazon Aws Cloudfront. I was able to take over the domain: See my POC (Pug of Concept) Options How to fix: 1) Remove the Cname record on cdn.grab.com to not point to cloudfront.net 2) Ask me to remove my registered cdn.grab.com on cloudfront, and you can re register yours :) May you be well on your side of the screen :) -Eric ## Impact Impact: Cyber attackers can launch a phishing campaign leveraging your established (soon to be impacted) brand reputation. The victim has no way of telling, whether the content is served by the domain owner or the cyber attacker. Attackers can also chain higher severity attacks to this. Many applications expose session cookies to a wildcard domain (*.example.com), so any subdomain can access them. An attacker can take a forgotten subdomain, trick the user to visit it, and extract cookies (even those with secure flag). This can be seen as an advanced version of XSS.
-
-#### [1474784](https://hackerone.com/reports/1474784) — Subdomain Takeover of brand.zen.ly
-
-Zenly · $750 · medium
-
-Hello Gents, ### Background: > + Subdomain takeover vulnerabilities occur when a subdomain (subdomain.example.com) is pointing to a service (e.g. GitHub pages, Heroku, etc.) that has been removed or deleted. This allows an attacker to set up a page on the service that was being used and point their page to that subdomain. For example, if subdomain.example.com was pointing to a GitHub page and the user decided to delete their GitHub page, an attacker can now create a GitHub page, add a CNAME file containing subdomain.example.com, and claim subdomain.example.com. ### Summary: + I just went to `brand.zen.ly` and it shows an error "Not Found", also I've checked the CNAME is pointing to `brandpad.io`, which means it can be added to any account. + This is pretty serious security issue in some context, so please act as fast as possible. + I was able to takeover `brand.zen.ly` by registering at **Brandpad**. ### Vulnerable URL: + ### Proof of Concept: + Please visit: + {F1610891} ### Recommended Fix: + Check your DNS-configuration for subdomains pointing to services not in use. + Set up your external service so it fully listens to your wildcard DNS. ## Impact + Subdomain takeover is abused for several purposes: 1. Malware distribution. 2. Phishing / Spear phishing. 3. XSS and steal cookies. 4. Bypass domain security. 5. Legitimate mail sending and receiving on behalf of Datadog subdoma
-
-#### [863551](https://hackerone.com/reports/863551) — Subdomain takeover of resources.hackerone.com
-
-HackerOne · $500 · low
-
-Hello, I just went to and it shows an error "Non-hub domain, The URL you've accessed does not provide a hub. Please check the URL and try again." also i've checked the CNAME is poiting to read.uberflip.com which means if it is not added it can be added to any account, as [Uberflip documentation]( suggests that after your subdomain is pointing to their CNAME which is read.uberflip.com, your subdomain should be added to your account so it shows the URL you chose for your hub. As i couldn't signup on their website to test due to signup problems, i just wanted your confirmation whether this subdomain is added in uberflip account or not. If not then claim it otherwise any one can add or claim this to their Uberflip account ## Impact Subdomain takeover.
-
-#### [2899858](https://hackerone.com/reports/2899858) — Subdomain takeover on a subdomain under firefox.com
-
-Mozilla · $500 · medium
-
-## Summary: Subdomain takeover via ██████████ of █████ ## Steps To Reproduce: The subdomain ████ is a CNAME to www.mozilla.org (which is hosted at ███████), however it was not currently registered at ███████. By claiming it I was able to take it over. As PoC please visit: ██████ It seems that the CAA records does not allow ████████ to generate an SSL certificate for me. ## Supporting Material/References: Following the documentation of this program I decided to report it: > Domain takeovers supported by a proof of concept for *.mozilla.org, *.mozilla.com, *.mozilla.net, *.firefox.com, *.mozgcp.net and *.mozaws.net in addition to the list of sites in scope. If the domain is pointing to a claimed instance by another company, then the report will not be eligible for bounty. ## Impact ## Summary: Given this is a very generic and thrust worthy domain name it is suitable for a malware campaign. Besides that it could maybe read some non-secure cookie but that is not that likely. We could however, use the domain to block access of individual user by setting some large cookies, see for example www.firefox.com after setting 100kb of cookies via {F3852214} This action can also be performed via eg a tracking pixel.
-
-#### [335330](https://hackerone.com/reports/335330) — Subdomain Takeover to Authentication bypass
-
-Roblox · no bounty — still valid · critical
-
-## Vulnerability Type: ----------- Subdomain Takeover ## Description: ----------- Due to unclaimed or expired Hubspot instance an attacker is able to claim and serve content from `devrel.roblox.com` and perform different kind of attacks which i shared in impact section. ## Affected Area: ----------- ## Steps to Reproduce: ----------- + Visit: {F283580} ## Mitigation: ----------- + Remove the CNAME entry for the `devrel.roblox.com` ## Impact Let's talk about about in details, as attacker could possible takeover other users account. 1. As `.ROBLOSECURITY` cookies is scoped to `*.roblox.com` means same cookies shared with all other subdomain, i'm not much familiar with hubspot with hosting following code on will steal all the users cookie who visit this subdomain. {F283554} ###steal_cookie.php 2. Also `devrel.roblox.com` can be used to read all the chats between other users as `devrel.roblox.com` is also white listed to make CORS request at `chat.roblox.com` {F283553} Which can be done like this: ` Apart form all above issue, attacker can do following things as well. + Creating fake login page for credentials harvesting. + Sharing malicious files using roblox. + Creating mail account using GSuite to send and recived emails on behalf of `*@devrel.roblox.com`
-
-#### [159156](https://hackerone.com/reports/159156) — Hacker.One Subdomain Takeover
-
-HackerOne · no bounty — still valid · low
-
-Hello HackerOne Sec Team, ####Description : > This report is about domain takeover of __hacker.one__ via __instapage 0day__ issue which i just found . ####Step To Verify : + Visit : + You will see some html updated by me. ####Impact : + as its one of offical website of hackerone , so attacker can serve anything like login page or etc as he have complete access to main domain ! ####Possible Fix : + For now just remove the cname of instapage , till i try to contact them and get complete fix . Please let me know if any more info needed ! ------------- **Regards** *Geekboy !*
-
-### Recurring approach patterns from real reports
-
-- 1× the researcher found a dns entry pointing to an unused ip address
-- 1× hi i noticed that the following domain api legalrobot com was returning the following information f102881 from modulus io
-- 1× in this case what i did was to create a new account on modulus and saw the following setup when i created my own application f102879 i tried adding the specific domain but it said it was already added somewhere
-- 1× the problem was that i then tried with the wildcard legalrobot com and that actually worked f102878 which also made the page resolve my app f102877 you should not point subdomains to services you do not use yet
-- 1× hey team i ve found a snapchat cdn domain here which had a test instance of fastly setup but did not remove the dns record when the service was cancelled
-- 1× the researcher found a subdomain takeover on ws bimedb com
-- 1× we removed the record because it was not needed any longer
-- 1× but due to some problem the main domain help cloudup com see screenshot below png is showing ssl error maybe due to expired certificate i m not sure as i m just a started still have to learn many things
-- 1× i recently discovered that gitbook hosted sites are also vulnerable to subdomain takeovers due to a trailing dot vulnerability in the gitbook custom domain feature seen below
-- 1× first we will look at the results for with the trailing dot and now the results for mitigation i noticed that this service is hosted by gitbook however your bug bounty brief does not state that third party hosted services being out of scope
-- 1× see also which was an independent discovery of the same issue on a different subdomain using a combination of tools and techniques described in i was able to take control of different subdomains linked to redacted data gov
-- 1× hy wordpress sec i found as it is posible to takeover this domain when you navigate it you will get this error msg warning
-- 1× when browsing to the subdomain an aws cloudflare error is displayed
-- 1× i recently found an abandoned and or overlooked nodejs org subdomain that was indirectly pointing to fastly
-- 1× fastly doesn t require any proof of dns ownership to register new distributions that use a given domain so i was able to effectively take it over
-- 1× good day i truly hope it treats you awesomely on your side of the screen i have found that your website cdn grab com is pointed via a cname to a cloudfront instance cdn grab com cloudfront net this was not registered on amazon aws cloudfront
-- 1× summary i discovered that it was possible to takeover test cncf aws canary k8s io by assigning a zone to that name with one of the following nameservers in route53 once the zone was claimed i was able to create dns records under this host
-- 1× using enumeration i was able to discover this domain and determined it note the hostname was not claimed by me also because i need to pay certain amount to host a website
-- 1× while we removed the dns records the ttcdn co domain is out of scope for our program making this report ineligible for a bounty
-- 1× hence it is possible to do sub domain takeover impact an attacker can claim this subdomain by requesting a process of registering this abandoned subdomain to his name
-- 1× the reporter was able to re register the decommissioned subdomain with his own heroku account
-- 1× i have found a subdomain of to be vulnerable to takeovers via a cname to unclaimed domain
-- 1× these are the following domains i discovered and the outdated endpoints on azure to which they point and the proof of concept file is at the following location i have not hosted any other file nor attempted any other vector of attack
-- 1× summary i just went to brand zen ly and it shows an error not found also i ve checked the cname is pointing to brandpad io which means it can be added to any account
 
 ## Corpus-backed method (this class)
 
@@ -140,18 +53,13 @@ Hello HackerOne Sec Team, ####Description : > This report is about domain takeov
 
 - Takeover -> trusted-origin content -> cookie/OAuth/token phishing.
 
-### Probes
-
-- CNAME chain; service-specific not-found fingerprint; archive of historical hostnames.
-
 ### Veteran tip
 
 The operator's notes flag dangling-CNAME exclusions — always check the program's known-issues list first.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Quick wins
 
 Start here. These are the highest-yield tests for this class.
@@ -227,10 +135,7 @@ Start here. These are the highest-yield tests for this class.
 - Look beyond CNAME: dangling **NS** delegation ("Sitting Ducks") where the parent still delegates to a provider that no longer hosts the zone. This is higher impact (whole-zone control) and is often missed by CNAME-only scanners.
 - Check MX/email-chain targets: DKIM CNAMEs, SPF `include:` of dead domains, MX pointing at a lapsed provider. An attacker controlling the email path can intercept password-reset mail for the parent brand.
 - Map downstream amplifiers immediately: does the taken-over host appear in OAuth `redirect_uri` allowlists, CSP `script-src`, CORS ACAO regexes, cookie `Domain=` scope, or SAML/OIDC discovery? These turn a "hosting" finding into ATO/XSS/data theft.
-- Note OOB signal for blind cases: DNS resolution alone may succeed while HTTP returns a generic error. Verify claimability at the provider, not just the HTTP response.
-
-### Signals and surfaces
-
+- Note OOB signal for blind cases: DNS resolution alone may succeed while HTTP returns a generic error. Verify claimability at the provider, not just the HTTP response.### Signals and surfaces
 ### Signal
 
 - Reports: **196** · paid: **31**
@@ -299,10 +204,7 @@ Subdomain takeover is high-value because it allows an attacker to serve content 
 - `CNAME` chain resolving to provider infrastructure but returning provider 404
 - SSL cert issued to provider wildcard (`*.fastly.net`) rather than company domain
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### Payloads & probes
 
 - CNAME -> `foo.s3.amazonaws.com` (NoSuchBucket)
@@ -586,10 +488,7 @@ Cross-references:
 - `hunt-api-misconfig` CORS section — Chain 4
 - `offensive-osint` email-security section — Chain 5
 
----
-
-### Validation and proof
-
+---### Validation and proof
 ### Reporting bar
 
 - Prove real impact on a second controlled account or a safe callback.
@@ -636,10 +535,7 @@ If you cannot show the provider resource is *currently unclaimed and claimable*,
 
 - Canary the takeover proof with a uniquely named marker file and record the timestamp; programs require evidence content is *currently* served, not just that the record looks dangling.
 - Track provider status over time: services move between "vulnerable", "edge case", and "mitigated" as they add domain-ownership checks (can-i-take-over-xyz tracks this via CI verification). Re-validate old leads before reporting.
-- Check historical CNAMEs from passive DNS even when the current record is healthy — a deleted resource may still be claimable under a different subdomain the org forgot.
-
-### Escalation and related chains
-
+- Check historical CNAMEs from passive DNS even when the current record is healthy — a deleted resource may still be claimable under a different subdomain the org forgot.### Escalation and related chains
 ### Escalation chains
 
 - Subdomain takeover -> cookie theft.
@@ -721,10 +617,7 @@ Subdomain takeover by itself is Low-Medium / Informational on most mature progra
 - **`hunt-api-misconfig`** — CORS regexes routinely allowlist a takeoverable subdomain. Chain primitive: Subdomain takeover + CORS `*.target.com` with credentials → credentialed cross-origin API read → mass IDOR.
 - **`hunt-xss`** — A claimed subdomain is same-origin to session-cookie-domain siblings. Chain primitive: Subdomain takeover at `feedback.target.com` + cookie scope `.target.com` → JS hosted on takeover host reads main-app cookies → session hijack.
 - **`security-arsenal`** — Load the 27+ Subdomain Takeover Fingerprint Table (NoSuchBucket, "no such app", GitHub Pages 404 strings, Heroku, Shopify, Fastly) and the `subzy`/`subjack` automation patterns.
-- **`triage-validation`** — Apply the Unique-Marker gate: takeover claim is informational on its own; submit only after publishing a unique HTML marker on the claimed host AND demonstrating a downstream impact (cookie read, OAuth chain, CSP bypass).
-
-### Tools and wordlists
-
+- **`triage-validation`** — Apply the Unique-Marker gate: takeover claim is informational on its own; submit only after publishing a unique HTML marker on the claimed host AND demonstrating a downstream impact (cookie read, OAuth chain, CSP bypass).### Tools
 ### Tools
 
 `subfinder` · `amass` · `dnsx` · `nuclei -t takeovers` · `can-i-take-over-xyz`
@@ -760,10 +653,7 @@ nuclei -u https://target -t ~/nuclei-templates/http/takeovers \
 # authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
 ```
 
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Real-world examples
-
+Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.### Real-world examples
 ### Real Impact Examples
 
 **Scenario A — Trusted Brand Phishing via Abandoned SaaS (Snapchat/UserVoice)**
@@ -775,10 +665,7 @@ An attacker finds `feedback.snapchat.com` CNAME pointing to a UserVoice subdomai
 **Scenario C — Staging Subdomain Abandoned Post-Product Migration (Rails/GitHub Pages)**
 `new.rubyonrails.org` was pointed at a GitHub Pages deployment for a website redesign project. After the new site launched and the old GitHub repo was deleted or made private, the DNS CNAME remained. An attacker could fork or create a matching GitHub Pages repository and claim the namespace, serving content under `new.rubyonrails.org`. Because this is the official Ruby on Rails domain, any content served there — including fake download links or malicious gems — carries the full trust of the Rails brand.
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### Query the corpus
 
 ```sh
@@ -812,10 +699,7 @@ python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class subd
 4. https://learn.microsoft.com/en-us/azure/security/fundamentals/subdomain-takeover
 5. https://aws.amazon.com/blogs/security/threat-tactic-spotlight-subdomain-takeover
 6. https://www.ionix.io/writing-center/how-to-detect-dangling-dns-and-prevent-subdomain-takeovers-in-2026
-7. https://firecompass.com/blog-subdomain-takeover-dangling-dns-records
-
-### Additional notes
-
+7. https://firecompass.com/blog-subdomain-takeover-dangling-dns-records### Additional notes
 ### Parameters observed
 
 `_method` · `authenticity_token` · `domainToCheck` · `conversationId` · `pageSize` · `domain` · `state` · `dl` · `button` · `id`
@@ -863,275 +747,8 @@ The following coordinated-disclosure / writeup cases extend this skill with **mo
 - Root cause: Fastly historically does not verify CNAME ownership on service-creation; any CNAME pointing into Fastly's anycast can be attached to a fresh service
 - Potential ATO chain: chains to CSP-bypass + JS-injection if the parent domain trusts the `assets.`/CDN host for `script-src`
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# Subdomain Takeover — Combined Field Guide — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payloads & probes
-
-
-
-- CNAME -> `foo.s3.amazonaws.com` (NoSuchBucket)
-
-- CNAME -> `foo.github.io` (404 repo)
-
-- CNAME -> `foo.herokuapp.com` (No such app)
-
-- CNAME -> `foo.statuspage.io` / `foo.zendesk.com`
-
-
-
-## Payload fragments observed
-
-
-
-Recurring payloads from this class's writeups. Adapt, don't paste blindly.
-
-
-
-| Seen | Fragment |
-
-|---:|---|
-
-| 4× | `{REDACTED}.data.gov` |
-
-| 3× | `smb_send_open()` |
-
-| 3× | `req->path` |
-
-| 3× | `smbc->share` |
-
-| 2× | `smb_parse_url_path()` |
-
-| 2× | `Curl_conn_free()` |
-
-| 2× | `smb_conn_dtor()` |
-
-| 1× | `*@devrel.roblox.com` |
-
-| 1× | `% dig +short fr1.vpn.zomans.com / 52.47.57.107 / % curl fr1.vpn.zomans.com / <!-- hackerone.com/ian -->` |
-
-| 1× | `% dig +short v.zego.com / 52.214.138.192 / % curl v.zego.com / <!-- hackerone.com/ian -->` |
-
-| 1× | `Force HTTPS (requires valid certificates)` |
-
-| 1× | `ASAN_OPTIONS=detect_leaks=0 LD_LIBRARY_PATH=./lib/.libs \ / ./src/.libs/curl -u guest:guest \ / "smb://127.0.0.1:5445/share1/file1" -o /dev/` |
-
-| 1× | `strlen(req->path)` |
-
-| 1× | `smbc->share = strdup(path)` |
-
-| 1× | `req->path = slash` |
-
-| 1× | `url_find_or_create_conn()` |
-
-| 1× | `free(smbc->share)` |
-
-| 1× | `smb_request_state()` |
-
-| 1× | `% curl https://s3.amazonaws.com/affirm-prod-www-cms████████/index.html / <!-- taken over by hackerone.com/ian bugcrowd.com/iangcarroll ian@l` |
-
-| 1× | `alert(document.domain)` |
-
-
-
-## Parameters observed
-
-
-
-`_method` · `authenticity_token` · `domainToCheck` · `conversationId` · `pageSize` · `domain` · `state` · `dl` · `button` · `id`
-
-
-
-## Wordlists
-
-
-
-Mined from this class's writeups and ready for `ffuf`/`feroxbuster`. Paths and parameters recur across programs; verify each hit.
-
-
-
-| File | Entries |
-
-|---|---:|
-
-| `~/.local/share/hackerone-reports/wordlists/paths_subdomain-takeover.txt` | 81 |
-
-| `~/.local/share/hackerone-reports/wordlists/params_subdomain-takeover.txt` | 10 |
-
-| `~/.local/share/hackerone-reports/wordlists/paths.txt` (global) | 500 |
-
-| `~/.local/share/hackerone-reports/wordlists/params.txt` (global) | 400 |
-
-
-
-```sh
-
-W=~/.local/share/hackerone-reports/wordlists
-
-ffuf -u https://target/FUZZ -w $W/paths_subdomain-takeover.txt \
-
-     -mc all -fc 404 -fs 0 -rate 40
-
-ffuf -u 'https://target/api?FUZZ=canary' -w $W/params_subdomain-takeover.txt \
-
-     -mr 'canary|error|invalid|not found' -rate 40
-
-```
-
-
-
-## Nuclei
-
-
-
-Enumerate subdomains first (subfinder/amass), then run the takeover templates against the resolved host list.
-
-
-
-```sh
-
-nuclei -u https://target -tags takeover \
-
-       -severity low,medium,high,critical -rl 40 -o nuclei_subdomain-takeover.txt
-
-nuclei -u https://target -t ~/nuclei-templates/http/takeovers \
-
-       -rl 40 -o nuclei_subdomain-takeover_takeovers.txt
-
-# authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
-
-```
-
-
-
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-
-
-## Payload & Detection Patterns
-
-
-
-**Bulk CNAME extraction and NXDOMAIN detection:**
-
-```bash
-
-# Extract CNAMEs and check if target resolves
-
-while read sub; do
-
-  cname=$(dig +short CNAME "$sub" | head -1)
-
-  if [ -n "$cname" ]; then
-
-    result=$(dig +short A "$cname")
-
-    if [ -z "$result" ]; then
-
-      echo "[POTENTIAL] $sub -> $cname (NXDOMAIN)"
-
-    fi
-
-  fi
-
-done < subdomains.txt
-
-```
-
-
-
-**Nuclei takeover scan:**
-
-```bash
-
-nuclei -l subdomains.txt -t ~/nuclei-templates/http/takeovers/ -severity medium,high,critical
-
-```
-
-
-
-**subjack with SSL:**
-
-```bash
-
-subjack -w subdomains.txt -t 100 -timeout 30 -ssl -c $GOPATH/src/github.com/haccer/subjack/fingerprints.json -v
-
-```
-
-
-
-**Provider fingerprint grep patterns:**
-
-```bash
-
-curl -sk "https://$subdomain" | grep -iE \
-
-  "there isn't a github pages|no such bucket|no such app|this uservoice|fastly error: unknown domain|do you want to register|sorry, this shop|project not found|404 not found|unclaimed"
-
-```
-
-
-
-**Check if subdomain is in scope for cookies (shared parent domain):**
-
-```bash
-
-curl -Isk "https://target.com" | grep -i "set-cookie" | grep "domain=.target.com"
-
-```
-
-
-
-**Fastly-specific detection:**
-
-```bash
-
-curl -sI "https://subdomain.target.com" -H "Host: subdomain.target.com" | grep -i "fastly\|x-served-by\|x-cache"
-
-curl -sk "https://subdomain.target.com" | grep -i "fastly error"
-
-```
-
-
-
-**S3 unclaimed bucket check:**
-
-```bash
-
-aws s3api head-bucket --bucket <extracted-bucket-name> 2>&1 | grep -i "NoSuchBucket\|403\|404"
-
-```
-
-
-
-**GitLab Pages specific:**
-
-```bash
-
-dig CNAME sub.target.com
-
-# If pointing to *.gitlab.io — visit the gitlab.io URL directly
-
-# 404 from gitlab.io project = claimable
-
-```
-
-
-
----
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # Subdomain Takeover — Combined Field Guide — Technique reference
 
@@ -1433,121 +1050,13 @@ python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class subd
 
 
 
----
+---## Probes
 
-## Corpus wordlists (mined)
+- CNAME chain; service-specific not-found fingerprint; archive of historical hostnames.
 
-### `params_subdomain-takeover.txt`
+## Supporting data
 
-```text
-_method
-authenticity_token
-domainToCheck
-conversationId
-pageSize
-domain
-state
-dl
-button
-id
-```
-
-### `paths_subdomain-takeover.txt`
-
-```text
-/subdomain-takeover/
-/subdomain-takeover-principles/
-/index.html
-/pages/
-/login
-/post/109964122636/hostile-subdomain-takeover-using
-/takeover.html
-/tag/hostile-subdomain-takeover/
-/auth
-/haveanicetakeover-poc.html
-/nl-nl/domainsearch/find
-/t5/Getting-Started-Product/2-week-old-wisp/m-p/1687239
-/imagefetch.php
-/tutorials/googleapps/google_calendar.htm
-/proof.html
-/signup/
-/v2/get-messages
-/subdomain-takeover
-/prepareuberattack.php
-/trips
-/articles/uber-turning-self-xss-into-good-xss/
-/subdomaintakeoverbyarneswinnen.html
-/uberattack.php
-/asdjklkas1312das879123.html
-/blank-page-123133617adasdasdsa/
-/IcoGM65YyU4
-/poc-2sKR4C.html
-/en-us/azure/cloud-services/cloud-services-how-to-create-deploy-portal
-/subdomain-takeover-basics/
-/poc.html
-/g15391522/pn1
-/2235922/pages/01a8aadb-0198-4fa6-815d-1ae641f0b49e
-/cRf3zkdngh0
-/full-takeover/
-/large-cookies.html
-/login-poc
-/subdomain-takeover-impact/
-/src
-/wicf/
-/ssl-support/validation/not-receiving-dcv-emails.htm
-/vuln/detail/CVE-2017-14389
-/articles/ssl-certificates-email-validation/
-/1PWS76Am7y0
-/new-awesome-takeover/
-/2235922/pages/eb50eb0c-48a8-483b-8747-285aacbeaed6
-/affirm-prod-www-cms████████/index.html
-/how-it-works/
-/api/sso/v1/user/self
-/help/verify-domain-ownership-html-or-dns-7452
-/cloudfront/custom-ssl-domains/
-/34902385023958329058235.html
-/testing-new-takeover-04-10-17/
-/2235922/pages/4d2a5d74-2119-4c68-8d93-f456566f2fe8/url/
-/2235922/pages/4d2a5d74-2119-4c68-8d93-f456566f2fe8
-/url
-/HKYMYkDDYW8
-/filename
-/post/149985438982/reading-ubers-internal-emails-uber-bug-bounty
-/329a01fddb5a552265170b02c579c85f.html
-/POC_2313521212.html
-/in/ezequielpuig
-/languages
-/██████████.html
-/█████.html
-/month
-/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html
-/2BEwqbCbQuM
-/2017/github-recon/
-/xss_poc_998877665544332211.html
-/51Ku4cGbijE
-/GJcWsHJj8aE
-/settings/domains
-/config
-/web/20220904143512/https://course.oberlo.com/
-/xss_unguessable3211231232.html
-/[YourUsername
-/sveltekit/settings/domains
-/dangling-dns/aws/ddns-ec2-current-state
-/en/manual/your-account/manage-account
-/sdqkpr
-/bug.php
-```
-
-## Source skills merged into this topic
-
-- `h1skills` — `hackerone-subdomain-takeover`
-- `hunting` — `subdomain-takeover`
-- `cbh` — `hunt-subdomain`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 2 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/evidence.md` — corpus technique frequencies, case studies, approach patterns
+- `references/payloads.md` — curated payload bank + upstream payload references
+- `references/wordlists/` — 2 mined paths/params/payload lists
 - `bbhunt-methodology` — orchestrator, state machine and class router

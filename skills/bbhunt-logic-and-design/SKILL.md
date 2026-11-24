@@ -4,13 +4,13 @@ description: "Use for workflow abuse, price/quantity math, limits and quotas, mu
 agent_created: true
 ---
 
-# Business Logic and Secure-Design Flaws — unified skill
+# Business Logic and Secure-Design Flaws — unified methodology
 
-> **Complete merged skill.** Everything from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 3 upstream skills across cbh, h1skills, hunting and grounded in 15,259 disclosed HackerOne reports. Payloads, wordlists and supporting data are in `references/`.
 
-## Corpus evidence — 931 valid HackerOne reports (134 paid / 14%)
+## Corpus signal — 931 valid reports (134 paid / 14%)
 
-Every disclosed report is valid; payment is an impact signal, not a validity test.
+Every disclosed report is valid; payment is an impact signal, not a validity test. Full technique frequencies, case studies and approach patterns: `references/evidence.md`.
 
 ### Techniques ranked across ALL valid reports
 
@@ -28,121 +28,6 @@ Every disclosed report is valid; payment is an impact signal, not a validity tes
 | cache / CDN / unkeyed header | 73 |
 | two-account / cross-account replay | 61 |
 |  HosT/absolute-URL reset poisoning | 52 |
-| internal service / port / container | 48 |
-| XML / SOAP / SAML / XXE | 42 |
-| race / concurrency / timing | 38 |
-| DOM / HTML source inspection | 33 |
-| webhook / OAuth / SAML / integration abuse | 31 |
-| error message / stack trace probing | 29 |
-| JWT / token / base64 decode | 27 |
-| second-order / stored / blind delivery | 26 |
-| fuzzing / wordlist brute force | 26 |
-| parameter pollution / duplicate keys | 25 |
-| WAF / sanitizer / filter bypass | 22 |
-| OAST / DNS / HTTP callback proof | 20 |
-| unauthenticated / removed-cookie test | 16 |
-| cloud metadata / IAM abuse | 15 |
-| JS bundle / source-map inspection | 14 |
-| API docs / Swagger / introspection | 13 |
-| employee / developer public info | 13 |
-| verbose debug / framework fingerprint | 10 |
-| mass assignment / extra request fields | 10 |
-| public bucket / storage exposure | 10 |
-| parser confusion / normalization | 10 |
-| third-party data / paste / breach reuse | 9 |
-| redirect chain / Location header | 9 |
-| swap object ID / parameter value | 9 |
-| deserialization / gadget chain | 6 |
-| browser DevTools / network tab | 5 |
-| response diff / status / length comparison | 5 |
-| replay / modify a captured request | 5 |
-| search-engine dorking | 3 |
-| git history / exposed .git | 3 |
-| template injection (SSTI) | 3 |
-| archive / Wayback endpoint discovery | 1 |
-
-### Parameters observed in writeups
-
-`max-age` (25), `name` (17), `charset` (15), `path` (14), `class` (12), `expires` (11), `mode` (11), `src` (9), `email` (9), `type` (8), `lang` (7), `domain` (6), `amount` (6), `curlopt_ssl_verifypeer` (6), `verifypeer` (6), `value` (5), `csrftoken` (5), `sessionid` (4), `limit` (4), `start_of_line` (4), `__cfduid` (4), `_ga` (4), `rel` (4), `target` (4), `persist` (4), `token` (3), `style` (3), `optimizelysegments` (3), `optimizelyenduserid` (3), `optimizelybuckets` (3)
-
-### Bypass primitives observed
-
-`content-type` (157), `bypass` (118), `crlf` (28), `bypassing` (27), `bypassed` (26), `race condition` (24), `%00` (14), `content type` (14), `unicode` (13), `host header` (12), `blind` (11), `open redirect` (11), `whitelist` (10), `null byte` (7), `chunked` (7), `trailing dot` (7), `blacklist` (6), `transfer-encoding` (6), `bypasses` (6), `%0d%0a` (4), `same-site` (4), `backslash` (3), `http method` (3), `uppercase` (2), `parameter pollution` (2), `lowercase` (2), `second order` (2), `normalize` (2)
-
-### Impact language observed
-
-`password` (504), `token` (327), `admin` (238), `payment` (134), `secret` (109), `credential` (85), `sensitive information` (33), `sensitive data` (27), `localhost` (22), `funds` (15), `unauthorized` (14), `account takeover` (13), `financial` (13), `rce` (13), `remote code execution` (9), `exfiltration` (7), `api key` (6), `arbitrary code` (5), `arbitrary file` (3), `privilege escalation` (3)
-
-### Case studies — full excerpts (paid and unpaid)
-
-#### [894569](https://hackerone.com/reports/894569) — An attacker can run pipeline jobs as arbitrary user
-
-GitLab · $12000 · critical
-
-### Summary An attacker can run arbitrary pipeline jobs as a `victim` user. This means the attacker can access the user private repositories, member only repositories, registry, etc... by using the victim `CI_JOB_TOKEN` token. > This is only my recent research and I wanted to report it as soon as possible. I will update the report with more information later on. ### Steps to reproduce VICTIM: - Sign in to a GitLab instance as a *Victim user* - Create an arbitrary private repository with some private files. (We will steal this repo as a poc.) ATTACKER ACCOUNT 1: - Sign in to a GitLab instance as a *Attacker1 user* - Create a new project using the following settings: - Project Name: `poc` - Visibility Level : `public` - Check the `Initialize repository with a README` checkbox - Add a new `.gitlab-ci.yml` file to the project > We will mirror this repository and update the `.gitlab-ci.yml` file later on to trigger the CI/CD job. ATTACKER ACCOUNT 2: - Sign in / Register to a GitLab instance as a *Attacker2 user* - Create a new public group called as `test` - Create a new project inside the `test` group using the following settings: - Project Name: `poc` - Visibility Level : `public` - Go to `Project settings` => `Repository` => `Mirroring repositories` - Set `Git repository URL` to the previously created repository by the *Attacker1 user* - Set `Mirror direction` to `Pull` - Check t
-
-#### [1295844](https://hackerone.com/reports/1295844) — Modify in-flight data to payment provider Smart2Pay
-
-Valve · $7500 · critical
-
-I have found vulnerability which allows attacker to generate steam wallet balance. Firstly you will have to change yours steam account email to something like (I will explain why in next steps, amount100 is the important part): brixamount100abc@█████ Then go to and click add add funds. Proceed to payment and select any payment which uses Smart2Pay payment method (przelewy24 in my country). Click next steps as you would do with normal transaction. Intercept POST request to You should see request like that We cant change parameters as there is Hash field with signature, however signature is generated like that hash(ALL_FIELDS_NAMES_VALUES_CONTACTED) For this request it will look like that: `hash(MerchantID1102MerchantTransactionID█████Amount2000.....)` So with our special email we can move parameters in a way that will change amount for us For example, we can change original `Amount=2000` to `Amount2=000` and after contacting it still will be `Amount2000` Then we can change email from `CustomerEmail=brixamount100abc%40████` to `CustomerEmail=brix&amount=100&ab=c%40█████████` by this we are adding new field amount with our value. new request should look like that: Then just pay 1 $ and you should get your money on steam wallet in few hours/days those are some transactions made with this metod: 2███████3 2████9 and this is account i was testing everything on: ## Impact I think impa
-
-#### [1849626](https://hackerone.com/reports/1849626) — Fee discounts can be redeemed many times, resulting in unlimited fee-free transactions
-
-Stripe · $5000 · medium
-
-## Summary: Hi there, first off, I am an actual Stripe customer using Stripe for my real business, so I used my actual Stripe account to test this (as there is no other way). I realize this is not ideal but hope you understand given the unique scenario! I was recently offered a fee discount of $20,000 on Stripe transactions. Stripe Support applied the offer to my account, and I was shown a prompt to accept the fee discount in my dashboard. I decided I should try and look for a race condition in this acceptance. So, I used Burp Turbo Intruder to race the request that accepts the fee discount, `/ajax/accept_fee_discount_offer` (forgot to take screenshot as I did not think it would work!). It seems a race was not even needed though, as I called it 30 times and 30 fee discounts were immediately applied to my account! As a result, I now have $600,000 of fee-free processing applied to my account. Obviously, this is not ideal for Stripe as you only intended to offer me $20,000! I believe you could keep calling this endpoint if you wanted to, you just need a valid `fdo_` ID. ████ ## Impact Unlimited fee-free discounts. This will cost Stripe about 3% of each discount, so $600 each time a $20k discount is abused.
-
-#### [1543159](https://hackerone.com/reports/1543159) — Able to approve admin approval and change effective status without adding payment details .
-
-Reddit · $5000 · high
-
-## Summary: In you can create campaign under which you can create ads , once you create new campaign , it is on pending stage and will not be delivered unless you add payment details and is reviewed by admin and approved according to what it says here . But changing the value of admin_approval to APPROVED and effective_status to ACTIVE , the ads is approved and thus we receive the confirmation email from reddit ads that our ads is approved . ## Impact: Can bypass the review process and change the ads status to approve and active without payment process . ## Steps To Reproduce: [add details for how we can reproduce the issue] 1. Create a campaign from 1. Go to you will see a table list that shows your ads and campaign , there the status is stated as PENDING . And we know according to what reddit says , our ads needs to get reviewed by reddit members , but updating the value from api changes our status to ACTIVE . Hence ad is successfully delivered . POC video is attached . ███████ ## Supporting Material/References: * [attachment / reference] ## Impact Can bypass the review process and change the ads status to approve and active without payment process .
-
-#### [815085](https://hackerone.com/reports/815085) — Account creation with invalid email addresses / email is accepting % and %0d%0a line termination chars
-
-HackerOne · $3750 · low
-
-**Summary:** Hackerone SignUp feature is misconfigured with email parameter. Email address parameter is accepting % and %0d%0a character along with genuine email address. Using this technique hackerone user account can be created but cannot be verified as there is not possible to verify those invalid email accounts. Basically random use of invalid email address, attacker can create multiple accounts. **Description:** As email address field always being verified with any special character (except @ and .) but here email is accepting % and line termination char %0d%0a ### Steps To Reproduce 1. SignUp with new hacker account 2. Use email address adding with character like % or %0d%0a, account will be created and you will get a account creation message ████ ███████ {F742080} 3. Even if you try now to login using same above email and password then you will get same message for account is already created and need to verify email █████ 4. You can not use the same invalid email again, as it will show an error of reuse of that invalid email address ## Impact >>Garbage value can be stored in database using user account signup form >>Multiple account can be created, just like if any use has real account with his email address, then also account can be created by adding %0d%0a or % char >>Account is created using invalid email address, but can not be used
-
-#### [423467](https://hackerone.com/reports/423467) — H1514 Ability to MiTM Shopify PoS Session to Takeover Communications
-
-Shopify · no bounty — still valid · medium
-
-Hi @iv-rodriguez, After a decent amount more digging and research, I must disagree with you on the "expecting to work offline" portion. The code actually specifically listens on all local interfaces (`0.0.0.0`) and the wifi network address is specifically used in the QR code connection string, as shown here in `com.shopify.pos.customerview.server.CustomerViewWebSocketServer::getConnectionString()` in the `com.shopify.pos` app: This can also be seen from netstat on the device: In addition to this, the main point of this attack is to show how a merchant can abuse this functionality to cause extra charges to the customer, unknowingly. I was able to build a relay server for the WebSocket and could snoop on the raw messages without any issue. Using an ARP spoofing attack it would be possible to MiTM the WebSocket between the real server and the customer while on the same network. At this point, you still need to obtain the initial public key that is in the QR code. This can be done by forcing the client to accept a new one by altering the message types to contain a new receiverPublicKey. This faulty logic can be seen here in `com.shopify.pos.customerview.common.crypto.ClientCryptoProtocol::receiveMessageFromServer()` in the `com.shopify.pos.customerview` app: Normally, when the customer view initially connects to the server, the public key and nonce from the QR code are stored from 
-
-#### [1133118](https://hackerone.com/reports/1133118) — Hackerone is not properly deleting user id
-
-HackerOne · no bounty — still valid · medium
-
-**Summary:** Long ago, i had an account on hackerone that is now deleted. I used the alias email provided by h1 to sigbup on a site for bug testing. To my surprise, i receive an email to my account routed from an alias email that should not exist. **Description:** ### Steps To Reproduce 1. SignUp on H1 2. Use h1 alias email to signup on some website 3. Delete h1 account and the email still exists ### Optional: Your Environment (Browser version, Device, etc) * ### Optional: Supporting Material/References (Screenshots) * as you can see.the email i just received. You can check your database that **█████** dont exist in your database coz I deleted the account long back..but you can see the email address . ███████ ## Impact Privacy concern
-
-### Recurring approach patterns from real reports
-
-- 2× e g by modifying etc hosts en wikipedia org
-- 2× i noticed when we hit the reset password request endpoint too many times via some proxy for e g burp there is no rate limit on that endpoint and you can spam the email with s of requests and resend even more password reset emails to the users as there is no rate limiting on that
-- 2× i was able to take control of this bucket and put my own content onto it
-- 1× i used some other penetration tester s email address to create an account on hackerone and i choosed the username to be something erotic i know that users account will not be created untill they click on the confirmation key
-- 1× you are right google is indexing browsers cache for search results after i reported the bug to facebook they added noindex and nofollow tags to all sensitive pages
-- 1× i tried to change my email address on hackerone com and when i tried adding null bytes it was being accepted by hackerone com
-- 1× i am registered wth and i tried to change my email address to and guess what this address was granted as an email address
-- 1× i was able to upload an executable and i got a message saying it was successfully uploaded
-- 1× i found wildcard dns enabled on your server
-- 1× for example after logging into an application and a session token is set using a cookie then verify it is tagged using the secure flag
-- 1× i have tried to input incorrect password and i have not been lockout tried the corrct password in the 21st time and it login successfully
-- 1× i have found that you are leaking via the referrer the reset password link
-- 1× i was able to use the token for more than attempts
-- 1× i have found out that an attacker can perform brute force attack on your login panel because there is no rate limitation to prevent this attack
-- 1× the hyperlink to my userid will be the same as that of an existing user whose uuid value i have used
-- 1× hey guys i put this down as a 2nd bug as it may have been overlooked from the previous report and i figured it d be easier to track a fix and add comments separately
-- 1× i tried card payments also with valid info and they too failed
-- 1× hey there i found out that you have missing x frame header which allows click jacking in your website
-- 1× hello there is an option on digitalsellz user dashboard called delete account i tried to used this feature i deleted my account with two simple clicks
-- 1× i tried to login again and found out my profile is not been deleted every information i added is still there like i never tried to delete it
-- 1× i decided to report it but thought lets try this delete account feature after adding any product on my account
-- 1× so i added a test product and than deleted my account
-- 1× this is a very low severity issue that i just found out in your password policy
-- 1× remediation on updating the email address under account settings it should be verified by sending a confirmation link
 
 ## Corpus-backed method (this class)
 
@@ -173,20 +58,13 @@ HackerOne · no bounty — still valid · medium
 - Missing rate limit -> OTP/reset brute force -> ATO.
 - Workflow skip -> approval bypass -> privileged state change.
 
-### Probes
-
-- Negative/fractional quantity, price, amount; change currency or locale
-- POST step-3 request directly; replay the same request N times
-- Compare status codes/messages for valid vs invalid email/username
-
 ### Veteran tip
 
 Scanners cannot reason about business state. This is the class where understanding the app as a user pays the most.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Quick wins
 
 Start here. These are the highest-yield tests for this class.
@@ -244,10 +122,7 @@ Start here. These are the highest-yield tests for this class.
 - **Audit trail as an oracle**: if the app logs value-dispensing operations, request your own logs (or an export) after abuse tests. Missing entries for a granted bonus/credit prove the invariant is unenforced even when the UI looks consistent.
 - **Decimal and rounding boundaries**: amounts `0.001`, `0.01`, `0.1`, `1.005`, `-0.01`, and values at currency minor-unit precision; check whether rounding happens before or after discount/tax. Repeat a small rounding gain at scale to establish material impact.
 - **Free-trial eligibility key**: check whether trial status is tied to a cheap identifier (email) rather than a stable one (payment method/device/KYC). Cancel-and-re-signup with a new email is the canonical reset test.
-- For any "atomic" claim, look for **multi-store operations** — a DB row plus a session value, a cache plus a DB, a queue plus a ledger. OWASP explicitly warns against using one storage layer to secure another (e.g., sessions cannot enforce a database limit-overrun rule).
-
-### Signals and surfaces
-
+- For any "atomic" claim, look for **multi-store operations** — a DB row plus a session value, a cache plus a DB, a queue plus a ledger. OWASP explicitly warns against using one storage layer to secure another (e.g., sessions cannot enforce a database limit-overrun rule).### Signals and surfaces
 ### Signal
 
 - Reports: **931** · paid: **134**
@@ -312,10 +187,7 @@ Asset types that pay: checkout flows, subscription endpoints, callback/verificat
 - Payment webhooks with no HMAC signature validation
 - SMS/phone callback flows that don't verify ownership before enabling features
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### Payloads & probes
 
 - Quantity -> `-1`, `0`, `0.001`, `1e9`, `NaN`, very long decimals
@@ -534,10 +406,7 @@ grep -iE "x-forwarded-for|x-real-ip|cf-connecting-ip" src/ -r
 | Auth on internal pages | Try unauthenticated; try with a low-privilege account; try path traversal variants (`/employee/../employee/`) |
 | Phone verification (OTP sent) | Submit someone else's number without OTP validation; check if the system grants trust on submission vs. OTP confirmation |
 
----
-
-### Validation and proof
-
+---### Validation and proof
 ### Reporting bar
 
 - Prove real impact on a second controlled account or a safe callback.
@@ -579,10 +448,7 @@ Before writing any report, answer all three:
 - For differential-oracle/BLA8 findings, show that the difference reveals *sensitive state* (account existence with PII, internal step status). A generic error string difference with no sensitive disclosure is usually informational.
 - For BLA4/BLA7 resource findings, stay inside authorization: bounded amplification measurement, no real outage, and document the per-request multiplier. Many programs reject pure DoS claims without demonstrated business impact.
 - Avoid self-inflicted bugs: if you had to modify client-side state that the server correctly ignores, or the "bypass" only affects data you already own with no privilege change, do not report. Apply the 7-Question Gate, especially exploitability by an outside attacker with realistic preconditions.
-- Mention the OWASP BLA category name and the exact invariant in the title/first paragraph — it gives triagers a familiar taxonomy anchor for an otherwise hard-to-classify bug.
-
-### Escalation and related chains
-
+- Mention the OWASP BLA category name and the exact invariant in the title/first paragraph — it gives triagers a familiar taxonomy anchor for an otherwise hard-to-classify bug.### Escalation and related chains
 ### Escalation chains
 
 - Logic flaw -> free goods/credit.
@@ -605,10 +471,7 @@ Before writing any report, answer all three:
 - **`hunt-api-misconfig`** — Step-skip and verification-bypass often live next to mass-assignment fields. Chain primitive: business-logic email-verify skip + API mass assignment (`verified:true, role:admin`) → ATO without email control.
 - **`hunt-ato`** — Logic bugs in password reset, email change, and recovery flows are core ATO paths. Chain primitive: business logic (email change accepts without re-auth) + `hunt-ato` Path 2 → silent victim email swap → password reset to attacker mailbox.
 - **`security-arsenal`** — Load the Business-Logic Probe Checklist (negative quantity, decimal overflow, currency swap, step-skip via direct URL nav, state-machine reverse) and the Always-Rejected list to avoid filing self-inflicted bugs.
-- **`triage-validation`** — Apply the 7-Question Gate (especially Q4 "Is this exploitable by an outside attacker without unrealistic preconditions?"): logic bugs need a concrete dollar/PII/state impact, not just "the flow looks weird".
-
-### Tools and wordlists
-
+- **`triage-validation`** — Apply the 7-Question Gate (especially Q4 "Is this exploitable by an outside attacker without unrealistic preconditions?"): logic bugs need a concrete dollar/PII/state impact, not just "the flow looks weird".### Tools
 ### Tools
 
 `Burp` · `Turbo Intruder` · `custom scripts` · `mitmproxy`
@@ -644,10 +507,7 @@ nuclei -u https://target -t ~/nuclei-templates/http/exposures \
 # authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
 ```
 
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Real-world examples
-
+Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.### Real-world examples
 ### Real Impact Examples
 
 **Scenario 1 — Free Physical Goods via Exposed Internal Storefront (Shopify-style)**
@@ -659,10 +519,7 @@ A payment flow passed order amount and currency through client-controlled parame
 **Scenario 3 — Email Verification Bypass for Unauthorized Monitoring (Mozilla-style)**
 A breach-monitoring service required email verification before enabling monitoring alerts for an address. The verification check was enforced in the UI flow but the underlying API accepted monitoring setup requests for any address using a valid session — skipping the verification step entirely. An attacker could set up monitoring for email addresses they don't own, receiving breach notification data (potentially including credential exposure status) for victim accounts. Impact: privacy violation; attacker gains intelligence on whether a target's email was in a breach without the target's knowledge or consent.
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### Query the corpus
 
 ```sh
@@ -700,10 +557,7 @@ python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class logi
 6. https://portswigger.net/web-security/logic-flaws/examples/lab-logic-flaws-high-level
 7. https://portswigger.net/web-security/logic-flaws/examples/lab-logic-flaws-low-level
 8. https://portswigger.net/web-security/logic-flaws/examples/lab-logic-flaws-excessive-trust-in-client-side-controls
-9. https://yashfren.net/blogs/businesslogicvulnerabilities-portswiggerlabs-walkthrough/
-
-### Additional notes
-
+9. https://yashfren.net/blogs/businesslogicvulnerabilities-portswiggerlabs-walkthrough/### Additional notes
 ### Parameters observed
 
 `url` · `email` · `returnRoute` · `client_id` · `callback_url` · `signature` · `name` · `config` · `requestID` · `callback` · `source` · `load` · `amount` · `lang` · `baseUrl` · `targetOrigin` · `type` · `key` · `all_results` · `html`
@@ -767,295 +621,8 @@ The following real, verified bug-bounty / coordinated-disclosure cases extend th
     - Root cause: payment-link validates "is active", price object validates "exists" — but the join "price.active AND price ∈ link.allowed_prices" is missing
     - Year: 2021 — Stripe Medium (per-subscription recurring loss)
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# Logic And Design — Combined Field Guide — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payloads & probes
-
-
-
-- Quantity -> `-1`, `0`, `0.001`, `1e9`, `NaN`, very long decimals
-
-- Price -> change `price=100` to `price=1`, remove the field, send array
-
-- State -> `status=approved`, `paid=true`, `step=3` out of order
-
-- Race -> parallel redeem of the same coupon/withdrawal
-
-
-
-## Payload fragments observed
-
-
-
-Recurring payloads from this class's writeups. Adapt, don't paste blindly.
-
-
-
-| Seen | Fragment |
-
-|---:|---|
-
-| 7× | `Curl_httpsrr_applicable()` |
-
-| 6× | `security@` |
-
-| 6× | `(all)` |
-
-| 5× | `wallet2::sign_tx(unsigned_tx_set &...)` |
-
-| 5× | `gtsatsis@staff.ratelimited.me` |
-
-| 5× | `hostmatch()` |
-
-| 4× | `conn->ssl_config` |
-
-| 4× | `$.extend` |
-
-| 3× | `data:` |
-
-| 3× | `__proto__` |
-
-| 3× | `get_peer_type()` |
-
-| 3× | `ossl_verifyhost()` |
-
-| 3× | `conn_config->CRLfile` |
-
-| 3× | `cr_init_backend()` |
-
-| 2× | `x-request: %s` |
-
-| 2× | `javascript:` |
-
-| 2× | `%00` |
-
-| 2× | `master @ 3ad4a5ee8` |
-
-| 2× | `tester@test.com` |
-
-| 2× | `h1test@example.com` |
-
-
-
-## Parameters observed
-
-
-
-`url` · `email` · `returnRoute` · `client_id` · `callback_url` · `signature` · `name` · `config` · `requestID` · `callback` · `source` · `load` · `amount` · `lang` · `baseUrl` · `targetOrigin` · `type` · `key` · `all_results` · `html`
-
-
-
-## Wordlists
-
-
-
-Mined from this class's writeups and ready for `ffuf`/`feroxbuster`. Paths and parameters recur across programs; verify each hit.
-
-
-
-| File | Entries |
-
-|---|---:|
-
-| `~/.local/share/hackerone-reports/wordlists/paths_logic-and-design.txt` | 150 |
-
-| `~/.local/share/hackerone-reports/wordlists/params_logic-and-design.txt` | 150 |
-
-| `~/.local/share/hackerone-reports/wordlists/paths.txt` (global) | 500 |
-
-| `~/.local/share/hackerone-reports/wordlists/params.txt` (global) | 400 |
-
-
-
-```sh
-
-W=~/.local/share/hackerone-reports/wordlists
-
-ffuf -u https://target/FUZZ -w $W/paths_logic-and-design.txt \
-
-     -mc all -fc 404 -fs 0 -rate 40
-
-ffuf -u 'https://target/api?FUZZ=canary' -w $W/params_logic-and-design.txt \
-
-     -mr 'canary|error|invalid|not found' -rate 40
-
-```
-
-
-
-## Nuclei
-
-
-
-No scanner finds business-logic flaws. Use Nuclei for recon, then model the workflow manually.
-
-
-
-```sh
-
-nuclei -u https://target -tags vuln,exposure \
-
-       -severity low,medium,high,critical -rl 40 -o nuclei_logic-and-design.txt
-
-nuclei -u https://target -t ~/nuclei-templates/http/exposures \
-
-       -rl 40 -o nuclei_logic-and-design_exposures.txt
-
-# authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
-
-```
-
-
-
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-
-
-## Payload & Detection Patterns
-
-
-
-**Rate limit bypass via header rotation:**
-
-```bash
-
-# Rotate X-Forwarded-For to bypass IP rate limiting
-
-for i in $(seq 1 100); do
-
-  curl -s -X POST https://target.com/api/subscribe \
-
-    -H "X-Forwarded-For: 10.0.0.$i" \
-
-    -H "X-Real-IP: 10.0.0.$i" \
-
-    -H "Content-Type: application/json" \
-
-    -d '{"email":"victim+'"$i"'@example.com"}' \
-
-    -o /dev/null -w "%{http_code}\n"
-
-done
-
-```
-
-
-
-**Payment tampering — modify in-flight price:**
-
-```http
-
-POST /payment/initiate HTTP/1.1
-
-Host: target.com
-
-
-
-amount=0.01&currency=USD&order_id=12345&product_id=99
-
-```
-
-```bash
-
-# Look for unvalidated webhook endpoints
-
-curl -X POST https://target.com/payment/callback \
-
-  -H "Content-Type: application/json" \
-
-  -d '{"status":"success","amount":"0.01","order_id":"12345","transaction_id":"fake-txn"}'
-
-```
-
-
-
-**Unauthenticated internal page discovery:**
-
-```bash
-
-# Check robots.txt and sitemap for internal paths
-
-curl -s https://target.com/robots.txt | grep -iE "(disallow|allow)" 
-
-curl -s https://target.com/sitemap.xml | grep -iE "(employee|internal|staff|summit|admin)"
-
-
-
-# Grep JS bundles for internal paths
-
-curl -s https://target.com/assets/app.js | grep -oE '"/[a-zA-Z0-9/_-]{3,50}"' | sort -u
-
-```
-
-
-
-**Email verification bypass:**
-
-```bash
-
-# Skip the verification step: hit the post-verification API endpoint directly
-
-# with an unverified session. If it succeeds, the gate is UI-only.
-
-curl -s -X POST https://monitor.target.com/api/monitoring/enable \
-
-  -H "Cookie: session=<your_unverified_session>" \
-
-  -H "Content-Type: application/json" \
-
-  -d '{"email":"victim@example.com"}'
-
-
-
-# Replay verification token on different account
-
-curl -X POST https://target.com/verify \
-
-  -d 'token=VALID_TOKEN_FROM_ACCOUNT_A&email=account_b@example.com'
-
-```
-
-
-
-**Grep patterns for client-side logic issues:**
-
-```bash
-
-# Find price calculations in JS
-
-grep -iE "(price|amount|total|cost)\s*[=*+]" app.js
-
-
-
-# Find internal URLs in JS bundles
-
-grep -oE '"/(employee|internal|staff|admin|summit)[^"]*"' *.js
-
-
-
-# Find unvalidated IP header usage in server code
-
-grep -iE "x-forwarded-for|x-real-ip|cf-connecting-ip" src/ -r
-
-```
-
-
-
----
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # Logic And Design — Combined Field Guide — Technique reference
 
@@ -1347,330 +914,15 @@ python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class logi
 
 
 
----
+---## Probes
 
-## Corpus wordlists (mined)
+- Negative/fractional quantity, price, amount; change currency or locale
+- POST step-3 request directly; replay the same request N times
+- Compare status codes/messages for valid vs invalid email/username
 
-### `params_logic-and-design.txt`
+## Supporting data
 
-```text
-url
-id
-email
-invite_code
-name
-page
-sort_type
-report_id
-returnRoute
-source
-username
-token
-client_id
-callback_url
-state
-signature
-format
-hash
-lang
-config
-requestID
-callback
-password
-load
-text_query
-sort_direction
-limit
-template
-data
-amount
-cid
-baseUrl
-targetOrigin
-type
-key
-all_results
-query
-usp
-html
-filter
-text
-Country
-authenticity_token
-commit
-uuid
-token_type
-skipPrimeOnboarding
-dl
-tid
-ec
-el
-cs
-cm
-cn
-cm1
-ea
-range
-month
-year
-first_name
-preview_data
-MerchantTransactionID
-Currency
-ReturnURL
-MethodID
-CustomerEmail
-CustomerName
-SkipHPP
-Description
-SkinID
-Hash
-ab
-app_version
-push_permission
-session_id
-app_run_id
-presentlon
-city_id
-code
-response_type
-scope
-redirect_uri
-access_token
-order_id
-http_envelope
-status
-number
-report_type
-res_id
-do_not_track
-expand_media
-height
-safe_mode
-suppress_response_codes
-theme
-timeline_type
-pages_domain[domain]
-next_url
-tx_amount
-tx_description
-firstname
-lastname
-csrfmiddlewaretoken
-encoded
-decode
-devEnv
-cmd
-business
-no_note
-currency_code
-charset
-rm
-upload
-return
-cancel_return
-paymentaction
-invoice
-notify_url
-last_name
-country
-no_shipping
-tax_cart
-item_name_1
-quantity_1
-amount_1
-item_number_1
-sid
-view
-error
-f_tok
-form
-team_id
-form_location
-tweet_text
-domain
-xxx
-switch
-template[]
-Amount
-Amount2
-phone
-consumer_token
-targetOrgin
-excludeQueryParams
-order_type
-subscription_id
-user_id
-is_first_time
-search
-new
-```
-
-### `paths_logic-and-design.txt`
-
-```text
-/ssltest/analyze.html
-/join/
-/login
-/spf/validate.html
-/auth/response.html
-/signup
-/index.html
-/wp-admin/load-scripts.php
-/admin
-/wp-json/
-/dashboard
-/graphql
-/shared/widgets/popup.asp
-/wp-login.php
-/robots.txt
-/profile
-/.htacess%20Content%20Injection%20test
-/consumers/auth/psn_oauth2
-/wp/
-/account
-/collect
-/cabinet/
-/cgi-bin/cvename.cgi
-/Admin
-/xmlrpc.php
-/search
-/wp-json/oembed/1.0/embed
-/accounts/profile/
-/redirect
-/docs/new
-/2.0/oauth/authorize
-/2017/broken-link-hijacking
-/users/sign_in
-/s/upserve-lounge-test-providence-2
-/widgets/timelines/preview
-/team_members
-/steal_csrf_token
-/rel-noopener/
-/submission_requirements
-/forgot-password
-/accounts/register/
-/private
-/crossdomain.xml
-/cvss/calculator/3.0
-/apps/upload_app/
-/apps/deck/
-/publishers/settings
-/feedback/
-/settings
-/checkout/
-/wp-json
-/reset-password-request/
-/punycode.php
-/resetpassword
-/external_link/
-/js-escapes
-/U+202E
-/welcome/
-/getspf2.py
-/edit
-/cgi-bin/webscr
-/verify_geofilter
-/ponyhooves/-/ponyhooves-1.0.1.tgz
-/computer-programming/link_redirector
-/sign-in
-/nextcloud/index.php/s/HUw7Cwa40Phlt8v/download
-/settings/user_management/invite_user
-/postotherdata
-/putsecretdata
-/app/forgot
-/app/create1
-/blog-you-can-soon-be-fined/
-/accounts/
-/trips
-/steamaccount/addfunds
-/profiles/7656██████████
-/fi/redeem
-/redeem
-/marketplace/offers/
-/marketplace/api/purchases/bulk
-/ajax/accept_fee_discount_offer
-/api/v1
-/api/institution/settings/suggestions
-/api/tones
-/api/institution/settings/tones
-/api/institution/vox
-/en/categories/ad-review/about-reddits-ad-review-process
-/api/v2.0/accounts/
-/api/v2.0/accounts/█████/ads/██████████
-/ads/
-/api/user/two-factor/set
-/product/bounty
-/services
-/product/response
-/product/challenge
-/&targetOrgin=https:/
-/consumers/auth/psn_oauth2/callback
-/error
-/&targetOrigin=https:/
-/v2/sdk/make_payment
-/gw/payments/zomato_money/order
-/api/v1/xyz
-/rest/v1.1/sites/siteId_here/invites
-/people/invites/yoursite.wordpress.com
-/en
-/_api/update_user_setting
-/mypage
-/attachments
-/html/rfc2142
-/php/red/desktop_payments_handler.php
-/php/pk_handler.php
-/gold/payment-success
-/start
-/api/v1/reviews/ride/
-/api/v1/reviews/ride/███/driver
-/driver
-/start/domain-for-gravatar/domain-only
-/en/signup/
-/normalization_table
-/starknet
-/api/v1/user/verify-email
-/api/v1/user/breaches
-/index.php/apps/registration/
-/streamlabs-rewards
-/api/v5/user/prime/subscription
-/multistream/settings
-/projects/Project-ID/magic-codes
-/php/o2_handler.php
-/email-change/
-/resend
-/users_sign_in
-/users/password
-/datacredits/
-/api/data_credits/transfer_dc
-/s/8xuipexpiyz7lp3/2020-09-05%2002-02-41.mkv
-/plugins/stops-core-theme-and-plugin-updates/
-/reference/hooks/upgrader_package_options/
-/tf-elementor
-/plugins/xml-rpc-settings/
-/SelfService/home/selfservice
-/SelfService/Home/dynamicdata/section/
-/SelfService/Home/dynamicdata/section/██████/███████%20TPU/61/124948002
-/SelfService/Home/dynamicdata/section/███████/████%20TPU/61/124948002
-/SelfService/Home/dynamicdata/section/██████████/██████████%20TPU/61/124948002
-/SelfService/Home/dynamicdata/section/█████████/█████████%20TPU/444/124948002
-/SelfService/Home/dynamicdata/section/█████/████%20TPU/2001/124948002
-/checkout/order-received/21237/
-/account/v1/accounts/me/avatars
-/account/v1/accounts/me
-/pages/
-```
-
-## Source skills merged into this topic
-
-- `h1skills` — `hackerone-logic-and-design`
-- `hunting` — `logic-and-design`
-- `cbh` — `hunt-business-logic`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 2 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/evidence.md` — corpus technique frequencies, case studies, approach patterns
+- `references/payloads.md` — curated payload bank + upstream payload references
+- `references/wordlists/` — 2 mined paths/params/payload lists
 - `bbhunt-methodology` — orchestrator, state machine and class router

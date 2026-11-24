@@ -4,14 +4,13 @@ description: "Hunt version-specific exploit chains across vCenter, Workspace ONE
 agent_created: true
 ---
 
-# VMware vSphere and vCenter attack chain — unified skill
+# VMware vSphere and vCenter attack chain — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### A. Discovery checklist — concrete fingerprints, endpoints, headers, CVEs, misconfigs to look for
 
 - **2024-2026 KEV additions to the CVE matrix above (check every external vCenter against these):**
@@ -22,10 +21,7 @@ agent_created: true
   - **CVE-2026-123890** — vCenter Directory Service **auth bypass via alternate path/channel**, CVSS 9.8, **KEV 2026-11-20** (due 11/23). Runs over **DCE/RPC on TCP 2012**, gives a session as `administrator@vsphere.local`. Exploited as a 0-day from early Sept 2026 by China-nexus **ARMORY CASTLE** using BONESAW against a vCenter already patched for CVE-2026-59309. Fixed in 9.1.1.0200 / 9.0.2.0200 / 8.0 U3m (VMSA-2026-0009). Companion: CVE-2026-123891/123892 in SDDC Manager. Beware fake PoC repos (one appeared on GitHub on 11/20).
   - **CVE-2026-41709** — ESXi **insufficient logging**, low CVSS 2.7 but **KEV 2026-10-28**: lets an admin perform operations without an audit trail; exploited as a 0-day by China-nexus **Warp Panda** (CrowdStrike) alongside BrickStorm/TetanusStorm/SharpStorm/DualGauge/GuestConduit. Attacker-side value = anti-forensics, not access.
 - **Fingerprint enrichment:** TLS handshake banner (lowest-noise), `/sdk/vimServiceVersions.xml`, `/ui/login` source build strings, `/api/appliance/system/version`, cert SANs. Map build → advisory deliberately: 26+ VMware CVEs are in CISA KEV, 10 ransomware-known; 9 affect vCenter Server.
-- **Detection artifacts to hunt:** outbound `reverse_ssh` connections (QUIRSO published a generic YARA rule), DCE/RPC packets to port 2012 from non-management IPs, `administrator@vsphere.local` auth events you did not generate, vCenter Syslog service anomalies.
-
-### Techniques, payloads and bypasses
-
+- **Detection artifacts to hunt:** outbound `reverse_ssh` connections (QUIRSO published a generic YARA rule), DCE/RPC packets to port 2012 from non-management IPs, `administrator@vsphere.local` auth events you did not generate, vCenter Syslog service anomalies.### Techniques and bypasses
 ### 5. CVE-2022-22972 — Workspace ONE Access / Identity Manager / vRealize Automation Host-header authentication bypass
 
 - **Affected:** Workspace ONE Access 21.08.0.1; Identity Manager 3.3.3–3.3.6; vRealize Automation 7.6 (and downstream Cloud Foundation bundles).
@@ -73,10 +69,7 @@ nc -zv "$TARGET" 2012 && echo "DCE/RPC port 2012 reachable — CVE-2026-123890 p
 curl -sk -H "vmware-api-session-id: $TOKEN" "https://$TARGET/folder?dsName=datastore1&dcPath=Datacenter"
 ```
 
-Priority chain to document: **CVE-2026-59310 (unauth RCE) → `reverse_ssh` persistence → (if AD-integrated) CVE-2024-37085 `ESX Admins` group → mass VM encryption**. The 2023-34048 and 2024-37079 DCE/RPC flaws are the same port-2012 surface and are often present together on stale builds.
-
-### Validation and proof
-
+Priority chain to document: **CVE-2026-59310 (unauth RCE) → `reverse_ssh` persistence → (if AD-integrated) CVE-2024-37085 `ESX Admins` group → mass VM encryption**. The 2023-34048 and 2024-37079 DCE/RPC flaws are the same port-2012 surface and are often present together on stale builds.### Validation and proof
 ### 9. CVE-2024-22273 — ESXi / Workstation / Fusion / vCenter storage controller OOB read/write
 
 - **Note on the original ticket:** This CVE was listed in the brief as "Aria SSRF," but the actual NVD record describes an **ESXi/vCenter storage controller out-of-bounds read/write**, not an Aria SSRF. The closest Aria SSRF-adjacent issue in the 2024 cycle is **CVE-2023-34063** (VMSA-2024-0001) — Aria Automation missing access control allowing authenticated cross-org access; CVSSv3 9.9. Both are cited so the matrix is technically accurate.
@@ -94,10 +87,7 @@ Priority chain to document: **CVE-2026-59310 (unauth RCE) → `reverse_ssh` pers
 - **Two clocks:** CISA/Quirso explicitly note patching does not evict an attacker who entered before the patch. Where a KEV entry requires forensic triage (BOD 26-04), hunt for `reverse_ssh`, unexpected outbound SSH, and DCE/RPC anomalies as a separate deliverable item.
 - **Scope guard stays absolute:** keep the existing "external-only boundary check" — vCenter reachable *only* through VPN is the user's internal work. Flag internet-exposed instances only.
 - **Do not execute file-upload/RCE PoCs without explicit sign-off** (existing rule). For 2026-123890, note the fake-PoC-repo noise: never import an unreviewed public exploit against client infra; validate against the advisory's affected/fixed table and Mandiant/GTIG IoCs instead.
-- **Severity:** current-patch vCenter = Informational; missing patch with public/KEV RCE = Critical (virtualization plane); 2026-59310 with ransomware flag = same-day callout; 2026-41709 = Medium as a standalone logging gap, High when chained with observed Warp Panda activity.
-
-### Escalation and related chains
-
+- **Severity:** current-patch vCenter = Informational; missing patch with public/KEV RCE = Critical (virtualization plane); 2026-59310 with ransomware flag = same-day callout; 2026-41709 = Medium as a standalone logging gap, High when chained with observed Warp Panda activity.### Escalation and related chains
 ### Related Skills & Chains
 
 - **`saml`** — vCenter Workspace ONE / VMware Identity Manager publishes SAML SP metadata at `/SAAS/API/1.0/GET/metadata/idp.xml` and consumes assertions at predictable ACS URLs. Chain primitive: vCenter SAML SP metadata reachable → IdP fingerprinted → `saml` XSW1-XSW8 against the federating IdP → forged assertion with `userPrincipalName=administrator@vsphere.local` → SP-impersonation as vCenter admin → full virtualization-plane takeover.
@@ -116,10 +106,7 @@ Priority chain to document: **CVE-2026-59310 (unauth RCE) → `reverse_ssh` pers
 - **`m365-entra-attack`** — Some VMware deployments federate vCenter SSO to Entra. Chain primitive: vCenter SSO discovery → AuthURL points to `login.microsoftonline.com` → `m365-entra-attack` Entra ATO on `administrator@vsphere.local` synced identity → SAML assertion → vCenter admin without ever brute-forcing vCenter SSO.
 - **`mid-engagement-ir-detection`** — VMware vSAN/vCenter alerting is sensitive; expect SOC to patch or block within hours of detection. Chain primitive: confirmed vCenter CVE → run `mid-engagement-ir-detection` baseline capture BEFORE attempting exploitation → if response patterns change mid-test, capture the SOC-patched state as a SECOND finding (defensive-action observed). Package both via `redteam-report-template`.
 
----
-
-### Tools and wordlists
-
+---### Tools
 ### Tooling
 
 - **`vCenter-Exploit` collection** (multiple PoCs on GitHub for 21972, 21985, 22005)
@@ -127,10 +114,7 @@ Priority chain to document: **CVE-2026-59310 (unauth RCE) → `reverse_ssh` pers
 - **`nuclei`** templates: `vmware-vcenter-*.yaml`, `cve-2021-21972.yaml`, `cve-2022-22954.yaml`
 - **`Metasploit`** modules: `exploit/multi/http/vmware_vcenter_*`
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://www.cisa.gov/news-events/alerts/2026/01/23/cisa-adds-one-known-exploited-vulnerability-catalog
@@ -146,10 +130,7 @@ Priority chain to document: **CVE-2026-59310 (unauth RCE) → `reverse_ssh` pers
 11. https://threatdefence.com/article/vmware-vcenter-cve-2026-123890-zero-day-patching-hunting
 12. https://www.cyber.gc.ca/en/alerts-advisories/vmware-security-advisory-av26-763
 13. https://www.securityweek.com/chinese-hackers-quietly-used-low-severity-esxi-logging-flaw-as-zero-day
-14. https://zerohunt.ai/vulnerabilities/vmware
-
-### Additional notes
-
+14. https://zerohunt.ai/vulnerabilities/vmware### Additional notes
 ### When to use
 
 Trigger when external recon shows ANY of:
@@ -481,16 +462,8 @@ The pattern across every entry above: **VMware management-plane CVEs are pre-aut
 - **ZDI published advisories:** https://www.zerodayinitiative.com/advisories/published/ — filter "VMware" for the canonical paid-bounty disclosures (CVE-2020-3992, CVE-2023-34048, multiple Aria Operations and vRNI).
 - **Mandiant UNC3886 reporting:** Google Cloud Threat Intelligence has the deepest published forensic trail on long-tail vCenter zero-day exploitation. Pair with the `mid-engagement-ir-detection` skill when working a target where vCenter is reachable.
 
-The pattern across every entry above: **VMware management-plane CVEs are pre-auth, network-reachable, and mass-exploited within days of patch.** When external recon surfaces any of these products at a current-minus-one patch level, that is a Critical finding worth a same-day callout in the deliverable — not a Medium info-disclosure.
+The pattern across every entry above: **VMware management-plane CVEs are pre-auth, network-reachable, and mass-exploited within days of patch.** When external recon surfaces any of these products at a current-minus-one patch level, that is a Critical finding worth a same-day callout in the deliverable — not a Medium info-disclosure.## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `vmware-vcenter-attack`
-- `cbh` — `vmware-vcenter-attack`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

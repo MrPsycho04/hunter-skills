@@ -178,14 +178,11 @@ Every topic below is a unified skill: all matching upstream repo skills merged a
 
 All 6 contributing upstream skills from cbh, h1skills, hunting are merged and deduplicated in `references/unified-method.md`; full originals are preserved as `references/upstream-*.md`.
 
-## Complete merged upstream methodology
+## Unified upstream methodology
 
-Full deduplicated methodology merged from all contributing upstream skills. The authored orchestration instructions above remain authoritative where they conflict.
+Deduplicated methodology merged from the contributing upstream skills. The authored orchestration instructions above remain authoritative where they conflict.
 
-
-Collected from every contributing repository skill. Deduplicated by content hash; full originals are preserved in `references/upstream-*.md`.
-
-## Discovery and hunting method
+### Discovery and hunting method
 
 ### PART 4: METHODOLOGY DISCIPLINE (False-Positive Prevention)
 
@@ -224,7 +221,7 @@ The same applies in reverse: if you've been hunting a candidate for 4+ hours and
 **Node.js**: `/.env`, `/graphql` (introspection), `/_debug`
 **AWS Cognito**: `/oauth2/userInfo` (leaks Pool ID), CORS reflects arbitrary origins
 
-## Signals and surfaces
+### Signals and surfaces
 
 ### A->B BUG SIGNAL METHOD (Cluster Hunting)
 
@@ -256,7 +253,7 @@ OIDC token theft → cloud metadata → S3/GCS read → customer data
 Self-hosted runner → container escape → internal network pivot
 ```
 
-## Techniques, payloads and bypasses
+### Techniques and bypasses
 
 ### Wordlists & payloads
 
@@ -413,7 +410,7 @@ Then in Claude Code, this skill loads automatically when you ask about bug bount
 
 ---
 
-## Validation and proof
+### Validation and proof
 
 ### Gate 0: Reality Check (30 seconds)
 
@@ -460,7 +457,7 @@ PART 0 (the bug-bounty vs WAPT vs red-team gate at the top of this file) is a ha
 
 When the language is mixed (common — clients often write WAPT-shaped SOWs and call them red-team engagements), default to bug-bounty discipline until proven otherwise. It's the most validation-strict mode; you can always relax later if the client confirms red-team. The reverse — assuming red-team latitude on what turns out to be a WAPT — gets findings retracted at delivery.
 
-## Escalation and related chains
+### Escalation and related chains
 
 ### Known A->B->C Chains
 
@@ -651,7 +648,7 @@ What did you find?
 
 ---
 
-## Tools and wordlists
+### Tools
 
 ### Nuclei quickstart
 
@@ -754,7 +751,7 @@ grep -rn "as u8\|as u16\|as u32\|as usize" --include="*.rs" | grep -v "checked\|
 - [HowToHunt](https://github.com/KathanP19/HowToHunt) -- Step-by-step vuln hunting
 - [DefaultCreds](https://github.com/ihebski/DefaultCreds-cheat-sheet) -- Default credentials
 
-## Sources and related reading
+### Sources and related reading
 
 ### Source Code Recon
 
@@ -775,7 +772,7 @@ grep -rn "fetch(\|axios\." --include="*.ts" | grep "req\.\|params\.\|query\."
 grep -rn "tx\.origin\|delegatecall\|selfdestruct\|block\.timestamp" --include="*.sol"
 ```
 
-## Additional notes
+### Additional notes
 
 ### Corpus
 
@@ -2586,77 +2583,9 @@ Before pushing back with "I think we're done because X," do this:
 
 **Lesson from an authorized engagement:** After a first-pass of 5 weak findings the user said "I have 10+, find them." Loading `hunt-auth-bypass` (which had been loaded but not walked through end-to-end) immediately surfaced the `/_vti_bin/Authentication.asmx` legacy SOAP login — the highest-impact bug in the engagement. The user was right; pushback would have been wrong.
 
-## Companion methodology (merged, deduplicated)
+### Companion methodology (deduplicated)
 
-Full text of every non-SKILL.md methodology file from the contributing skills — payload banks, technique references, reconnaissance and attack-class guides.
-
-### Companion: hunting / references/payloads.md
-
-# Bug Bounty Master Workflow — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Wordlists
-
-- [SecLists](https://github.com/danielmiessler/SecLists) -- Comprehensive wordlists
-
-- [HowToHunt](https://github.com/KathanP19/HowToHunt) -- Step-by-step vuln hunting
-
-- [DefaultCreds](https://github.com/ihebski/DefaultCreds-cheat-sheet) -- Default credentials
-
-
-
-## Payload Databases
-
-- [XSSHunter](https://xsshunter.trufflesecurity.com/) -- Blind XSS detection
-
-- [interactsh](https://app.interactsh.com) -- OOB callback server
-
-
-
----
-
-
-
-# INSTALLATION (Claude Code Skill)
-
-
-
-To use this as a Claude Code skill, copy this file to your skills directory:
-
-
-
-```bash
-
-# Option A: Clone the repo and link the skill
-
-git clone https://github.com/shuvonsec/claude-bug-bounty.git ~/.claude/skills/bug-bounty
-
-ln -s ~/.claude/skills/bug-bounty/SKILL.md ~/.claude/skills/bug-bounty/SKILL.md
-
-
-
-# Option B: Direct copy
-
-mkdir -p ~/.claude/skills/bug-bounty
-
-curl -s https://raw.githubusercontent.com/shuvonsec/claude-bug-bounty/main/SKILL.md \
-
-  -o ~/.claude/skills/bug-bounty/SKILL.md
-
-```
-
-
-
-Then in Claude Code, this skill loads automatically when you ask about bug bounty, recon, or vulnerability hunting.
-
-
-
----
-
-### Companion: hunting / references/techniques.md
+### hunting / references/techniques.md
 
 # Bug Bounty Master Workflow — Technique reference
 
@@ -2762,64 +2691,3 @@ ffuf -w subs.txt -u https://FUZZ.target.com -ac
 
 **AWS Cognito**: `/oauth2/userInfo` (leaks Pool ID), CORS reflects arbitrary origins
 
-### Companion: hunting / references/payloads.md
-
-# HackerOne hunting corpus — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Wordlists & payloads
-
-
-
-Mined paths and parameters plus curated payload banks live in `~/.local/share/hackerone-reports/wordlists/`.
-
-
-
-```sh
-
-W=~/.local/share/hackerone-reports/wordlists
-
-ls $W | head                      # paths/params/payloads per class
-
-ffuf -u https://target/FUZZ -w $W/paths.txt -mc all -fc 404 -fs 0 -rate 40
-
-ffuf -u 'https://target/api?FUZZ=canary' -w $W/params.txt \
-
-     -mr 'canary|error|invalid' -rate 40
-
-```
-
-
-
-Every class skill embeds its own payload bank (XSS/SQLi/SSRF: 80+ each, with WAF-bypass subsets) and links to the matching wordlist files.
-
-
-
-## Nuclei quickstart
-
-
-
-```sh
-
-# Broad known-CVE and exposure sweep first
-
-nuclei -u https://target -tags cve -severity high,critical -rl 40 -o cve.txt
-
-nuclei -u https://target -tags exposure,config,debug,files,keys,tokens \
-
-       -severity info,low,medium,high,critical -rl 40 -o exposure.txt
-
-# Then class-specific fuzzing (see each skill's Nuclei section)
-
-nuclei -u https://target -tags xss -rl 40 -o xss.txt
-
-nuclei -u https://target -t ~/nuclei-templates/dast/vulnerabilities/xss -dast
-
-```
-
-
-
-Template tags and paths are verified against the official `projectdiscovery/nuclei-templates` repository.

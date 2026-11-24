@@ -4,14 +4,13 @@ description: "Detect honeypots, hidden mint authority, fee manipulation and LP-l
 agent_created: true
 ---
 
-# Token and meme-coin audit — unified skill
+# Token and meme-coin audit — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Web-Research Methodology Additions (2026)
 
 > Fresh-source pass: arXiv:2608.20271 (Aug 2026, 6.4M Solana memecoins), Solidus Labs pump.fun research, 2026 token-scanner/honeypot tooling, and the first rug-pull criminal prosecution under South Korea's Virtual Asset User Protection Act. Extends the existing 8 bug classes and fast-kill signals.
@@ -40,10 +39,7 @@ agent_created: true
    ```
    Grep for `fullWhitelist`, `authorizations[`, `isFeeExempt`, `isTxLimitExempt`, `isInternal`, `restrictWhales`, `tradingOpen`.
 5. **Scanner-tool matrix and its blind spots.** RugCheck (Solana: mint/freeze authority, LP burn/lock, top-holder concentration; light sell simulation), Honeypot.is (EVM: buy/sell simulation, exact buy/sell tax, gas; no holder/liquidity analysis), GoPlus (multi-chain contract risks), Token Sniffer (contract similarity), Dedaub TokIn. Honeypot.is states a token passing today can become a honeypot later if the owner retains fee-raising power — **deferred malice defeats point-in-time scans**.
-6. **Real enforcement precedent.** CatFi (pump.fun, Feb 2025) — creators charged in May 2026 under South Korea's first Virtual Asset User Protection Act rug-pull prosecution ($600K damage, $8.37M peak → $12K). Confirms authorities now treat launchpad rugs as prosecutable fraud.
-
-### Signals and surfaces
-
+6. **Real enforcement precedent.** CatFi (pump.fun, Feb 2025) — creators charged in May 2026 under South Korea's first Virtual Asset User Protection Act rug-pull prosecution ($600K damage, $8.37M peak → $12K). Confirms authorities now treat launchpad rugs as prosecutable fraud.### Signals and surfaces
 ### PRE-DIVE KILL SIGNALS
 
 Check these BEFORE reading a single line of code. If any are true, skip the audit — the token is likely a rug or not worth the time.
@@ -60,10 +56,7 @@ spl-token display <MINT_ADDRESS> --program-id TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBq
 
 If TransferHook authority is non-null → the holder of that key can revoke transfer rights mid-trade. If PermanentDelegate is non-null → that delegate can move any holder's tokens at any time (effectively a built-in confiscation). Either alone is rug-class.
 
-pump.fun bonding curves can be manipulated via the curve's K-parameter; mint authority retained beyond bonding-curve completion is the classic exit-scam shape. Check `mintAuthority` AFTER the curve completes — legitimate launches null it, scams retain it for the post-graduation dump.
-
-### Techniques, payloads and bypasses
-
+pump.fun bonding curves can be manipulated via the curve's K-parameter; mint authority retained beyond bonding-curve completion is the classic exit-scam shape. Check `mintAuthority` AFTER the curve completes — legitimate launches null it, scams retain it for the post-graduation dump.### Techniques and bypasses
 ### B. Techniques & bypasses — specific actionable techniques/payload shapes
 
 1. **Five-minute on-chain pre-buy filter (BloFin 2026):** (1) mint authority revoked? (2) freeze authority revoked? (3) LP burned or locked >6 months in a verified contract? (4) top-10 holders <30% excluding pools/burn addresses? (5) is the volume real (not wash trades)? Any failed → automatic skip.
@@ -76,10 +69,7 @@ pump.fun bonding curves can be manipulated via the curve's K-parameter; mint aut
 4. **Deferred-malice probe.** A clean scan today is not enough: check whether the owner can still raise sell tax to 100%, re-enable a transfer hook, mint, or blacklist. Inspect setter bounds (`require(fee <= MAX_FEE)` with `MAX_FEE <= 10%` is the kill condition) and whether ownership was truly renounced (not overridden).
 5. **LP-lock verification, not badge trust.** Read the lock contract on-chain: unlock timestamp, lock owner (deployer?), multiple fragmented lockers, and **shorten/renew permissions** (a "lock" the owner can shorten is an exit hatch). Reject 1-day locks renewed weekly.
 6. **Bundle-level entity resolution and wash-trade patterns.** Use `bundle_size`/`bundled_buys` (MemeTrans-style) to detect coordinated creator wallets, and adapt the Self/Matched/Circular wash-trade features (Cao et al., BSC, PR-AUC 0.9185, mean 3.8h early warning) to Solana to distinguish real volume from manufactured activity.
-7. **Fee-exempt/whitelist mapping scan** on EVM tokens: enumerate every mapping that exempts addresses from fees, tx limits, or the `tradingOpen` gate; determine whether the owner can add arbitrary addresses.
-
-### Validation and proof
-
+7. **Fee-exempt/whitelist mapping scan** on EVM tokens: enumerate every mapping that exempts addresses from fees, tx limits, or the `tradingOpen` gate; determine whether the owner can add arbitrary addresses.### Validation and proof
 ### C. Validation / proof bar — how to confirm and avoid false positives (confabulation is NOT a finding for AI classes)
 
 1. **Distinguish "deployer COULD rug" from "contract IS exploitable now."** Most structural rug vectors are pre-rug warnings, not reportable bugs — route them through `triage-validation`. A bug bounty finding needs a currently exploitable path with a reproducible PoC.
@@ -88,10 +78,7 @@ pump.fun bonding curves can be manipulated via the curve's K-parameter; mint aut
 4. **Never trust a single rug-checker.** Deferred-malice tokens are clean for the first days and activate hooks later; cross-source verification plus owner-privilege code review is mandatory.
 5. **Honeypot proof needs the exact revert/tax and function.** Show the failing `transfer`/`sell` call with calldata and the exempt-address path that succeeds — "the scanner said honeypot" is not proof.
 6. **Report reproducibility.** Include exact mint/contract address, block/slot, tool commands, and the specific function/authority. A finding without an address is unverifiable.
-7. **Confabulation guard (AI-class analogue).** If an AI-assisted audit tool claims a rug vector, verify the function exists in verified source/on-chain bytecode — do not report a hallucinated `mint()` or `blacklist()` function.
-
-### Escalation and related chains
-
+7. **Confabulation guard (AI-class analogue).** If an AI-assisted audit tool claims a rug vector, verify the function exists in verified source/on-chain bytecode — do not report a hallucinated `mint()` or `blacklist()` function.### Escalation and related chains
 ### Related Skills & Chains
 
 - **`web3-audit`** — When the target is a DeFi protocol (not just a token). Workflow primitive: this skill's 8 token-specific bug classes are a subset of `web3-audit`'s scope; if the target has lending / vault / oracle logic beyond the token contract itself, also load `web3-audit` for the broader 10 DeFi bug classes.
@@ -100,10 +87,7 @@ pump.fun bonding curves can be manipulated via the curve's K-parameter; mint aut
 - **`offensive-osint`** — When the token has off-chain infrastructure (project website, Telegram, deployer doxxing). Workflow primitive: on-chain audit is this skill's domain; deployer wallet history, social presence, and project legitimacy checks route to `offensive-osint`.
 - **`bb-methodology`** — When confirming engagement mode. Workflow primitive: PART 0 separates "pre-investment due diligence" (this skill's primary use) from "Immunefi bug bounty submission" (different reporting + severity standards); the answer routes which post-audit handoff is correct.
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### SOLANA QUICK CHECKS (NO SOURCE CODE NEEDED)
 
 When you don't have source code, check on-chain:
@@ -144,10 +128,7 @@ When you don't have source code, check on-chain:
 3. https://coincodex.com/article/94430/best-token-scanners/ (RugCheck and Honeypot.is capabilities and blind spots, 2026)
 4. https://medium.com/@fxmbrand/how-to-spot-a-solana-rug-pull-the-12-point-on-chain-checklist-d2018b97904a (12-point on-chain checklist, Token-2022 extension red flags)
 5. https://finance.yahoo.com/markets/crypto/articles/solana-meme-coin-surges-6-130901647.html (CatFi pump.fun rug, first ROK Virtual Asset User Protection Act prosecution, May 2026)
-6. https://www.medium.com/@fxmbrand/how-to-spot-a-solana-rug-pull-the-12-point-on-chain-checklist-d2018b97904a and https://rugcheck.xyz/ / https://honeypot.is/ (cross-source verification tooling)
-
-### Additional notes
-
+6. https://www.medium.com/@fxmbrand/how-to-spot-a-solana-rug-pull-the-12-point-on-chain-checklist-d2018b97904a and https://rugcheck.xyz/ / https://honeypot.is/ (cross-source verification tooling)### Additional notes
 ### Hard Kills (Skip Immediately)
 
 - **Contract not verified** on Etherscan/Solscan → Cannot audit source = cannot trust
@@ -455,16 +436,8 @@ Mitigations (rank by 2026 effectiveness):
 3. **MEV-protected DEX aggregators** — Jupiter's slippage protection, 1inch Fusion, CoWSwap
 4. **Splitting orders** — N smaller trades vs 1 large; reduces sandwich profitability per trade
 
-If the mint is so illiquid that even split orders sandwich — that's the signal to skip the trade, not the signal to use better tooling.
+If the mint is so illiquid that even split orders sandwich — that's the signal to skip the trade, not the signal to use better tooling.## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `meme-coin-audit`
-- `cbh` — `meme-coin-audit`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

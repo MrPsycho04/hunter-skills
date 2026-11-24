@@ -4,13 +4,13 @@ description: "Use when object IDs, user IDs, tenant IDs or record references app
 agent_created: true
 ---
 
-# IDOR / Broken Object-Level Authorization — unified skill
+# IDOR / Broken Object-Level Authorization — unified methodology
 
-> **Complete merged skill.** Everything from 4 upstream skills across cbh, h1skills, hunting, research and the local HackerOne corpus is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 4 upstream skills across cbh, h1skills, hunting, research and grounded in 15,259 disclosed HackerOne reports. Payloads, wordlists and supporting data are in `references/`.
 
-## Corpus evidence — 382 valid HackerOne reports (88 paid / 23%)
+## Corpus signal — 382 valid reports (88 paid / 23%)
 
-Every disclosed report is valid; payment is an impact signal, not a validity test.
+Every disclosed report is valid; payment is an impact signal, not a validity test. Full technique frequencies, case studies and approach patterns: `references/evidence.md`.
 
 ### Techniques ranked across ALL valid reports
 
@@ -28,120 +28,6 @@ Every disclosed report is valid; payment is an impact signal, not a validity tes
 | public source-code / repo review | 32 |
 | employee / developer public info | 23 |
 | parameter pollution / duplicate keys | 16 |
-| unauthenticated / removed-cookie test | 16 |
-| cache / CDN / unkeyed header | 15 |
-| fuzzing / wordlist brute force | 15 |
-| XML / SOAP / SAML / XXE | 15 |
-| error message / stack trace probing | 14 |
-| internal service / port / container | 13 |
-| subdomain / DNS / cert-transparency recon | 11 |
-| JWT / token / base64 decode | 11 |
-|  HosT/absolute-URL reset poisoning | 6 |
-| second-order / stored / blind delivery | 6 |
-| race / concurrency / timing | 6 |
-| third-party data / paste / breach reuse | 6 |
-| public bucket / storage exposure | 5 |
-| cloud metadata / IAM abuse | 5 |
-| DOM / HTML source inspection | 5 |
-| replay / modify a captured request | 5 |
-| OAST / DNS / HTTP callback proof | 4 |
-| WAF / sanitizer / filter bypass | 4 |
-| mass assignment / extra request fields | 4 |
-| git history / exposed .git | 3 |
-| browser DevTools / network tab | 3 |
-| template injection (SSTI) | 3 |
-| webhook / OAuth / SAML / integration abuse | 2 |
-| response diff / status / length comparison | 2 |
-| JS bundle / source-map inspection | 2 |
-| deserialization / gadget chain | 2 |
-| search-engine dorking | 1 |
-| redirect chain / Location header | 1 |
-| API docs / Swagger / introspection | 1 |
-| parser confusion / normalization | 1 |
-| archive / Wayback endpoint discovery | 1 |
-
-### Parameters observed in writeups
-
-`onerror` (10), `src` (10), `max-age` (7), `charset` (5), `user_id` (5), `password` (5), `txtamount` (4), `amount` (4), `txtcustomamount` (4), `username` (4), `imageid` (4), `profileid` (4), `target_id` (4), `target_type` (4), `selectedaddressid` (3), `_ga` (3), `_gid` (3), `awsalb` (3), `awsalbcors` (3), `googtrans` (3), `uid2` (3), `team_id` (3), `detailed` (3), `hacker_username` (2), `http-session` (2), `asp.net_sessionid` (2), `cams_sid_mycamscluster_system` (2), `_format` (2), `filename` (2), `comment_id` (2)
-
-### Bypass primitives observed
-
-`content-type` (70), `bypass` (25), `whitelist` (9), `bypassed` (8), `same-site` (5), `bypasses` (2), `bypassing` (2), `blind` (2), `null byte` (1), `race condition` (1), `normalized` (1)
-
-### Impact language observed
-
-`token` (148), `admin` (95), `password` (94), `unauthorized` (54), `payment` (42), `localhost` (29), `credential` (23), `secret` (18), `pii` (15), `sensitive information` (14), `account takeover` (13), `sensitive data` (10), `privilege escalation` (8), `financial` (6), `api key` (4), `full access` (3), `mass enum` (3), `funds` (1), `ato` (1), `personally identifiable` (1)
-
-### Case studies — full excerpts (paid and unpaid)
-
-#### [743953](https://hackerone.com/reports/743953) — Steal private objects of other projects via project import
-
-GitLab · $20000 · critical
-
-### Summary An attacker could transfer issues, merge requests of another project to the imported project by importing a crafted GitLab export. ### Steps to reproduce 1. Import the attached tarball as GitLab export. 2. Check the issues page of the imported project. You will see an private issue created by instead of the current user. ### Description The exploit is in project.json, I added one line to assign `issue_ids` and kept `issues` an empty array. The issues_ids contains the database id of the issues the attacker wants to steal. There's no good way for the attacker to know the id of a specific issue, but as the id is incremental, the attacker could simply steal as many issues as possible in a brute forcing manner. The root cause of this issue lies in `project_tree_restorer.rb` Many attributes (foreign key) like `issue_ids` and `merge_request_ids` are not excluded during import. According to my observation, affected objects including (but not limited to): Looks like almost all non-excluded attributes behaves like `issues` are affected. ### Examples {F640860} ### Output of checks This bug happens on GitLab.com and self-hosted GitLab installations. ## Impact With this ability to modify relations between objects, an attacker could end up with accessing random resources of other users by traversing the incremental ID space.
-
-#### [767770](https://hackerone.com/reports/767770) — Private objects exposed through project import
-
-GitLab · $20000 · critical
-
-### Summary This is a bypass of , the current fix is blocking all "_ids" attributes. However an attacker could still set attributes like `issue_ids` by indrectly settings the field within the `attributes` field it self: ### Steps to reproduce 1. Import the attached tarball. 2. Check issues tab The other parts of the report are mostly same as those I mentioned in , I decide to write a new report considering the impact to gitlab.com. ## Impact With this ability to modify relations between objects, an attacker could end up with accessing random resources of other users by traversing the incremental ID space.
-
-#### [1819832](https://hackerone.com/reports/1819832) — Delete anyone's content spotlight remotely.
-
-Snapchat · $15000 · high
-
-Hello Snapchat, Snapchat has viral video feature callled spotlight which alone was the biggest trend and increase snapchat users and profit in millions. I found a way to delete anyone's spotlight remotely. Please see the below poc:- 1. First go to and log in there. 2. You will see your posts . 3. Now turn burp suite and intercept. 4.Select any of your posts and click delete option. 5. Now capture the delete request. In delete request there is parameter of id {"operationName":"DeleteStorySnaps","variables":{"ids":["███████"],"storyType":"SPOTLIGHT_STORY"},"query":"mutation DeleteStorySnaps($ids: [String!]!, $storyType: StoryType!) {\n deleteStorySnaps(ids: $ids, storyType: $storyType)\n}\n"} 6. You just have to change this id parameter. You can easily get the id parameter. Now forward the request after replacing id with someone's else video id. And the video of other user will get delete. HOW TO GET ID PARAMETER 1. Whenever you share spotlight you can see the parameter in the url as: I have attached a video POC please check it out ## Impact Delete anyone's Content Spotlight. Imagine deleting video biggest influencers and content creators.
-
-#### [3862641](https://hackerone.com/reports/3862641) — IDOR allows user to access report details via reference.json endpoint
-
-HackerOne · $15000 · critical
-
-**Summary:** An information disclosure vulnerability on the `/reports/{id}/reference.json` endpoint allowed VDP accounts created via `hackerone.com/vdp-sign-up` to access certain private report details. While the endpoint returned HTTP 422 "You do not have the appropriate access," the error response contained additional report details in the `context.subject` field. **Description:** By sending a POST request to the `/reports/{report_id}/reference.json` endpoint with an empty JSON body `{}`, VDP users could retrieve information about private reports belonging to other programs despite receiving an access-denied error. Although the endpoint correctly rejected unauthorized access with an HTTP 422 status code, it inadvertently included private report data in the error response body. **Steps To Reproduce:** 1. Create a VDP account at `hackerone.com/vdp-sign-up` 2. Log in with the VDP account 3. Obtain an approved test report ID from (these reports contain flags to include in your POC), 4. Send a POST request to ` with the following structure: 4. Observe that despite receiving HTTP 422 with "You do not have the appropriate access," the response contains report details in the `context.subject` field **Note:** This vulnerability has been fixed. We have found no evidence of misuse in our investigation to date, and no action is required from users..
-
-#### [415081](https://hackerone.com/reports/415081) — IDOR to add secondary users in www.paypal.com/businessmanage/users/api/v1/users
-
-PayPal · $10500 · high
-
-PayPal Business Accounts allow account owners to create multiple secondary users with specific privileges assigned to their employees. This submission identified a method that made it possible for a Business Account owner to assign secondary users from other accounts. The new secondary user would be granted access to the login allowing for unauthorized access to the functions of that single user login. PayPal remediated the vulnerability and found no evidence of abuse associated with it.
-
-#### [762510](https://hackerone.com/reports/762510) — How the Bug stole hacking
-
-HackerOne · no bounty — still valid · none
-
-In light of the season - here's a story I wrote for you: ## Impact Happy Holidays and thanks for all you do. <3
-
-#### [2122671](https://hackerone.com/reports/2122671) — IDOR - Delete all Licenses and certifications from users account using CreateOrUpdateHackerCertification GraphQL query
-
-HackerOne · no bounty — still valid · high
-
-**Summary:** Hey team, While editing our **Licenses and certifications** if we change the ID number we can delete other users **Licenses and certifications**. it simply can be done by editing the ID number in our graphql query. If change the ID from 1 to X possible range then we can delete all the **Licenses and certifications** present between these. ### Steps To Reproduce 1. Log in to your own account in two browsers A and B with User A and User B 2. Create your own **Licenses and certifications* in both the account 3. Now edit your own **Licenses and certifications* and Intercept this using a Burp Proxy 4. Now In the body change the **ID** number and you will be able to delete all the **Licenses and certifications** present in HackerOne 5. For now change the ID to the **Licenses and certifications** ID of the Other account and it will be deleted. PoC Video: ████ ## Impact Able to delete all the **Licenses and certifications** present in HackerOne
-
-### Recurring approach patterns from real reports
-
-- 2× psychomantis was able to demonstrate this vulnerability by crafting a specially formatted url
-- 2× i have tested retrieving following ids
-- 2× i l victim is able see the association to the attacker s child epic and may trust navigate to the attacker s group when clicking on it
-- 1× i haven t tried this but i think this can be done
-- 1× see screenshot where i was able to remove certain folks without inviting them
-- 1× i apologize for the emails that were sent out to two different hackerone researchers accidentally
-- 1× when i change identified user id to other user s id then request of add friend is send to other user without any token and secession validation
-- 1× description while creating a product i noticed there is a call to which returns json details about the product
-- 1× while exploring subgroup functionality i noticed that an unprivileged user can disclose private group names by incrementing the parent id parameter
-- 1× afterwards i created an unprivileged user no group or project assignments and visited the below url disclosing the name of privategroup
-- 1× type a random last name i used smith and type a random number in the other field
-- 1× note for my tests i created previously some two appointment numbers 30ac5814 and 9d1d10c7 and i have added them to the wordlist thus i don t gotten any user legit information
-- 1× also by clicking again the transfer store to client link you will see in the dropdown the staff members
-- 1× good evening vulnerability i m able to create accounts with the email verification that originates from the first account i created
-- 1× this is my confirm email link that created the account poc originally the post body was going to my main email connected to my github account then i changed the post body attribute to post request post body here s the screenshot of the request saying it was created
-- 1× i found an insecure direct object reference vulnerability on the endpoint
-- 1× i think i have found a security issue
-- 1× however after the trial period is over for a free account upon logging in to the actors account he gets a message like this and it s not possible to access anything at all as this comes every time
-- 1× i used jong jong accounts to submit test report to parrot sec program
-- 1× the researcher found an idor that when exploited would result in an error message that was too verbose
-- 1× description through google dorking i discovered that there are two results in google for subdomains of api semrush com see f234928
-- 1× by clicking either of the links i realised that it is possible to change the domain parameter and get the information for that domain
-- 1× i tried to further look at this by adding in other fields as per the api guide and could submit any query i wished such as see f234936 i noticed that this doesn t work against api semrush com only uk api semrush com or us api semrush com
-- 1× however i have found a way to edit the visibility of any co admin co member of the team where i belong using idor
 
 ## Corpus-backed method (this class)
 
@@ -172,20 +58,13 @@ HackerOne · no bounty — still valid · high
 - IDOR on export -> bulk PII extraction -> mass disclosure.
 - IDOR on role/membership object -> privilege escalation -> full tenant access.
 
-### Probes
-
-- Swap /users/<id>, /api/orders/<id>, ?user_id=, {"ownerId": ...} with victim IDs
-- Replay GET as PUT/PATCH/DELETE and with X-HTTP-Method-Override
-- Send arrays of IDs to bulk endpoints; test parent ID inside a nested body
-
 ### Veteran tip
 
 Cross-account replay is the most frequent technique in the valid IDOR writeups. Without a second identity, mark the unit blocked rather than guessing.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Quick wins
 
 Start here. These are the highest-yield tests for this class.
@@ -288,10 +167,7 @@ Sourced from OWASP API Security Top 10 (API1:2023 BOLA), the OWASP IDOR Preventi
 
 Then run the pre-report gate (above) and, if chaining, Part 6.
 
----
-
-### Signals and surfaces
-
+---### Signals and surfaces
 ### Signal
 
 - Reports: **450** · paid: **107**
@@ -412,10 +288,7 @@ state.currentUser.organizationId
 - Mobile apps — Burp the APK; mobile APIs often skip authorization checks
 - Legacy / v0 / internal endpoints — mine JS bundles and Wayback for `/internal/`, `/v0/`, `/legacy/` siblings of protected routes (§3.4)
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### Payloads & probes
 
 - Numeric -> id=1 -> id=2, id=0, id=-1, id=999999
@@ -810,10 +683,7 @@ Cross-references:
 - `hunt-misc` — Chain 5
 - `hunt-business-logic` — Chain 6
 
----
-
-### Validation and proof
-
+---### Validation and proof
 ### Reporting bar
 
 - Prove real impact on a second controlled account or a safe callback.
@@ -871,10 +741,7 @@ Before writing the report, answer all three:
 - Attribute the sink — if several parameters/endpoints could be the cause, isolate one per request so the client patches the right field.
 - Stay inside program scope and follow disclosure rules.
 
----
-
-### Escalation and related chains
-
+---### Escalation and related chains
 ### Escalation chains
 
 - IDOR read -> PII exposure.
@@ -1052,10 +919,7 @@ Cross-references: hunt-ato (Chains 1, 5), hunt-xss (Chain 2), hunt-graphql (Chai
 - **`hunt-ato`** — Profile-edit IDOR is the most direct path from "read someone's data" to "own their account." Chain primitive: `PATCH /api/users/{victim_uid}` accepts attacker's session + victim UID → set `email=attacker@evil.com` → trigger password reset → reset link arrives at attacker → full ATO without ever knowing victim credentials.
 - **`hunt-graphql`** — GraphQL resolvers without field-level authorization are IDOR-by-default; introspection hands you the schema. Chain primitive: `__schema` introspection → enumerate every mutation accepting `id:` argument → substitute victim IDs across `updateUser`, `deleteOrg`, `transferBilling` mutations → mass IDOR fan-out from one introspection query.
 - **`security-arsenal`** — Pull the IDOR Bypass Tables section for HTTP-parameter-pollution payloads (`?id=own&id=victim`), nested-JSON wrappers (`{"data":{"id":"VICTIM"}}`), and parameter-name variations (`uid`/`userId`/`user_id`/`account`) when the first direct substitution returns 403.
-- **`triage-validation`** — Run the Pre-Severity Gate before claiming Critical on an IDOR that returns 200 but doesn't actually leak data (empty array, redacted fields, "access denied" in body with 200 status). The 200-but-no-data IDOR is the #1 N/A driver on H1/Bugcrowd.
-
-### Tools and wordlists
-
+- **`triage-validation`** — Run the Pre-Severity Gate before claiming Critical on an IDOR that returns 200 but doesn't actually leak data (empty array, redacted fields, "access denied" in body with 200 status). The 200-but-no-data IDOR is the #1 N/A driver on H1/Bugcrowd.### Tools
 ### Tools
 
 `Autorize` · `Burp Repeater` · `ffuf` · `mitmproxy` · `Postman`
@@ -1139,10 +1003,7 @@ nuclei -u https://target -t ~/nuclei-templates/http/exposures \
 # authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
 ```
 
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Real-world examples
-
+Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.### Real-world examples
 ### Real Impact Examples
 
 **Scenario 1: Financial Data Exposure + Cross-Account Billing Fraud (Uber-style)**
@@ -1167,10 +1028,7 @@ An attacker accesses another user's private message threads by substituting thei
 
 - **Scenario 1 — Financial data exposure + cross-account billing fraud (Uber-style).** One IDOR reads any organization's voucher policy (org IDs, employee emails, payment methods); a second modifies voucher policies using those leaked IDs — chained, this redirects charges to an arbitrary business account and exposes employee PII across organizations.
 - **Scenario 2 — Private repository read via IDOR on migration endpoint (GitHub-style).** A migration feature's `migration_id` isn't validated against the authenticated user's ownership; substituting another user's migration ID grants read access to private source code.
-- **Scenario 3 — Account takeover chain via message IDOR (Reddit-style).** Substituting `thread_id` exposes another user's private messages, which include a session/verification token sent internally; the attacker uses it for account recovery, escalating a read-only IDOR into full ATO.
-
-### Sources and related reading
-
+- **Scenario 3 — Account takeover chain via message IDOR (Reddit-style).** Substituting `thread_id` exposes another user's private messages, which include a session/verification token sent internally; the attacker uses it for account recovery, escalating a read-only IDOR into full ATO.### Sources and related reading
 ### Query the corpus
 
 ```sh
@@ -1234,10 +1092,7 @@ python3 ~/.local/share/hackerone-reports/h1.py search "wordpress" --class idor
 python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class idor --min-bounty 1000
 ```
 
----
-
-### Additional notes
-
+---### Additional notes
 ### Parameters observed
 
 `id` · `type` · `action` · `message` · `userId` · `Password` · `aura.context` · `aura.pageURI` · `aura.token` · `file` · `domain` · `PID` · `RNo` · `time_range` · `accounts` · `passChange` · `__RequestVerificationToken` · `ConfirmPassword` · `export_columns` · `start`
@@ -1728,337 +1583,8 @@ When the tenant is resolved from a subdomain or header string (`tenant1.app.com`
 8. Grade the impact honestly — confidentiality vs. integrity vs. availability; cross-tenant vs. same-tenant; one victim vs. mass extraction.
 9. Meet the pre-report gate (top of document) and the reporting bar below before submitting.
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# IDOR — Combined Field Guide — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payloads & probes
-
-
-
-- Numeric -> id=1 -> id=2, id=0, id=-1, id=999999
-
-- UUID/hash -> swap a known UUID from another account; try UUIDv1 timestamps.
-
-- Encoded -> base64 decode/encode, hex, JWT sub, gid://app/Model/123
-
-- Batch -> `{"ids":[1,2,3]}` or repeated `id=1&id=2`
-
-- Nested -> `/users/1/orders/2` with user 1 but order 2
-
-
-
-## Payload fragments observed
-
-
-
-Recurring payloads from this class's writeups. Adapt, don't paste blindly.
-
-
-
-| Seen | Fragment |
-
-|---:|---|
-
-| 4× | `MembershipRequest::getMembership()` |
-
-| 4× | `link()` |
-
-| 3× | `victim@email.com` |
-
-| 3× | `MembershipService::getMembership()` |
-
-| 2× | `Move to > My Content` |
-
-| 2× | `application%5Bid%5D` |
-
-| 2× | `curl --request POST \ / --url 'https://gitlab.domain.com/api/v4/projects/<ATTACKID>/merge_requests/1/status_check_responses?sha=<SHA>&extern` |
-
-| 2× | `/BugReport/Admin/Attachment/{id}` |
-
-| 2× | `attacker@email.com` |
-
-| 2× | `{attacker-email}` |
-
-| 2× | `curl -X GET "http://localhost:8080/ocs/v2.php/apps/circles/link/r2gmJl8n5xKWecQaVYe1dP3h6nqIUDk/ovYvboLMBNGvRXSkqhgllIKo6T7fvZl" \ / -H "OCS` |
-
-| 2× | `getMembership()` |
-
-| 2× | `LocalController::link()` |
-
-| 1× | `POST /reports/[TEST_REPORT_ID]/reference.json HTTP/2 / Host: hackerone.com / Cookie: [your session cookie] / Content-Type: application/json` |
-
-| 1× | `/reports/{id}/reference.json` |
-
-| 1× | `/reports/{report_id}/reference.json` |
-
-| 1× | `https://app.crowdsignal.com/users/invite-user.php?id=(userid)&popup=1` |
-
-| 1× | `<PUT_VICTIM_EMAIL_HERE>` |
-
-| 1× | `exmaple: GET /api/v1/users/@hasn0xxxx` |
-
-| 1× | `GET /attachments/938540538 HTTP/1.1 / X-Signal-Agent: OWA / Accept-Encoding: gzip, deflate / X-Client-Version: BCM Android/5.1 Model/generic` |
-
-
-
-## Parameters observed
-
-
-
-`id` · `type` · `action` · `message` · `userId` · `Password` · `aura.context` · `aura.pageURI` · `aura.token` · `file` · `domain` · `PID` · `RNo` · `time_range` · `accounts` · `passChange` · `__RequestVerificationToken` · `ConfirmPassword` · `export_columns` · `start`
-
-
-
-## Wordlists
-
-
-
-Mined from this class's writeups and ready for `ffuf`/`feroxbuster`. Paths and parameters recur across programs; verify each hit.
-
-
-
-| File | Entries |
-
-|---|---:|
-
-| `~/.local/share/hackerone-reports/wordlists/paths_idor.txt` | 150 |
-
-| `~/.local/share/hackerone-reports/wordlists/params_idor.txt` | 150 |
-
-| `~/.local/share/hackerone-reports/wordlists/paths.txt` (global) | 500 |
-
-| `~/.local/share/hackerone-reports/wordlists/params.txt` (global) | 400 |
-
-
-
-```sh
-
-W=~/.local/share/hackerone-reports/wordlists
-
-ffuf -u https://target/FUZZ -w $W/paths_idor.txt \
-
-     -mc all -fc 404 -fs 0 -rate 40
-
-ffuf -u 'https://target/api?FUZZ=canary' -w $W/params_idor.txt \
-
-     -mr 'canary|error|invalid|not found' -rate 40
-
-```
-
-
-
-## Nuclei
-
-
-
-Nuclei only finds exposed objects; the real work is cross-account replay with two identities.
-
-
-
-```sh
-
-nuclei -u https://target -tags idor,exposure \
-
-       -severity low,medium,high,critical -rl 40 -o nuclei_idor.txt
-
-nuclei -u https://target -t ~/nuclei-templates/http/exposures \
-
-       -rl 40 -o nuclei_idor_exposures.txt
-
-# authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
-
-```
-
-
-
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-
-
-## Payload & Detection Patterns
-
-
-
-**Basic IDOR test with curl (swap cookie/token):**
-
-```bash
-
-# Get User A's resource ID while authenticated as A
-
-curl -s -H "Cookie: session=USER_A_SESSION" \
-
-  https://target.com/api/v1/invoices/12345
-
-
-
-# Replay with User B's session
-
-curl -s -H "Cookie: session=USER_B_SESSION" \
-
-  https://target.com/api/v1/invoices/12345
-
-
-
-# Success = 200 OK with User A's data
-
-```
-
-
-
-**GraphQL IDOR test:**
-
-```bash
-
-curl -s -X POST https://target.com/graphql \
-
-  -H "Authorization: Bearer USER_B_TOKEN" \
-
-  -H "Content-Type: application/json" \
-
-  -d '{"query":"{ billingDocument(id: \"USER_A_DOC_ID\") { id amount pdfUrl } }"}'
-
-```
-
-
-
-**Enumerate sequential IDs with ffuf:**
-
-```bash
-
-ffuf -u "https://target.com/api/v1/orders/FUZZ" \
-
-  -w ids.txt \
-
-  -H "Authorization: Bearer USER_B_TOKEN" \
-
-  -mc 200 \
-
-  -o idor_results.json
-
-```
-
-
-
-**Generate sequential ID wordlist:**
-
-```python
-
-# Generate IDs around a known value
-
-known_id = 48291
-
-with open("ids.txt", "w") as f:
-
-    for i in range(known_id - 500, known_id + 500):
-
-        f.write(str(i) + "\n")
-
-```
-
-
-
-**Burp Intruder payload for IDOR scanning:**
-
-```
-
-GET /api/messages/§12345§ HTTP/1.1
-
-Host: target.com
-
-Authorization: Bearer USER_B_TOKEN
-
-
-
-# Mark §12345§ as injection point
-
-# Use numeric sequential payload: 12000-13000
-
-# Filter responses by length difference or status 200
-
-```
-
-
-
-**JavaScript scraping for leaked IDs:**
-
-```bash
-
-# Find IDs in JS bundles
-
-curl -s https://target.com/static/app.js | grep -Eo '"id":"[a-f0-9-]{36}"' | sort -u
-
-
-
-# Find object references in API responses
-
-curl -s -H "Cookie: session=USER_A" \
-
-  https://target.com/api/v1/dashboard | python3 -m json.tool | grep -i "_id"
-
-```
-
-
-
-**Grep patterns for source code review:**
-
-```bash
-
-# Missing authorization checks in common frameworks
-
-grep -r "findById\|findOne\|getById" --include="*.js" .
-
-grep -r "params\[:id\]\|params\['id'\]" --include="*.rb" .
-
-grep -r "request\.args\.get\('id'\)" --include="*.py" .
-
-
-
-# Look for direct ORM queries without user scoping
-
-grep -r "Model\.find(params" --include="*.js" .
-
-# vs secure pattern: Model.find({ id: params.id, userId: req.user.id })
-
-```
-
-
-
-**IDOR via HTTP method tampering:**
-
-```bash
-
-# Try undocumented methods
-
-for method in GET POST PUT PATCH DELETE OPTIONS HEAD; do
-
-  echo "=== $method ==="
-
-  curl -s -X $method \
-
-    -H "Authorization: Bearer USER_B_TOKEN" \
-
-    https://target.com/api/v1/users/USER_A_ID/profile
-
-done
-
-```
-
-
-
----
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # IDOR — Combined Field Guide — Technique reference
 
@@ -2384,331 +1910,15 @@ python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class idor
 
 
 
----
+---## Probes
 
-## Corpus wordlists (mined)
+- Swap /users/<id>, /api/orders/<id>, ?user_id=, {"ownerId": ...} with victim IDs
+- Replay GET as PUT/PATCH/DELETE and with X-HTTP-Method-Override
+- Send arrays of IDs to bulk endpoints; test parent ID inside a nested body
 
-### `params_idor.txt`
+## Supporting data
 
-```text
-id
-type
-action
-message
-userId
-Password
-aura.context
-aura.pageURI
-aura.token
-file
-domain
-PID
-RNo
-time_range
-accounts
-passChange
-__RequestVerificationToken
-ConfirmPassword
-export_columns
-start
-_id
-token_id
-amount
-txtCustomAmount
-delivery_subzone
-_method
-authenticity_token
-PositionTitleIds
-Title
-FirstName
-MiddleName
-LastName
-PhoneNumber
-LanguageId
-PersonProfileId
-CitizenshipId
-database
-count
-trip_id
-username
-sha
-external_status_check_id
-user_id
-version
-comment_id
-popup
-operation
-decorationId
-lat
-lng
-service_code
-case
-trk
-clientid
-campaignid
-token
-aura.ApexAction.execute
-embedded_submission_form_uuid
-spec
-lang
-channel
-resultType
-comment
-sessionid
-extended_data
-feature2
-oldestfirst
-include_raw
-confirmed
-target_id
-target_type
-sessionId
-subsection
-res_id
-_format
-datestamp
-isIABGlobal
-hosts
-landingPath
-groups
-RequestMessage
-euid
-ri
-is_sticky
-widget
-preview
-badge_stream
-badge_channel
-badge_album
-badge_layout
-badge_quantity
-show_titles
-badge_size
-organization_id
-persist
-sort_type
-view
-duplicates_must_have_no_ref
-document_type
-user
-seriesUrn
-sectionUrn
-profileId
-lipi
-report_id
-positive
-behavior
-private_feedback
-contentUrn
-reason
-contentSource
-authorProfileId
-refId
-host
-signature
-calendar_id
-bannerid
-strUserId
-platform
-shop_domain
-page
-offset
-curated
-show-user-info
-pennies
-correlation_id
-cat
-access_token
-myshopify_domain
-__form__
-output
-step
-discardDraftId
-subject
-hackathons[]
-rpc
-showPlansPricing
-PackageID
-ID
-EditPOCvm.PositionTitleIds
-EditPOCvm.Title
-EditPOCvm.FirstName
-EditPOCvm.MiddleName
-EditPOCvm.LastName
-EditPOCvm.PhoneNumber
-EditPOCvm.LanguageId
-EditPOCvm.Password
-EditPOCvm.ConfirmPassword
-EditPOCvm.PersonProfileId
-EditPOCvm.CitizenshipId
-```
-
-### `paths_idor.txt`
-
-```text
-/nin/success
-/servlet/servlet.FileDownload
-/daumw2017/ThankYou.aspx
-/graphql
-/api/v1/users.info
-/appointment/lookup.aspx
-/security/revive-sa-2026-004
-/s/
-/s/sfsites/aura
-/v1/config
-/data/definitions/639.html
-/dashboard
-/api/
-/users/invite-user.php
-/users/list-users.php
-/Portal██████████/servlet/servlet.FileDownload
-/2022/11/12/Hacking-Salesforce-backed-WebApps/
-/api/v1/users/current
-/userProfile
-/Download.aspx
-/vuln/detail/CVE-2026-3306
-/v3/personal_area/stats/equity
-/documentation/api/v1
-/api/applications
-/academy/library/courses
-/cdn-cgi/beacon/expect-ct
-/now
-/public/notebooks/api/contents/
-/trints
-/mumbai/order-food-online
-/graphql/labels
-/sharedfiles/filedetails/
-/downloaddoc.aspx
-/orders/new
-/login.php
-/en/en
-/tools/widget/montage
-/api-analytics/
-/myposts
-/spotlight/█████
-/reference.json
-/summaries/
-/assets/avatars/default-
-/cverecord
-/api/v1/messages/4423007/
-/bugs.json
-/nyangawa-h1
-/v1/account/destroy
-/Data/Upload.ashx
-/membership/
-/my/money.aspx/membership/
-/Trade/tradehandler.ashx
-/support/
-/API/Comments.ashx
-/cashier/transaction-history
-/checkout/transaction_platform
-/access_account/invoice/
-/store/
-/api/shopify/
-/api/shopify/███
-/api/shopify/██████
-/edit-user-profile
-/signup
-/api/statuses/PASTE_ID_HERE/hearts
-/r/gitlab/gitlab-ce/
-/produkt/acronis-cyber-protect-home-office/
-/Portal█████/s/
-/Portal██████/s/
-/Portal███████/s/
-/Portal█████████/s/
-/Portal█████/s/sfsites/aura
-/Portal██████/s/████████-creation
-/Portal
-/Portal█████████/s/sfsites/aura
-/Portal████████/s/sfsites/aura
-/web-client/api/orders/stats/query
-/orders
-/app/getUserNotes
-/sync
-/g3sg1-black-sand-fn
-/@hasn0xxxx
-/photo/d42f6787-f856-4c55-9ff3-cd8549f9efe0
-/api/v1/users/@hasn0xxxx
-/ee/user/project/ml/experiment_tracking/
-/api/graphql
-/voyager/api/voyagerPublishingDashSeriesSubscribers
-/attachments/938540538
-/vuln/detail/CVE-2026-3307
-/api/v1/bookings/███
-/api/v2/bids/████████
-/api/v1/trips/create
-/PKX██████
-/PKX███████
-/single-media-viewer
-/details/featured/
-/voyager/api/voyagerIdentityDashProfileTreasuryMedia/urn:li:fsd_profileTreasuryMedia:(
-/login1
-/app/updateUser
-/redacted
-/80b9bc53-a236-445d-a7e4-553828b7d533/embedded_submissions/draft_sync
-/rewards/signup
-/api/v1/method.call/sendMessage
-/api/v1/method.call/deleteMessage
-/accept
-/acknowledged_the_offer
-/hacker_reviews
-/v1/bidding
-/admin/internal/web/graphql/core
-/php/client_manage_handler
-/clients/manage_photos.php
-/app/items
-/exif.cgi
-/offers/
-/lite/flag-content
-/api/v1/
-/api/v1/users.list
-/reset-password/%5Breset_hash%5D
-/kis_cup_
-/check-desktop-phishing-page/
-/JOINOnline/UpdateProfile/
-/vuln/detail/CVE-2023-46646
-/api/v1/ga/user_status/
-/api/v1/s/user/me
-/user/tams/api/usermgmnt/pendingUserDetails/2634
-/user/tams/api/usermgmnt/getAttachmentBytes/600
-/user/tams/api/usermgmnt/pendingUserDetails/(REGISTRATION_ID
-/user/tams/api/usermgmnt/getAttachmentBytes/(ATTACHMENT_ID
-/v3/personal_area/stats/trading_volume
-/v3/personal_area/stats/orders_number
-/pa/performance/summary
-/v3/personal_area/stats/net_profit
-/www/admin/banner-delete.php
-/bc/api/ams/recovery/plan_operations/run
-/sfsites/c/sfc/servlet.shepherd/document/download/069830000028KJdAAM
-/aura
-/s/registration
-/userprofile.aspx
-/AJAXUtilities.aspx
-/wpcom/v2/happytools/external/v1/schedule/afk-requests/12346
-/afk
-/cms/reader/account
-/forgot
-/login
-/users/maruthi-adithya/starred.json
-/maruthi-adithya
-/help/user/profile/index.md
-/academy/courses/userEnroll
-/extensions/checkout_comments/comments
-/products/dress-watch
-/extensions/checkout_comments/curate_comment
-```
-
-## Source skills merged into this topic
-
-- `h1skills` — `hackerone-idor`
-- `hunting` — `idor`
-- `research` — `hunt-idor`
-- `cbh` — `hunt-idor`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 2 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/evidence.md` — corpus technique frequencies, case studies, approach patterns
+- `references/payloads.md` — curated payload bank + upstream payload references
+- `references/wordlists/` — 2 mined paths/params/payload lists
 - `bbhunt-methodology` — orchestrator, state machine and class router

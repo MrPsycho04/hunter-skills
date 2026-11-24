@@ -4,14 +4,13 @@ description: "Collect bundles, chunks and source maps from a live target. Unifie
 agent_created: true
 ---
 
-# JavaScript bundle collection — unified skill
+# JavaScript bundle collection — unified methodology
 
-> **Complete merged skill.** Everything from 3 upstream skills across h1skills, hunting, research is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 3 upstream skills across h1skills, hunting, research. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Quick wins
 
 Ordered by yield — do these first.
@@ -33,19 +32,13 @@ Ordered by yield — do these first.
 - **Public env prefixes:** `NEXT_PUBLIC_`, `VITE_`, `REACT_APP_` are inlined at build time; collect their literal values — API bases, staging hosts, feature-flag endpoints.
 - **Third-party vs first-party triage:** de-prioritize `react-dom`, `lodash`, analytics/ads SDKs; prioritize the application's own hashed bundles (`main.<hash>.js`, `app.<hash>.js`, `[n].<hash>.js`). Still record third-party script hosts for supply-chain review (OWASP Third Party JS cheat sheet, SRI, JS Drift).
 - **Host-level spread:** note any script host outside the main domain (`cdn.`, `static.`, `assets.`), and cross-check those hosts against the scope list before testing.
-- **Tool inventory:** `waybackurls`, `gau`, `katana -jc` (extracts paths from JS it finds), `ffuf`/`feroxbuster --burp` for API-path discovery, `Uproot` (Burp plugin that saves every encountered JS to disk), `jsluice`, `LinkFinder`/`xnLinkFinder`, `JS Miner`, `JSpector`, `jsleak`.
-
-### Signals and surfaces
-
+- **Tool inventory:** `waybackurls`, `gau`, `katana -jc` (extracts paths from JS it finds), `ffuf`/`feroxbuster --burp` for API-path discovery, `Uproot` (Burp plugin that saves every encountered JS to disk), `jsluice`, `LinkFinder`/`xnLinkFinder`, `JS Miner`, `JSpector`, `jsleak`.### Signals and surfaces
 ### Signal
 
 - JS-adjacent reports: **1,330** mentioning javascript · **208** paid · **$392,415** disclosed bounties
 - Browser-side sinks: **68** `postMessage` · **56** DOM XSS · **30** "DOM Based XSS"
 - Secret exposure: **141** "api key" · **40** "hardcoded" · **34** "secret key"
-- Top programs in the JS slice: Node.js third-party modules (137), U.S. DoD (132), Shopify (63), HackerOne (53), GitLab (48), X/xAI (36), Automattic (35), Uber (33), Rocket.Chat (29)
-
-### Techniques, payloads and bypasses
-
+- Top programs in the JS slice: Node.js third-party modules (137), U.S. DoD (132), Shopify (63), HackerOne (53), GitLab (48), X/xAI (36), Automattic (35), Uber (33), Rocket.Chat (29)### Techniques and bypasses
 ### Techniques from real reports
 
 | Report | Program | Bounty | Lesson for collection |
@@ -68,10 +61,7 @@ Ordered by yield — do these first.
 - **Beautify pipeline:** `curl -s <url> -o main.js && npx --yes js-beautify main.js > main.pretty.js`; then `grep -oE '"/(api|admin|internal|v[0-9]+)[^"]*"' main.pretty.js | sort -u`.
 - **Hidden-path fuzzing from a seed:** with `PUT /api/user/update` discovered, Intruder/ffuf the `{update}` position with `delete`, `add`, `list`, etc.; use SecLists `Discovery/Web-Content/api/api-endpoints-res.txt` and target-specific terms from initial recon.
 - **Hidden-parameter discovery:** mark `id` in `/api/author?id=1` and fuzz parameter names while keeping `=1` — a 500/error often reveals a real parameter; Param Miner or Caido equivalents automate this.
-- **Preserve provenance:** maintain `js-urls.txt`, `js-files/manifest.tsv` (filename → source URL), `map-urls.txt`, and a note of off-domain script hosts so analysis can cite exact artifacts.
-
-### Validation and proof
-
+- **Preserve provenance:** maintain `js-urls.txt`, `js-files/manifest.tsv` (filename → source URL), `map-urls.txt`, and a note of off-domain script hosts so analysis can cite exact artifacts.### Validation and proof
 ### C. Validation / proof bar — how to confirm and avoid false positives
 
 - A collected script is not a finding. Scope-check the host; discard same-named third-party assets (`recon-scope-triage`).
@@ -93,10 +83,7 @@ Ordered by yield — do these first.
 
 - **Output manifest discipline:** finish with `js-urls.txt`, `js-files/manifest.tsv`, `map-urls.txt`, and a one-line note per off-domain script host — `js-analyze` consumes these directly.
 - **OSINT corroboration:** cross-check discovered API/internal hostnames against certificate-transparency records and DNS before spending analysis time; this also confirms the asset belongs to the target.
-- **Don't stop at one page:** single-page apps load new chunks on route change, role change, and feature-flag activation — repeat the collection pass after each state transition.
-
-### Sources and related reading
-
+- **Don't stop at one page:** single-page apps load new chunks on route change, role change, and feature-flag activation — repeat the collection pass after each state transition.### Sources and related reading
 ### 4. Find source maps
 
 ```sh
@@ -127,10 +114,7 @@ A `.map` is a JSON object: `sources`, `sourcesContent`, `names`, `mappings`. `so
 - Look for `//# sourceMappingURL=` and try `<file>.js.map`. Fetch maps through `scoped_fetch.py` too.
 - If the map has `sourcesContent`, extract it to `sourcemaps/` for original files and folder structure.
 - If `sourcesContent` is missing, the map's `sources` paths still reveal the original tree; note it.
-- Record per-file status: `found`, `missing`, `blocked` (the `.js` serves but the `.map` returns 403/404), `inline-only` (data URI), `empty`. "Blocked" is worth noting in the summary.
-
-### Additional notes
-
+- Record per-file status: `found`, `missing`, `blocked` (the `.js` serves but the `.map` returns 403/404), `inline-only` (data URI), `empty`. "Blocked" is worth noting in the summary.### Additional notes
 ### Where JS hides
 
 - `<script src>` in initial HTML, and lazy-loaded chunks referenced inside the downloaded bundles
@@ -432,13 +416,8 @@ Then hand the folder to **`js-sinks`** (sink and gadget mapping) and **`js-analy
 - Every target request goes through `scripts/scoped_fetch.py`. It refuses out-of-scope URLs, re-checks scope on each redirect, and enforces `rate.txt`.
 - No writes to `raw/` other than through the fetcher; derived files go elsewhere.
 - If a stage yields no new URLs or files, skip the rest of that stage instead of re-crawling. Record blocked stages and move on; don't retry in a loop.
-- No bot-protection workarounds unless Stage 0 recorded explicit permission.
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/techniques.md
+- No bot-protection workarounds unless Stage 0 recorded explicit permission.### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # JavaScript Collection — HackerOne field guide — Technique reference
 
@@ -490,18 +469,8 @@ Ordered by yield — do these first.
 
 | [#1444682](https://hackerone.com/reports/1444682) | Shopify | $9,400 | XSS on a `*.shopifycloud.com` asset host — never stop at the main domain. |
 
-| [#3085742](https://hackerone.com/reports/3085742) | Bykea | — (▲128) | "Hardcoded zombie endpoint" found in-app — old JS can expose forgotten APIs. |
+| [#3085742](https://hackerone.com/reports/3085742) | Bykea | — (▲128) | "Hardcoded zombie endpoint" found in-app — old JS can expose forgotten APIs. |## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `h1skills` — `hackerone-js-collect`
-- `hunting` — `js-collect`
-- `research` — `js-collect`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 1 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

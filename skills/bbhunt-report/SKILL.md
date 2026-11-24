@@ -88,20 +88,17 @@ CVSS 3.1 is a communication aid, not a verdict. Explain the environmental contex
 
 All 4 contributing upstream skills from cbh, hunting are merged and deduplicated in `references/unified-method.md`; full originals are preserved as `references/upstream-*.md`.
 
-## Complete merged upstream methodology
+## Unified upstream methodology
 
-Full deduplicated methodology merged from all contributing upstream skills. The authored orchestration instructions above remain authoritative where they conflict.
+Deduplicated methodology merged from the contributing upstream skills. The authored orchestration instructions above remain authoritative where they conflict.
 
-
-Collected from every contributing repository skill. Deduplicated by content hash; full originals are preserved in `references/upstream-*.md`.
-
-## Techniques, payloads and bypasses
+### Techniques and bypasses
 
 ### Root Cause
 
 [Exact code snippet showing the vulnerable code with comments]
 
-## Escalation and related chains
+### Escalation and related chains
 
 ### Related Skills & Chains
 
@@ -112,7 +109,7 @@ Collected from every contributing repository skill. Deduplicated by content hash
 
 ---
 
-## Additional notes
+### Additional notes
 
 ### THE MOST IMPORTANT RULE
 
@@ -656,3 +653,4 @@ Two valid paths:
 
 Pick one. Never split the difference with "could potentially" or "may allow" — those phrases are the triager's signal that the report is theoretical, and theoretical reports get N/A.
 - **`bb-methodology`** — When Phase 5's report-writing step starts. Workflow primitive: Phase 5 calls `/report` which loads this skill for the platform-specific template (H1 / Bugcrowd / Intigriti / Immunefi).
+

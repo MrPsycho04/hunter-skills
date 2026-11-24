@@ -4,14 +4,13 @@ description: "Hunt workflow injection, self-hosted runner poisoning, OIDC trust 
 agent_created: true
 ---
 
-# CI/CD pipeline attack hunting — unified skill
+# CI/CD pipeline attack hunting — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### A. Discovery checklist — concrete fingerprints, endpoints, headers, CVEs, misconfigs to look for
 
 - **GitHub Actions cache poisoning is now a first-class attack class (2024-2026), not a curiosity.** Adnan Khan's original research, Cacheract PoC, CodeQL queries `actions/cache-poisoning/poisonable-step` and `actions/cache-poisoning/direct-cache` (severity 7.5), and CVE-2024-50338-adjacent toolkit issues. The structural fact: branches are the cache security boundary; a feature branch can read parent/default-branch caches; a low-trust trigger (`pull_request_target`, `issue_comment`, `workflow_run`) that can *write* the default-branch cache can detonate code in a later privileged/release job. GitHub hardened this in Nov 2024 by blocking cache writes after job conclusion — the current technique performs the whole poisoning **in-build**.
@@ -22,10 +21,7 @@ agent_created: true
   - May 2026 **Mini Shai-Hulud**: first coordinated npm+PyPI wave (170+ npm, 2 PyPI, 404 malicious versions); entry via **TanStack PR workflow misconfiguration → CI cache poisoning → npm OIDC token exchange** (no stolen npm token needed; passed SLSA attestation validation). Kill-switch daemon wipes home dir if the token is revoked.
   - Aug 2026 **CHAINDROP/Mini Shai-Hulud variant**: 400+ packages including `keyv` (600M monthly downloads); `preinstall: node setup.mjs`, files `math_init.js`/`Math_Symbol.js`, commit-message bait `IfYouBlockThisAPIKeyItWillCrashTheLiveProductionServersOfAllThirdPartyClients`; injects `codeql_analysis.yml` branch/workflow to dump `${{ toJSON(secrets) }}` into a downloadable artifact.
 - **Third-party action compromise:** `tj-actions/changed-files` **CVE-2025-30066** (Mar 14-15 2025) — malicious commit retroactively tagged across all versions, dumped runner-worker memory into public workflow logs (double-encoded base64), 23,000+ repos; initial access was a compromised `@tj-actions-bot` PAT, itself traced to a `pull_request_target` leak in `spotbugs/sonar-findbugs`.
-- **2026 campaign patterns:** s1ngularity/Nx (pwn request), `hackerbot-claw` (AI-powered workflow untrusted-input RCE in >50% of targeted repos), `pull_request_nightmare` (Orca: misconfigured `pull_request_target` in Google/Microsoft/Fortune-500 repos), self-hosted runner backdoors (Sysdig). Tooling to triage statically: `zizmor` (audits include `cache-poisoning`, `known-vulnerable-actions`, `excessive-permissions`, `unpinned-tools`), `actionlint`, GitHub CodeQL `actions-security-extended.qls`, Gato-X / Depi for scaled recon.
-
-### Signals and surfaces
-
+- **2026 campaign patterns:** s1ngularity/Nx (pwn request), `hackerbot-claw` (AI-powered workflow untrusted-input RCE in >50% of targeted repos), `pull_request_nightmare` (Orca: misconfigured `pull_request_target` in Google/Microsoft/Fortune-500 repos), self-hosted runner backdoors (Sysdig). Tooling to triage statically: `zizmor` (audits include `cache-poisoning`, `known-vulnerable-actions`, `excessive-permissions`, `unpinned-tools`), `actionlint`, GitHub CodeQL `actions-security-extended.qls`, Gato-X / Depi for scaled recon.### Signals and surfaces
 ### Crown Jewel Targets
 
 Jenkins `/script` console reachable = immediate RCE. A GitHub Actions `pull_request_target` (or `workflow_run`) workflow that checks out the **PR head ref** and references untrusted `${{ github.event.* }}` in a shell `run:` = "Pwnrequest" → secret exfil from a fork PR with zero approval.
@@ -39,10 +35,7 @@ Jenkins `/script` console reachable = immediate RCE. A GitHub Actions `pull_requ
 - **Terraform state leakage** — `*.tfstate` in public S3/GCS/Blob → plaintext infra creds, DB passwords, private keys
 - **Runner token / artifact / log leakage** — register attacker runner, or harvest secrets printed before `::add-mask::`
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### B. Techniques & bypasses — specific actionable techniques/payload shapes
 
 ```bash
@@ -71,10 +64,7 @@ grep -rnE "setup_bun\.js|bun_environment\.js|math_init\.js|Math_Symbol\.js|setup
 grep -rn "bypass_2fa" ~/.npmrc .npmrc 2>/dev/null    # CHAINDROP propagation gate
 ```
 
-Kill-chain shape to document: **PR checkout in privileged workflow → lifecycle-script execution (preinstall/postinstall) or `${{ }}` injection → steal cache URL/token and GITHUB_TOKEN → poison default-branch cache → privileged release job restores it → npm OIDC publish → self-propagating package updates**.
-
-### Validation and proof
-
+Kill-chain shape to document: **PR checkout in privileged workflow → lifecycle-script execution (preinstall/postinstall) or `${{ }}` injection → steal cache URL/token and GITHUB_TOKEN → poison default-branch cache → privileged release job restores it → npm OIDC publish → self-propagating package updates**.### Validation and proof
 ### Validation Discipline (per finding, before you report)
 
 - **Jenkins console:** the `scriptText` POST returns your `id` output (`uid=…(jenkins)`). A returned login/SSO/Crowd page = **not** anon access. Screenshot the request+response.
@@ -92,10 +82,7 @@ Kill-chain shape to document: **PR checkout in privileged workflow → lifecycle
 - **Worm claims:** a malicious package name in a vulnerability feed is not proof of execution. Require `preinstall`/`postinstall` in `package.json`, payload file hashes, and a callback or filesystem artifact. Elastic/JFrog publish SHA-256s and EQL detections — reuse them. Presence of `bun` processing `Math_Symbol.js`/`math_init.js` is a high-fidelity endpoint signal.
 - **Pwn request FP discipline:** `pull_request_target` without untrusted data reaching an execution sink remains non-exploitable (existing FP list). Confirm `actions/checkout` ref + a reachable sink first, then use `printenv`/`/proc/self/environ` + Collaborator — never `cat $GITHUB_TOKEN`.
 - **OIDC abuse:** still require `aws sts get-caller-identity` (or equivalent cloud STS) from a workflow you control returning the privileged role ARN. A permissive-looking `sub` wildcard alone is not impact.
-- **Severity:** cache poisoning → release/publish job, self-hosted runner takeover, OIDC role assumption, compromised publish action = Critical. Malicious package present but never executed in your environment = High at most; scope it to actual installs.
-
-### Escalation and related chains
-
+- **Severity:** cache poisoning → release/publish job, self-hosted runner takeover, OIDC role assumption, compromised publish action = Critical. Malicious package present but never executed in your environment = High at most; scope it to actual installs.### Escalation and related chains
 ### Chain Table
 
 | CI/CD finding | Chain to | Impact |
@@ -109,10 +96,7 @@ Kill-chain shape to document: **PR checkout in privileged workflow → lifecycle
 | GitLab runner registration | Register runner → capture pipeline secrets | High/Critical |
 | Image/log/artifact secret | Direct credential use | High |
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://unit42.paloaltonetworks.com/github-actions-supply-chain-attack/
@@ -133,10 +117,7 @@ Kill-chain shape to document: **PR checkout in privileged workflow → lifecycle
 16. https://research.jfrog.com/post/shai-hulud-is-back-august/
 17. https://github.blog/security/supply-chain-security/strengthening-supply-chain-security-preparing-for-the-next-malware-campaign
 18. https://www.jenkins.io/security/advisory/2024-01-24
-19. https://nvd.nist.gov/vuln/detail/cve-2024-23897
-
-### Additional notes
-
+19. https://nvd.nist.gov/vuln/detail/cve-2024-23897### Additional notes
 ### "It-Didn't-Happen-Without-Proof" Gate (Read First)
 
 CI/CD findings are over-reported because dashboards *look* exploitable. Before claiming anything:
@@ -368,16 +349,8 @@ trufflehog docker --image ORG/IMAGE:latest --only-verified
 - A masked GitLab variable that is `protected` and only exposed to protected branches the attacker can't push to.
 - Trufflehog "unverified" hits that are example/expired keys.
 
-**Severity:** Jenkins console / CVE-2024-23897 / Actions secret exfil / runner poisoning / OIDC role assumption / Terraform live creds = **Critical**. Image/log/artifact secret = **High/Critical** by credential scope.
+**Severity:** Jenkins console / CVE-2024-23897 / Actions secret exfil / runner poisoning / OIDC role assumption / Terraform live creds = **Critical**. Image/log/artifact secret = **High/Critical** by credential scope.## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `cicd`
-- `cbh` — `hunt-cicd`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

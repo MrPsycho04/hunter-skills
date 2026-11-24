@@ -4,14 +4,13 @@ description: "Unified methodology for nosqli.. Unified from 2 upstream skills (c
 agent_created: true
 ---
 
-# Nosqli — unified skill
+# Nosqli — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### A. Discovery checklist — concrete places, params, headers, file types to look
 
 - Two distinct classes to test separately: **syntax injection** (break a concatenated query / `$where` string) and **operator injection** (pass a JSON object where a scalar was expected). They need different payloads and different proof.
@@ -23,10 +22,7 @@ agent_created: true
 - GraphQL variables declared `String!` can still carry objects if the resolver forwards them without runtime type checks — test `{"username":{"$ne":null}}` regardless of the schema annotation.
 - Second-order flows: password-reset tokens, profile fields, and OTP codes that round-trip through storage before being used in a query (FantaSanremo 2026: reset `code` field with `{"$gt":""}` → mass ATO).
 - Custom headers used for identity/filtering can be operator-injection sinks: `X-User: {"$ne": null}`.
-- 2025-2026 CVE surface: Mongoose `populate()` CVE-2024-53900 and its bypass CVE-2025-23061 (`{"$or":[{"$where":"<js>"}]}`) → RCE in the Node.js process via `sift`, not the database engine.
-
-### Signals and surfaces
-
+- 2025-2026 CVE surface: Mongoose `populate()` CVE-2024-53900 and its bypass CVE-2025-23061 (`{"$or":[{"$where":"<js>"}]}`) → RCE in the Node.js process via `sift`, not the database engine.### Signals and surfaces
 ### Crown Jewel Targets
 
 NoSQL injection is most valuable when it bypasses authentication (Critical) or leaks the entire user collection (High).
@@ -50,10 +46,7 @@ NoSQL injection is most valuable when it bypasses authentication (Critical) or l
 | Redis port 6379 open (via SSRF) | CONFIG SET / SLAVEOF |
 | Elasticsearch :9200 open | Script injection |
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### Phase 1 — Auth Bypass (MongoDB)
 
 ```bash
@@ -100,10 +93,7 @@ curl -s -X POST https://$TARGET/api/login \
 | Sanitizes `$` | Unicode: `$gt` |
 | Blocks operator keys | Nested objects deeper in structure |
 
----
-
-### Validation and proof
-
+---### Validation and proof
 ### Validation
 
 ✅ Auth bypass: logged in without valid credentials, received valid session token
@@ -158,10 +148,7 @@ curl -s -X POST https://$TARGET/api/login \
 **Severity:**
 - Auth bypass as admin: Critical
 - User collection dump: High
-- Blind injection (no useful exfil): Medium
-
-### Escalation and related chains
-
+- Blind injection (no useful exfil): Medium### Escalation and related chains
 ### Chain Table
 
 | NoSQLi finding | Chain to | Impact |
@@ -171,17 +158,11 @@ curl -s -X POST https://$TARGET/api/login \
 | $where enabled | Arbitrary JS in DB process | Data exfil or DoS |
 | Redis via SSRF | CONFIG SET / SLAVEOF | Webshell or data exfil |
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://portswigger.net/web-security/nosql-injection
-2. https://www.invicti.com/blog/web-security/nosql-injection-cheat-sheet
-
-### Additional notes
-
+2. https://www.invicti.com/blog/web-security/nosql-injection-cheat-sheet### Additional notes
 ### URL & Param Patterns
 
 ```
@@ -262,13 +243,8 @@ curl "https://$TARGET/fetch?url=gopher://127.0.0.1:6379/_*1%0d%0a%248%0d%0aflush
 # Use SLAVEOF for OOB data exfil
 ```
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # HUNT-NOSQLI — NoSQL Injection — Technique reference
 
@@ -292,17 +268,8 @@ Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you 
 
 
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `nosqli`
-- `cbh` — `hunt-nosqli`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 1 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

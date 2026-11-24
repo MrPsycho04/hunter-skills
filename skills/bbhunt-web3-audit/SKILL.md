@@ -4,14 +4,13 @@ description: "Audit DeFi accounting, access control, oracles, reentrancy, flash 
 agent_created: true
 ---
 
-# Smart-contract security audit — unified skill
+# Smart-contract security audit — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Web-Research Methodology Additions (2026)
 
 > Fresh-source pass: Immunefi's 6-Year DeFi Loss Scoreboard (Apr 2026), the DefiLlama hack database (2025–2026 incidents), OWASP Smart Contract Top 10 SC08:2026, and EIP-7702/EIP-1153 developments. This layer EXTENDS the 10 classes above with where the money actually moved in 2025-2026.
@@ -31,10 +30,7 @@ agent_created: true
    - *Arithmetic/signature*: DeFiChain — overflow deducted 1 satoshi but credited full amounts (184B DFI minted); Atomic Green — signature replay; Gnosis Pay — ERC-1271 check that didn't validate contract-call success.
 5. **Check new protocol primitives.** OWASP **SC08:2026 Reentrancy** explicitly includes read-only reentrancy (view functions/oracles reading state mid-callback). **EIP-7702** (Pectra, 2025) lets an EOA delegate to contract code — new signature-replay/delegation primitives. **EIP-1153 transient storage** (`tload`/`tstore`) creates desync classes when reads are cached across external calls. **ERC-4337** paymaster sponsorship abuse and bundler griefing.
 6. **Audit decimals and token-standard assumptions at every boundary.** Ribbon (Dec 2025, $2.7M) came from an oracle upgrade creating an 8-vs-18 decimal mismatch with legacy assets plus a publicly callable price-setting function; LABUBU/OLPC (Jun 2026, $1.1M) came from a malicious `decimalsValue` parameter (7326680472586200649) that desynchronized cached reserves. Grep every `decimals()`, `10**decimals`, `convertToAssets`, and stored `decimalsValue` for cross-asset and cross-version mismatches.
-7. **Read the audit report's scope-exclusion section before diving.** The ZKsync lesson at the top of this file is about ROI, not impossibility: if the auditors explicitly excluded oracles, governance, off-chain components, frontend, or the admin path, those are the highest-yield places to look. An unexamined assumption that a feed is trustworthy is worth more than another reentrancy grep.
-
-### Signals and surfaces
-
+7. **Read the audit report's scope-exclusion section before diving.** The ZKsync lesson at the top of this file is about ROI, not impossibility: if the auditors explicitly excluded oracles, governance, off-chain components, frontend, or the admin path, those are the highest-yield places to look. An unexamined assumption that a feed is trustworthy is worth more than another reentrancy grep.### Signals and surfaces
 ### PRE-DIVE KILL SIGNALS (check BEFORE any code review)
 
 > ZKsync lesson: $322M TVL + OZ audit + 750K LOC + 5 sessions = 0 findings. Large well-audited bridges are extremely hard.
@@ -61,10 +57,7 @@ agent_created: true
 
 TVL under $500K isn't worth the audit time unless the bounty floor is high. Audit firm already covered it = low ROI unless you find what they missed — look at the audit-report scope-exclusion section for what they EXPLICITLY didn't audit (oracles, governance, off-chain components, frontend, the admin path).
 
-Multisig signers > 5 + timelock > 48h = low rug-pull risk; if your finding requires team-malicious assumptions, it's low-impact and likely out of scope per Immunefi's "centralization risk" exclusion. Read the program brief — most Immunefi programs explicitly downgrade or reject findings that assume admin malice.
-
-### Techniques, payloads and bypasses
-
+Multisig signers > 5 + timelock > 48h = low rug-pull risk; if your finding requires team-malicious assumptions, it's low-impact and likely out of scope per Immunefi's "centralization risk" exclusion. Read the program brief — most Immunefi programs explicitly downgrade or reject findings that assume admin malice.### Techniques and bypasses
 ### Root Cause Patterns
 
 **Variant 1: Phantom Yield** (Yeet protocol — 35 duplicate reports)
@@ -152,10 +145,7 @@ function withdraw(uint256 amount) external {
 7. **Invariant/fuzz tool stack (2026).** Foundry remains primary: `forge fuzz`, invariant tests, `forge coverage`, `forge inspect` for storage-layout audits; pair with Slither (static), Echidna (property fuzz), Mythril (symbolic) and Tenderly for mainnet-fork simulation. For Solana: Anchor, sealevel-attacks corpus, sec3. For Move: move-prover, `aptos move test`. For cross-chain: Hyperlane/LayerZero audit repos — simulate both endpoints.
 8. **Fork-and-replay.** Pin the pre-exploit block with `vm.createSelectFork`, load the target, fund accounts with `deal`, replay the exact exploit transaction via `vm.prank` from the attacker EOA, and assert the drained balance.
 9. **Cross-check your hypothesis against public post-mortems before writing the PoC.** The 2025-2026 incidents above are unusually well documented (Tectonic, Balancer V2, Yearn Ether, GMX V1, Arcadia, Verus). Compare your candidate root cause against those writeups: if it matches a known class, check whether the protocol already has the standard mitigation (TWAP, virtual shares, `nonReentrant`, lineage/amount reconciliation). If the mitigation is present, the real bug is usually in the *failover path* or a sibling function — which is exactly where the "read ALL sibling functions" rule at the top of this file earns its keep.
-10. **Trace every external call and its trust assumption.** Arcadia V2 (unvalidated router address), Hyperdrive (arbitrary router call), and dTRINITY (missing authorization in `swapLiquidity()` that used victims' prior approvals) all reduced to "an address parameter the caller controls reached an external call while the contract held value or approvals." Grep for `call`, `delegatecall`, `swap`, and router/admin address setters, then ask who can set that address and what the contract holds at that moment.
-
-### Validation and proof
-
+10. **Trace every external call and its trust assumption.** Arcadia V2 (unvalidated router address), Hyperdrive (arbitrary router call), and dTRINITY (missing authorization in `swapLiquidity()` that used victims' prior approvals) all reduced to "an address parameter the caller controls reached an external call while the contract held value or approvals." Grep for `call`, `delegatecall`, `swap`, and router/admin address setters, then ask who can set that address and what the contract holds at that moment.### Validation and proof
 ### C. Validation / proof bar — how to confirm and avoid false positives (confabulation is NOT a finding for AI classes)
 
 1. **A single `forge test` invocation must prove impact** — explicit `assertEq` on drained balance / minted token / corrupted state. No manual "first deploy this, then call that" setup; those get downgraded. Immunefi auto-rejects submissions without a PoC.
@@ -164,10 +154,7 @@ function withdraw(uint256 amount) external {
 4. **Quantify economics.** Show net profit vs. capital and gas cost, and that the state change is deterministic from a clean fork state. Theoretical "could be exploited if X" without a runnable PoC is rejected.
 5. **Confabulation analogue: don't claim an exploit from a revert-only observation or a scanner finding.** Reentrancy/donation patterns are only findings when the PoC actually drains value or corrupts state. (True confabulation is an AI-class concern; here the equivalent failure is an unproven theoretical finding.)
 6. **Scope discipline.** Audit-report scope exclusions are where missed bugs live — check whether oracles, governance, off-chain components, frontend, or admin paths were explicitly NOT audited. Multisig >5 signers + timelock >48h = low rug risk, but that is not the same as no logic bug.
-7. **Keep the source taxonomy honest.** Classify your finding as logic / oracle / access control / accounting / cross-chain — the Immunefi 2026 data says 89% of real losses are logic, so label accordingly rather than forcing it into a flash-loan template.
-
-### Escalation and related chains
-
+7. **Keep the source taxonomy honest.** Classify your finding as logic / oracle / access control / accounting / cross-chain — the Immunefi 2026 data says 89% of real losses are logic, so label accordingly rather than forcing it into a flash-loan template.### Escalation and related chains
 ### Missing Chain ID
 
 ```solidity
@@ -191,10 +178,7 @@ bytes32 hash = keccak256(abi.encodePacked(params));
 - **Oracle manipulation via a web frontend or leaked API credential** → pair with `offensive-osint` for the off-chain leg; the on-chain PoC alone understates the chain.
 - **Compromised deployer/admin key, multisig phishing, or social engineering** → `cloud-iam-deep` / `account-takeover` for the key-compromise path; note that Immunefi usually excludes centralization assumptions.
 - **Rug-pull-shaped token rather than a protocol logic bug** → `meme-coin-audit`; this skill's "TVL < $500K skip" signal does not apply there.
-- **Bridge/cross-chain message forgery** → keep here but simulate both endpoints; a single-chain PoC will be rejected as incomplete.
-
-### Tools and wordlists
-
+- **Bridge/cross-chain message forgery** → keep here but simulate both endpoints; a single-chain PoC will be rejected as incomplete.### Tools
 ### Grep Patterns
 
 ```bash
@@ -324,10 +308,7 @@ Foundry remains the test framework. `forge test --gas-report --debug` for invari
 
 For Solana: anchor framework, sealevel-attacks corpus (curated PoCs by anchor maintainers), soteria-sec / sec3 scanner. For Move (Aptos, Sui): move-prover, aptos-cli `aptos move test`.
 
-For cross-chain: hyperlane and LayerZero each have audit-tooling repos; bridge bugs require simulating both endpoints, not just one.
-
-### Sources and related reading
-
+For cross-chain: hyperlane and LayerZero each have audit-tooling repos; bridge bugs require simulating both endpoints, not just one.### Sources and related reading
 ### Bug D: Single-Source Oracle
 
 ```solidity
@@ -344,10 +325,7 @@ uint price = getUniswapSpotPrice(token);  // flash loan manipulatable
 3. https://scs.owasp.org/sctop10/SC08-ReentrancyAttacks/ (OWASP Smart Contract Top 10 SC08:2026 incl. read-only reentrancy)
 4. https://defihacklabs.substack.com/p/in-depth-discussion-on-eip-7702-and (EIP-7702 delegation and new attack primitives)
 5. https://shattered.io/smart-contract-audit-tutorial-2026/ (2026 audit workflow, Foundry PoC patterns, vulnerability triage table)
-6. https://securelayer7.net/us/services/ethereum-smart-contract-audit (2026 scope: ERC-4337 paymasters, EIP-7702, ERC-4626, MEV-aware ordering, L2)
-
-### Additional notes
-
+6. https://securelayer7.net/us/services/ethereum-smart-contract-audit (2026 scope: ERC-4337 paymasters, EIP-7702, ERC-4626, MEV-aware ordering, L2)### Additional notes
 ### THE ONE RULE
 
 > "Read ALL sibling functions. If `vote()` has a modifier, check `poke()`, `reset()`, `harvest()`. The missing modifier on the sibling IS the bug."
@@ -723,16 +701,8 @@ Severity claims must use Immunefi's severity matrix exactly; don't invent severi
 
 Immunefi requires Foundry PoC. Submission without PoC is auto-rejected. Submission with a PoC that requires manual setup ("first deploy this, then call that") usually gets downgraded — the PoC should be a single `forge test` invocation that proves the impact, with explicit `assertEq` on the drained balance / minted token / corrupted state.
 
-Severity claims must use Immunefi's severity matrix exactly; don't invent severities. The matrix gates on direct economic loss percentage of TVL — a critical against a $500K protocol pays differently than a critical against a $500M one. Read the program's specific severity assignment before claiming Critical.
+Severity claims must use Immunefi's severity matrix exactly; don't invent severities. The matrix gates on direct economic loss percentage of TVL — a critical against a $500K protocol pays differently than a critical against a $500M one. Read the program's specific severity assignment before claiming Critical.## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `web3-audit`
-- `cbh` — `web3-audit`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

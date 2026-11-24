@@ -4,14 +4,13 @@ description: "Hunt AADSTS enumeration, Smart Lockout behavior, CA bypass, ROPC a
 agent_created: true
 ---
 
-# Microsoft 365 and Entra ID attack chain — unified skill
+# Microsoft 365 and Entra ID attack chain — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### A. Discovery checklist — concrete fingerprints, endpoints, headers, CVEs, misconfigs to look for
 
 - **Device-code phishing is the dominant 2025-2026 M365 initial-access primitive (extends the AADSTS table).** Storm-2372 (Feb 2025), Volexity's Russian-actor campaigns, the AI-automated **EvilTokens** PhaaS wave (Microsoft, Apr 2026), **MadApe** kit (Group-IB, Oct 2026), and UTA0352's VS Code-flow variant (`insiders.vscode.dev` redirect). New log markers: `AuthenticationProtocol: deviceCode`, `originalTransferMethod: deviceCodeFlow`, `Call has "Cmsi:cmsi"` in `EntraIdSigninEvents`, and **AADSTS50199** (user pause to enter the code) followed by a success within ~5 minutes. On compromised accounts: device registrations named `DESKTOP-<6-8 hex chars>` (differs from Windows' 7 alphanumeric), PRT minting, Graph recon, hidden inbox rules.
@@ -19,10 +18,7 @@ agent_created: true
 - **FIDO/passkey downgrade (Proofpoint, Aug 2025):** Evilginx phishlet spoofs a **Safari-on-Windows** User-Agent, which Entra treats as FIDO-incompatible → FIDO disabled → fallback to Authenticator/SMS/OTP → AiTM captures the session. "Phishing-resistant MFA configured" is therefore not proof of resistance; check whether fallback methods are still allowed.
 - **Token-theft constants:** refresh tokens stay valid for weeks/months and **survive password resets**; `revokeSignInSessions` revokes refresh tokens but existing access tokens can remain valid up to ~1 hour — Microsoft now recommends temporarily disabling the account for immediate containment. **Linkable token identifiers** became GA in July 2025; unique token IDs are in non-interactive sign-in logs (the UAL only has interactive ones).
 - **Defender-side controls that define bypass paths:** Conditional Access "block device code flow" policy, Authentication Strength (phishing-resistant MFA), Token Protection (device-bound refresh tokens — bearer tokens rejected), "require compliant/registered device" (blocks AiTM reverse-proxy sessions because the proxy host is never Entra-joined), sign-in risk policy, `auth_time`/CAE re-auth contexts.
-- **Recon enrichment:** Microsoft's device-code campaigns begin with `GetCredentialType` account-validity checks 10-15 days before the phishing wave; redirect infrastructure is Vercel `*.vercel.app`, Cloudflare Workers `*.workers.dev`, AWS Lambda, Railway.com PaaS (162.220.232.0/24, 162.220.234.0/24), HZ Hosting (89.150.45.0/24, 185.81.113.0/24). Brand-impersonating subdomains: `graph-microsoft.com`, `portal-azure.com`, `office365-login.com`.
-
-### Techniques, payloads and bypasses
-
+- **Recon enrichment:** Microsoft's device-code campaigns begin with `GetCredentialType` account-validity checks 10-15 days before the phishing wave; redirect infrastructure is Vercel `*.vercel.app`, Cloudflare Workers `*.workers.dev`, AWS Lambda, Railway.com PaaS (162.220.232.0/24, 162.220.234.0/24), HZ Hosting (89.150.45.0/24, 185.81.113.0/24). Brand-impersonating subdomains: `graph-microsoft.com`, `portal-azure.com`, `office365-login.com`.### Techniques and bypasses
 ### B. Techniques & bypasses — specific actionable techniques/payload shapes
 
 ```bash
@@ -70,10 +66,7 @@ Fallback-abuse path (FIDO downgrade): run the AiTM phishlet with a Safari/Window
 
 **Key insight from this engagement:** in a tenant with universal CA policy (compliant device + MFA), all the above paths return AADSTS53003 with the same flow. The cred is valid, but unusable from external. **Phishing-completed cookie steal is the only realistic adversary path.** Document this clearly so the client understands the threat model.
 
----
-
-### Validation and proof
-
+---### Validation and proof
 ### ROPC password validation (the canonical test)
 
 **Single-attempt validator pattern (Python):**
@@ -186,10 +179,7 @@ Microsoft's `ConvergedConditionalAccess` page (PageID in source) is the definiti
 - **Prove MFA bypass, don't assume it:** only claim it when you hold a token whose issuance was bound to the victim's MFA completion (device-code poll, AiTM session cookie, stolen refresh token). "MFA enabled" does not equal "MFA enforced on this flow" — check CA exclusions, legacy protocols, and the FIDO fallback path explicitly.
 - **Session-fixation false positive guard:** because the device-code session ID is *shared* between victim and attacker, one session ID appearing in two geographies/device contexts is the signal; a single-IP sign-in is not. Track unique token IDs from **non-interactive** sign-in logs to attribute actions.
 - **Remediation verification:** revoke sessions + disable the account; password reset alone is insufficient (refresh tokens survive). A clean sign-in log after only a password reset = still compromised.
-- **When CA blocks ROPC (AADSTS53003), keep the existing bar:** password proven valid, stop. Do not reinterpret CA claims as a bypass.
-
-### Escalation and related chains
-
+- **When CA blocks ROPC (AADSTS53003), keep the existing bar:** password proven valid, stop. Do not reinterpret CA claims as a bypass.### Escalation and related chains
 ### Related Skills & Chains
 
 - **`mfa-and-passwords`** — AADSTS50053 (lockout) vs AADSTS50126 (bad password) vs AADSTS50076 (MFA required) is a free factor-presence oracle. Chain primitive: M365 AADSTS50053 lockout differential observed → user has MFA but no CA enforcement on legacy auth → `mfa-and-passwords` factor-probe (SMS fallback, voice fallback, OAuth device-code flow, ROPC against legacy endpoint) → Conditional Access bypass via legacy-protocol path.
@@ -206,10 +196,7 @@ Microsoft's `ConvergedConditionalAccess` page (PageID in source) is the definiti
 - **`hunt-ntlm-info`** — On-prem NTLM topology leak feeds the Entra spray. Chain primitive: SharePoint/Exchange/IIS anon NTLM Type-2 → AV_PAIR decode yields `corp.example.com` → `m365-entra-attack` resolves Entra tenant via openid-configuration → ROPC spray with realistic UPN format.
 - **`okta-attack`** — Hybrid orgs run Okta-as-IdP federated into Entra. Chain primitive: M365 `getuserrealm` returns `NameSpaceType: Federated` with AuthURL pointing to `*.okta.com` → pivot to `okta-attack` for tenant enumeration → Okta ATO → SAML assertion to Entra → full M365 access.
 - **`hunt-saml`** — Federated tenants accept signed SAML assertions; XSW or signature-stripping on the federated IdP bypasses Entra's controls entirely. Chain primitive: `getuserrealm` reveals federation → IdP fingerprinted (ADFS / Okta / PingFederate) → `hunt-saml` XSW1-XSW8 against IdP's `/adfs/ls/` or equivalent → forged assertion → Entra grants access.
-- **`redteam-report-template`** — M365 findings need clear tenant/user/CA-policy framing because the blast radius is "every Microsoft service the org uses." Chain primitive: validated finding from this skill → run through `triage-validation` 7-Question Gate → package via `redteam-report-template` with explicit blast-radius (which apps, which users, which data) for client deliverable.
-
-### Tools and wordlists
-
+- **`redteam-report-template`** — M365 findings need clear tenant/user/CA-policy framing because the blast radius is "every Microsoft service the org uses." Chain primitive: validated finding from this skill → run through `triage-validation` 7-Question Gate → package via `redteam-report-template` with explicit blast-radius (which apps, which users, which data) for client deliverable.### Tools
 ### Tooling
 
 ```bash
@@ -220,10 +207,7 @@ go install -v github.com/projectdiscovery/...             # PD toolkit for gener
 
 Pre-built `m365_validator.py` template at engagement working directory `engagement_log/m365_validator.py`. Adapt the `attempt()` function to your engagement.
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://www.microsoft.com/en-us/security/blog/2026/04/06/ai-enabled-device-code-phishing-campaign-april-2026
@@ -239,10 +223,7 @@ Pre-built `m365_validator.py` template at engagement working directory `engageme
 11. https://learn.microsoft.com/en-us/entra/identity/devices/concept-tokens-microsoft-entra-id
 12. https://trustedsec.com/blog/weaponization-of-token-theft-a-red-team-perspective
 13. https://pwnedlabs.io/blog/entra-id-attack-techniques
-14. https://www.cyber.gc.ca/en/guidance/defending-against-adversary-middle-threats-phishing-resistant-multi-factor-authentication-itsm30031
-
-### Additional notes
-
+14. https://www.cyber.gc.ca/en/guidance/defending-against-adversary-middle-threats-phishing-resistant-multi-factor-authentication-itsm30031### Additional notes
 ### When to use this skill
 
 Trigger when:
@@ -473,13 +454,8 @@ For the report:
 - **DON'T forget to test ALL Entra tenants** — sister domains often have separate tenants with different password policies
 - **DON'T retract a CA-block finding** — AADSTS53003 means the password is correct; that's the whole point
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # m365-entra-attack — Technique reference
 
@@ -521,17 +497,8 @@ Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you 
 
 
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `m365-entra-attack`
-- `cbh` — `m365-entra-attack`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 1 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

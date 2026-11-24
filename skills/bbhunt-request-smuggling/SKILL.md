@@ -4,13 +4,13 @@ description: "Use for CL.TE / TE.CL / H2.CL / H2.TE desync, header framing incon
 agent_created: true
 ---
 
-# HTTP Request Smuggling and Desync — unified skill
+# HTTP Request Smuggling and Desync — unified methodology
 
-> **Complete merged skill.** Everything from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 3 upstream skills across cbh, h1skills, hunting and grounded in 15,259 disclosed HackerOne reports. Payloads, wordlists and supporting data are in `references/`.
 
-## Corpus evidence — 97 valid HackerOne reports (30 paid / 31%)
+## Corpus signal — 97 valid reports (30 paid / 31%)
 
-Every disclosed report is valid; payment is an impact signal, not a validity test.
+Every disclosed report is valid; payment is an impact signal, not a validity test. Full technique frequencies, case studies and approach patterns: `references/evidence.md`.
 
 ### Techniques ranked across ALL valid reports
 
@@ -28,112 +28,6 @@ Every disclosed report is valid; payment is an impact signal, not a validity tes
 | intercept & replay request in Burp | 15 |
 | race / concurrency / timing | 11 |
 | subdomain / DNS / cert-transparency recon | 11 |
-| HTTP method / verb tampering | 11 |
-| two-account / cross-account replay | 8 |
-| OAST / DNS / HTTP callback proof | 8 |
-| admin / privileged-role context | 8 |
-| error message / stack trace probing | 7 |
-| unauthenticated / removed-cookie test | 6 |
-| XML / SOAP / SAML / XXE | 6 |
-| fuzzing / wordlist brute force | 5 |
-| JWT / token / base64 decode | 5 |
-| second-order / stored / blind delivery | 4 |
-| WAF / sanitizer / filter bypass | 4 |
-| third-party data / paste / breach reuse | 4 |
-| file upload / filename / extension | 4 |
-| DOM / HTML source inspection | 2 |
-|  HosT/absolute-URL reset poisoning | 2 |
-| verbose debug / framework fingerprint | 2 |
-| response diff / status / length comparison | 2 |
-| git history / exposed .git | 2 |
-| mass assignment / extra request fields | 1 |
-| webhook / OAuth / SAML / integration abuse | 1 |
-| cloud metadata / IAM abuse | 1 |
-| redirect chain / Location header | 1 |
-| API docs / Swagger / introspection | 1 |
-
-### Parameters observed in writeups
-
-`result` (11), `target` (6), `daemon` (6), `path` (3), `session` (3), `capture_output` (3), `body` (3), `args` (3), `domain` (2), `max-age` (2), `injected` (2), `qop` (2), `port` (2), `payload` (2), `nextnonce` (2), `jar` (2), `suffix` (2), `ci_session` (2), `text` (2), `size` (2), `buf` (2), `verify_token` (1), `expires` (1), `gerbenjavado` (1), `mode` (1), `charset` (1), `header-field` (1), `field-name` (1), `aerg` (1), `ubvhq` (1)
-
-### Bypass primitives observed
-
-`chunked` (163), `transfer-encoding` (151), `desync` (57), `content-type` (42), `bypass` (31), `crlf` (24), `host header` (15), `%0d%0a` (14), `bypassing` (11), `header injection` (8), `transfer encoding` (3), `bypassed` (3), `trailing space` (2), `bypasses` (2), `http method` (1), `open redirect` (1), `html-encoding` (1), `html encoding` (1), `empty value` (1), `backslash` (1), `normalizing` (1)
-
-### Impact language observed
-
-`localhost` (64), `token` (52), `credential` (19), `admin` (19), `password` (9), `sensitive data` (7), `unauthorized` (6), `payment` (3), `privilege escalation` (3), `exfiltration` (3), `pii` (2), `exfiltrated` (2), `account takeover` (1), `rce` (1), `internal service` (1), `arbitrary command` (1)
-
-### Case studies — full excerpts (paid and unpaid)
-
-#### [510152](https://hackerone.com/reports/510152) — Bypass for #488147 enables stored XSS on https://paypal.com/signin again
-
-PayPal · $20000 · high
-
-Due to a configuration in frontend, caching servers, it was possible for a researcher to use request smuggling to convert a page request into a cached redirect. If the cached redirect were accessed by a legitimate user, an attacker's content would be rendered instead of the requested page. While this would not impact any back-end data, this could interfere with the integrity of certain pages, including potential interference with the sign-in page. PayPal worked with the researcher and our technical teams to remediate the issue and confirm there was no evidence of real-world attacks. I've posted a full writeup over at
-
-#### [488147](https://hackerone.com/reports/488147) — Stored XSS on https://paypal.com/signin via cache poisoning
-
-PayPal · $18900 · high
-
-Due to a configuration in frontend, caching servers, it was possible for a researcher to use request smuggling to convert a page request into a cached redirect. If the cached redirect were accessed by a legitimate user, an attacker's content would be rendered instead of the requested page. While this would not impact any back-end data, this could interfere with the integrity of certain pages, including potential interference with the sign-in page. PayPal worked with the researcher and our technical teams to remediate the issue and confirm there was no evidence of real-world attacks. I've posted a full writeup over at
-
-#### [1478633](https://hackerone.com/reports/1478633) — HTTP Request Smuggling in Transform Rules using hexadecimal escape sequences in the concat() function
-
-Cloudflare Public Bug Bounty · $6000 · critical
-
-The Edge Rules engine used by Cloudflare Transform Rules features string modifying functions like lower() and concat(), which accepted hexadecimal-encoded characters such as ”\x0a\x0d“. This allowed for manipulation of request headers (e.g. injecting an additional header) and, as a consequence, made HTTP smuggling attack (TE.CL) possible. This vulnerability enabled an attacker to bypass security products such as Cloudflare Access and view the content of internal origin servers. This bug in hexadecimal parsing was fixed by the relevant engineering team. We rewarded this finding as critical as well as a bonus for a high quality, detailed report. Internal investigation confirmed that no other CF customer was affected by this attack. As a recommendation, we advise Cloudflare Access customers to always verify the Authorization JWT token before processing requests from the Cloudflare edge. Cloudflare's Ruleset Engine allows the use of hexadecimal escape sequences in string manipulation functions such as `concat()`. Due to a lack of output sanitation, this enabled an attacker to inject newlines into the header value. By creating a dynamic header rewrite rule with the value `concat("-", "\x0d\x0aTransfer-Encoding: chunked")`, it was possible to change the transfer encoding of the request. When combined with a POST body such as `0\r\n\r\nGET / HTTP/1.1\r\nHost: internal.example.com\r\n\
-
-#### [2280391](https://hackerone.com/reports/2280391) — Possibility of Request smuggling attack
-
-Internet Bug Bounty · $4660 · high
-
-Request smuggling was possible by throwing an IOException with the upper size limit of the trailer header. Confirmed with tomcat version 9.0.82. * example ~~~~~~~~~~~~~~~~~~ POST /examples/test.jsp HTTP/1.1 Host: www.example.co.jp Content-Type: application/x-www-form-urlencoded Transfer-Encoding: chunked Connection: KeepAlive 5 foo=b 2 ar 0 testtrailer: aaaaa...(large size) a: GET /examples/?this_is_attack HTTP/1.1 Host: attack ~~~~~~~~~~~~~~~~~~ * Reproduce with the following steps: The result of curl is two HTTP responses("/examples/test.jsp" and "/examples/?this_is_attack"). Two requests are recorded in the Tomcat access log. ## Impact A trailer header that exceeded the header size limit could cause Tomcat to treat a single request as multiple requests leading to the possibility of request smuggling when behind a reverse proxy.
-
-#### [2327341](https://hackerone.com/reports/2327341) — CVE-2024-21733 Apache Tomcat HTTP Request Smuggling (Client- Side Desync) (CWE: 444)
-
-Internet Bug Bounty · $4660 · high
-
-Apache Tomcat from 8.5.7 through 8.5.63, from 9.0.0-M11 through 9.0.43 are vulnerable to client-side de-sync attacks. Client-side de-sync (CSD) vulnerabilities occur when a web server fails to correctly process the Content-Length of POST requests. By exploiting this behavior, an attacker can force a victim's browser to de-synchronize its connection with the website, causing sensitive data to be smuggled from the server and/or client connections. Users are recommended to upgrade to version 8.5.64 onwards or 9.0.44 onwards, which contain a fix for the issue. PoC: ~~~~~~~~~~~~~~~~~~ POST / HTTP/1.1 Host: hostname Sec-Ch-Ua: "Chromium";v="119", "Not?A_Brand";v="24" Sec-Ch-Ua-Mobile: ?0 Sec-Ch-Ua-Platform: "Linux" Upgrade-Insecure-Requests: 1 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.6045.159 Safari/537.36 Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7 Sec-Fetch-Site: none Sec-Fetch-Mode: navigate Sec-Fetch-User: ?1 Sec-Fetch-Dest: document Accept-Encoding: gzip, deflate, br Accept-Language: en-US,en;q=0.9 Priority: u=0, i Connection: keep-alive Content-Length: 6 Content-Type: application/x-www-form-urlencoded X ~~~~~~~~~~~~~~~~~~ In some cases, this can leak sensitive data such as clear-text credentials (see attached screen
-
-#### [737140](https://hackerone.com/reports/737140) — Mass account takeovers using HTTP Request Smuggling on https://slackb.com/ to steal session cookies
-
-Slack · no bounty — still valid · critical
-
-Hi Slack Security Team! My name is Evan and I'm a first time bug hunter to your platform :) Because you guys were running a month long bounty promotion I decided to take a little of my time and gently perform recon on your platform. Specifically the area of interest I focus in is HTTP Request Smuggling. I developed tooling to actively target some advanced HTTP Smuggling exploits and ran it on your in-scope assets. In my research I stumbled across a finding that I consider extremely critical not only for Slack but for all customers and organizations which share their privatedata/channels/conversations on Slack. The bug chain is as follows: 1) HTTP Request Smuggling CTLE to Arbitrary Request Hijacking (Poisoned Socket) on `slackb.com` 2) Request Hijack forces victim HTTP requests to instead use `GET HTTP/1.1` on `slackb.com` 3) A request of `GET HTTP/1.1` on the backend server socket results in a 301 redirect to ` with slack cookies (most importantly the `d` cookie) 4) Me with my Burp Collaborator steals victims cookies by using a collaborator server as the defined <URL> in the attack 5) Me (if I were evil) collects massive amounts of `d` session cookies and steals any/all possble Slack user/organization data from victim sessions So let's start from the beginning. I was running `smuggler -u running my array of exhaustive tests when I stumbled upon a failure with test: `space1` (s
-
-#### [740037](https://hackerone.com/reports/740037) — Request smuggling on admin-official.line.me could lead to account takeover
-
-LY Corporation · no bounty — still valid · high
-
-The reporter identified a request smuggling issue on admin-official.line.me [(TE.CL-type).]( The reporter clearly illustrated the impact without putting our users at risk or affecting the stability of our service. For this we would like to thank @shaolin_tw! This issue was the result of how our load balancers were forwarding requests to the backend services. It had widespread influence and the report allowed us to resolve the issue internally, as well as make the vendor of the load balancers aware of this possible issue when using their product. The contents of the report allowed us to identify and prevent similar issues elsewhere in our infrastructure
-
-### Recurring approach patterns from real reports
-
-- 2× in this poc i was able to massive redirect users to a domain under my control but other scenarios are also possible like the ones described here
-- 1× so i found a http response splitting issue in your website
-- 1× poc firefox after sending the request through firefox this query is saved in cache and using a small trick can be made to work it in another browser
-- 1× these defects represent a security concern when httpd is participating in any chain of proxies or interacting with back end application servers either through mod proxy or using conventional cgi mechanisms
-- 1× after adding to cart step there is no checking step
-- 1× in starting from these past studies i studied apache nginx varnish source code i discovered that a lot of smuggling problems were still present found new ones based on overflows for the size attributes previous works were mostly based on doubling length information and expanded my works on golang nodejs pound haproxy jetty tomcat apache traffic server
-- 1× if you ask my opinion this is one of the most problematic issue i found on these years
-- 1× cve httpd apache http request parsing whitespace defects problems with cr ff vtab and others strange characeters in parsing http messages especially the space before colon problem
-- 1× during testing there was one such case of this happening and the burp collaborator manages to posion someone from los angeles california f622459 f622460 in order to prevent affecting more innocent users i stopped further testing after coming with the above proof of concept which should be sufficent to proof the existence of the vulnerability
-- 1× in addition i noticed there was a wordpress login page but seems like it requires a specially configured browser to access the sso
-- 1× my name is evan and i m a first time bug hunter to your platform because you guys were running a month long bounty promotion i decided to take a little of my time and gently perform recon on your platform
-- 1× in my research i stumbled across a finding that i consider extremely critical not only for slack but for all customers and organizations which share their privatedata channels conversations on slack
-- 1× i was running smuggler u running my array of exhaustive tests when i stumbled upon a failure with test space1 see below f633736 the space1 tests checks for http desync with the following payload f633737 this testcase failed on testing a clte and not a tecl
-- 1× i am really happy i found this for you guys so that it can be dealt with asap
-- 1× the reporter identified a request smuggling issue on admin official line me te cl type the reporter clearly illustrated the impact without putting our users at risk or affecting the stability of our service
-- 1× http smuggling dashboard fortmatic png we will notice i was able to cause the next valid request to error out returning valuable details
-- 1× squid increases the upgrade to rfc7230 specification with implementation of the majority of message parsing updates
-- 1× i m pretty sure this issue will soon be discovered by other bounty hunters
-- 1× when evaluating your platform i ve found one asset that falls victim to http smuggling attacks that result in pii information leakage session takeover victim request hijacking forging and forced victim redirection to attacker endpoint
-- 1× summary http request smuggling vulnerabilities arise when websites route http requests through webservers with inconsistent http parsing
-- 1× description by sending an ambiguous request on the rails application on launchpad 37signals com an attacker can desynchronise frontend and backend servers leaving the socket to the backend server poisoned with a harmful response
-- 1× the desync occurs when sending a request with a content length header and a valid transfer encoding header followed by an invalid transfer encoding header
-- 1× summary add summary of the vulnerability apparently node js converts cr in http request headers to hyphen before parsing
-- 1× f1124380 doing the redirect mentioned above using my own pqp mx domain i was able to receive some connections
 
 ## Corpus-backed method (this class)
 
@@ -160,18 +54,13 @@ The reporter identified a request smuggling issue on admin-official.line.me [(TE
 - Smuggling -> cache poisoning -> cross-user page takeover.
 - Desync -> ACL bypass -> internal endpoint access.
 
-### Probes
-
-- CL.TE / TE.CL probes with unique marker; H2.CL and H2.TE on HTTP/2 frontends; observe with a follow-up request.
-
 ### Veteran tip
 
 Parser confusion and cache headers dominate the valid writeups; treat the intermediary, not the app, as the target.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Quick wins
 
 Start here. These are the highest-yield tests for this class.
@@ -199,10 +88,7 @@ Start here. These are the highest-yield tests for this class.
 - Look for cloud-proxy infra with known parser quirks: AWS ALB in front of IIS (H-V discrepancy on malformed `Host`), web VPNs, and WAFs that rewrite requests. Kettle notes AWS declined to patch the ALB/IIS issue centrally; hardening knobs are `routing.http.drop_invalid_header_fields.enabled` and `routing.http.desync_mitigation_mode = strictest`.
 - Check whether the origin ignores `Content-Length` on GET/HEAD/OPTIONS (implicit-zero, "0" length interpretation). A valid request with a body that the front-end counts but the back-end ignores is CL.0 — browser-deliverable.
 - Inventory early-response gadgets per server family: nginx static files respond before reading the full body; IIS throws on reserved device names (`/con`, `/nul`, `/aux`, `COM1`); server-level redirects; `Expect: 100-continue` behavior. Apache closes on errors and is a poor 0.CL target.
-- Probe `Expect: 100-continue` explicitly — both vanilla and obfuscated forms (`Expect: y 100-continue`, `Expect:` with a leading space/newline before the value) produced 0.CL and CL.0 desyncs throughout 2025 research.
-
-### Signals and surfaces
-
+- Probe `Expect: 100-continue` explicitly — both vanilla and obfuscated forms (`Expect: y 100-continue`, `Expect:` with a leading space/newline before the value) produced 0.CL and CL.0 desyncs throughout 2025 research.### Signals and surfaces
 ### Signal
 
 - Reports: **101** · paid: **31**
@@ -226,10 +112,7 @@ Start here. These are the highest-yield tests for this class.
 
 Parameters, endpoints, and fields that commonly carry this bug:
 
-`any endpoint behind CDN/proxy` `login` `API gateway` `static assets`
-
-### Techniques, payloads and bypasses
-
+`any endpoint behind CDN/proxy` `login` `API gateway` `static assets`### Techniques and bypasses
 ### Payloads & probes
 
 - CL.TE -> `Content-Length: 13` + `Transfer-Encoding: chunked`
@@ -398,10 +281,7 @@ Recurring payloads from this class's writeups. Adapt, don't paste blindly.
   x=1
   ```
 - Response queue poisoning (high impact, low traffic): poison, then repeatedly fetch "your own" 404 until you capture another user's 302 or session cookie. Expect a race — tens of thousands of requests may be needed.
-- Bypass WAF regexes: prefer CL.0/0.CL (valid HTTP, no obfuscated TE), switch methods GET/OPTIONS/POST, use leading whitespace in header names, duplicate headers, and LF-only line endings (RFC-9112 MAY accept a single LF) to expose parsers that deviate.
-
-### Validation and proof
-
+- Bypass WAF regexes: prefer CL.0/0.CL (valid HTTP, no obfuscated TE), switch methods GET/OPTIONS/POST, use leading whitespace in header names, duplicate headers, and LF-only line endings (RFC-9112 MAY accept a single LF) to expose parsers that deviate.### Validation and proof
 ### Reporting bar
 
 - Prove real impact on a second controlled account or a safe callback.
@@ -426,10 +306,7 @@ Recurring payloads from this class's writeups. Adapt, don't paste blindly.
 - Reproduce with the connection kept alive and control the exact CL offsets. If the exploit depends on front-end-injected headers containing the client IP, triage may fail from a different IP — disclose this or move the smuggle ahead of the injected headers.
 - For client-side desync, prove the attack in a real browser with a cross-origin no-cors request that poisons the browser's own connection pool; a Burp-only PoC does not establish browser-deliverability.
 - Do not report theoretical parser deviations (e.g. LF-only line endings on a directly accessed server) as bounties. They matter only when that server sits behind a reverse proxy; frame them as ecosystem/defense observations.
-- Record the full raw request/response pair, the HTTP version per hop, and exact byte offsets. Redact cookies/session tokens of other users captured via response-queue poisoning.
-
-### Escalation and related chains
-
+- Record the full raw request/response pair, the HTTP version per hop, and exact byte offsets. Redact cookies/session tokens of other users captured via response-queue poisoning.### Escalation and related chains
 ### Escalation chains
 
 - Smuggling -> cache poisoning -> XSS.
@@ -462,10 +339,7 @@ Cache poisoning → stored XSS at scale
 - **`hunt-idor`** — Smuggling attaches the NEXT user's session cookies to an attacker-controlled request path. Chain primitive: smuggle `GET /api/me HTTP/1.1` with no cookies → backend pairs it with the next legitimate user's incoming connection cookies → victim's session cookie attached to attacker's smuggled request → attacker reads the response containing victim's PII/tokens.
 - **`hunt-xss`** — Smuggling injects XSS payloads into the response stream of the next victim without ever appearing in a URL parameter. Chain primitive: smuggled request body contains reflected payload that the backend renders into the next response in the queue → next visitor to `/` receives attacker HTML inline → reflected XSS at every visitor without any URL parameter visible to them or to logs.
 - **`security-arsenal`** — Reach for the smuggling payload bank (CL.TE / TE.CL / TE.TE obfuscations, H2.CL downgrade probes, h2csmuggler one-liners, Burp HTTP Request Smuggler extension config) and the time-delay confirmation template before manual hex-editing.
-- **`triage-validation`** — Run the Pre-Severity Gate before claiming Critical: the smuggled-request effect MUST land on a request issued by a different client/session, not your own follow-up. A timing delta in your own browser alone is parser disagreement, not exploitable smuggling.
-
-### Tools and wordlists
-
+- **`triage-validation`** — Run the Pre-Severity Gate before claiming Critical: the smuggled-request effect MUST land on a request issued by a different client/session, not your own follow-up. A timing delta in your own browser alone is parser disagreement, not exploitable smuggling.### Tools
 ### Tools
 
 `Burp HTTP Request Smuggler` · `smuggler.py` · `h2cSmuggler`
@@ -499,10 +373,7 @@ nuclei -u https://target -tags smuggling,http-smuggling \
 # authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
 ```
 
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Sources and related reading
-
+Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.### Sources and related reading
 ### Query the corpus
 
 ```sh
@@ -536,10 +407,7 @@ python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class requ
 4. https://portswigger.net/research/http2
 5. https://blogs.jsmon.sh/http-2-request-smuggling-why-h2-cl-h2-te-and-browser-desync-still-pay
 6. https://portswigger.net/web-security/request-smuggling/advanced/lab-request-smuggling-h2-cl-request-smuggling
-7. https://www.usenix.org/system/files/usenixsecurity25-mu.pdf
-
-### Additional notes
-
+7. https://www.usenix.org/system/files/usenixsecurity25-mu.pdf### Additional notes
 ### Parameters observed
 
 `ver` · `mode` · `name` · `step` · `verify_token` · `param` · `authenticity_token` · `attributes[delivery-min-days]` · `attributes[delivery-max-days]` · `attributes[locale]` · `access_token` · `_fd` · `_ga` · `id` · `aeRg` · `e3t5b` · `mt`
@@ -633,157 +501,8 @@ The highest-impact smuggling outcome needs no per-victim interaction. Instead of
 
 The highest-impact smuggling outcome needs no per-victim interaction. Instead of blindly poisoning the queue, smuggle a request aimed at a **back-end handler that echoes the full request** — a search endpoint that reflects headers, or a redirect that mirrors the request line. The next victim's headers (`Cookie`, `Authorization`, `X-Access-Token`) get attributed to your smuggled request, and the reflecting handler returns them **in a response you read**. Repeated on a busy keep-alive socket, this harvests live credentials from arbitrary users at scale — and it works even through a CDN (Akamai/Cloudflare) when the CDN↔origin hop desyncs. Chains to `hunt-ato`.
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# Request Smuggling — Combined Field Guide — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payloads & probes
-
-
-
-- CL.TE -> `Content-Length: 13` + `Transfer-Encoding: chunked`
-
-- TE.CL -> chunked body with a smaller Content-Length
-
-- TE.TE -> `Transfer-Encoding: xchunked`, `Transfer-Encoding : chunked`
-
-- HTTP/2 -> `Transfer-Encoding: chunked` injected as a header
-
-
-
-## Payload fragments observed
-
-
-
-Recurring payloads from this class's writeups. Adapt, don't paste blindly.
-
-
-
-| Seen | Fragment |
-
-|---:|---|
-
-| 6× | `\r\r` |
-
-| 4× | `\r\n` |
-
-| 3× | `{size}` |
-
-| 3× | `auth_digest_string_quoted()` |
-
-| 3× | `parse_conversion()` |
-
-| 2× | `GET https://<URL> HTTP/1.1` |
-
-| 2× | `r\n` |
-
-| 2× | `Connection: close\t` |
-
-| 2× | `http.createServer()` |
-
-| 2× | `Content-Length: 6\r\n\r\nHello A` |
-
-| 2× | `http_req_set_reader()` |
-
-| 2× | `http://newscdn.starbucks.com/%0d%0aContent-Length:35%0d%0aX-XSS-Protection:0%0d%0a%0d%0a23%0d%0a<svg%20onload=alert(document.domain)>%0d%0a0` |
-
-| 2× | `is_custom_fetch_listing_match()` |
-
-| 2× | `imap_state_listsearch_resp()` |
-
-| 2× | `Curl_pp_readresp()` |
-
-| 2× | `printf "POST / HTTP/1.1\r\n"\ / "Host: localhost:5000\r\n"\ / "X-Abc:\rxTransfer-Encoding: chunked\r\n"\ / "\r\n"\ / "1\r\n"\ / "A\r\n"\ / ` |
-
-| 2× | `Response / { host: 'localhost:5000', 'x-abc': '', 'transfer-encoding': 'chunked' } / A / ---` |
-
-| 2× | `[\r]xTransfer-Encoding: chunked[\r\n]` |
-
-| 2× | `legit@example.com` |
-
-| 2× | `{50}` |
-
-
-
-## Parameters observed
-
-
-
-`ver` · `mode` · `name` · `step` · `verify_token` · `param` · `authenticity_token` · `attributes[delivery-min-days]` · `attributes[delivery-max-days]` · `attributes[locale]` · `access_token` · `_fd` · `_ga` · `id` · `aeRg` · `e3t5b` · `mt`
-
-
-
-## Wordlists
-
-
-
-Mined from this class's writeups and ready for `ffuf`/`feroxbuster`. Paths and parameters recur across programs; verify each hit.
-
-
-
-| File | Entries |
-
-|---|---:|
-
-| `~/.local/share/hackerone-reports/wordlists/paths_request-smuggling.txt` | 94 |
-
-| `~/.local/share/hackerone-reports/wordlists/params_request-smuggling.txt` | 17 |
-
-| `~/.local/share/hackerone-reports/wordlists/paths.txt` (global) | 500 |
-
-| `~/.local/share/hackerone-reports/wordlists/params.txt` (global) | 400 |
-
-
-
-```sh
-
-W=~/.local/share/hackerone-reports/wordlists
-
-ffuf -u https://target/FUZZ -w $W/paths_request-smuggling.txt \
-
-     -mc all -fc 404 -fs 0 -rate 40
-
-ffuf -u 'https://target/api?FUZZ=canary' -w $W/params_request-smuggling.txt \
-
-     -mr 'canary|error|invalid|not found' -rate 40
-
-```
-
-
-
-## Nuclei
-
-
-
-Use Burp HTTP Request Smuggler / smuggler.py against CDN+origin pairs; Nuclei coverage is limited.
-
-
-
-```sh
-
-nuclei -u https://target -tags smuggling,http-smuggling \
-
-       -severity low,medium,high,critical -rl 40 -o nuclei_request-smuggling.txt
-
-# authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
-
-```
-
-
-
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # Request Smuggling — Combined Field Guide — Technique reference
 
@@ -1039,141 +758,13 @@ python3 ~/.local/share/hackerone-reports/h1.py search "wordpress" --class reques
 
 python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class request-smuggling --min-bounty 1000
 
-```
+```## Probes
 
-## Corpus wordlists (mined)
+- CL.TE / TE.CL probes with unique marker; H2.CL and H2.TE on HTTP/2 frontends; observe with a follow-up request.
 
-### `params_request-smuggling.txt`
+## Supporting data
 
-```text
-ver
-mode
-name
-step
-verify_token
-param
-authenticity_token
-attributes[delivery-min-days]
-attributes[delivery-max-days]
-attributes[locale]
-checkout[shipping_address][country]
-access_token
-_fd
-id
-aeRg
-e3t5b
-mt
-```
-
-### `paths_request-smuggling.txt`
-
-```text
-/flag
-/doc/html/rfc7230
-/smuggled
-/admin
-/cgi-bin/cvename.cgi
-/login
-/data/definitions/33.html
-/data/definitions/444.html
-/proxy_sees_this
-/node_sees_this
-/index.html
-/rfc/rfc9110
-/page2
-/two
-/security/vulnerabilities_24.html
-/en/docs/guides/anatomy-of-an-http-transaction/
-/hello
-/bye
-/2020/05/28/hiding-in-plain-sight-http-request-smuggling/
-/sf
-/sf/
-/user/validate_link
-/v2/tabbed/home
-/desync
-/v2/userdetails.json/
-/some/other/endpoint
-/desync/
-/v2/auth
-/api/sessions
-/hopefully404
-/unicorn-public/20210226111552.GA22901@dcvr/T/
-/).each
-/nginx.conf:/etc/nginx/nginx.conf:ro
-/examples/test.jsp
-/examples/
-/Advisories/SQUID-2019_10.txt
-/foo.html
-/bar.html
-/fr-fr/security/cve/CVE-2019-18678/
-/security-9.html
-/security-8.html
-/chunked/io
-/evil_path
-/benign_path
-/HTTP
-/first
-/rules/origin-rules/
-/cloudflare-one/identity/users/validating-json
-/private
-/404_not_found.html
-/;httponly;secure
-/page1
-/r/enjv2g5042bg
-/4618984/account
-/signin
-/identity/edit
-/identity
-/path/to/curl/source
-/path/to/curl/build
-/cart/24637376965:6,24637373189:10,24637375493:10
-/nginx/rev/15a15f6ae3a2
-/nginx/ticket/762
-/pipermail/websecurity_lists.webappsec.org/2006-February/000836.html
-/2013/05/practical-http-host-header-attacks.html
-/bugzilla/show_bug.cgi
-/english/security/2019/04/24/security_jetty_http_smuggling/
-/html/rfc7230
-/c/go/+/18871
-/security/english/2015/10/04/http_smuggling_in_2015_part_one
-/english/security/2018/07/03/security_pound_http_smuggling/
-/nginx/ticket/1014
-/english/security/2015/03/25/nginx-integer_truncation/
-/archive/1/425593
-/oss-sec/2016/q2/95
-/one
-/sdk/latest.json
-/req3
-/req2
-/vuln/detail/CVE-2022-35256
-/indeks
-/sign-up
-/publishers/registrations.json
-/docs/2.4/mod/core.html
-/contact/
-/path
-/package/fastify
-/errata/eid4667
-/forbidden
-/poc-scratch/reproduce.sh
-/src
-/doc/html/draft-ietf-httpbis-rfc6265bis-03
-/ja/latest/class/CGI=3a=3aCookie.html
-/in/app/brave-web-browser/id1052879175
-/http-header-check/
-```
-
-## Source skills merged into this topic
-
-- `h1skills` — `hackerone-request-smuggling`
-- `hunting` — `request-smuggling`
-- `cbh` — `hunt-http-smuggling`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 2 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/evidence.md` — corpus technique frequencies, case studies, approach patterns
+- `references/payloads.md` — curated payload bank + upstream payload references
+- `references/wordlists/` — 2 mined paths/params/payload lists
 - `bbhunt-methodology` — orchestrator, state machine and class router

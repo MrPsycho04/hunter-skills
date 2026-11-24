@@ -4,14 +4,13 @@ description: "Hunt ViewState deserialization, machineKey recovery, request-valid
 agent_created: true
 ---
 
-# ASP.NET-specific vulnerability hunting — unified skill
+# ASP.NET-specific vulnerability hunting — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Step-by-Step Hunting Methodology
 
 1. **Fingerprint the framework version.** Trigger any 500 error (stale ViewState POST is a reliable way) and look for `Version Information: Microsoft .NET Framework Version:X.X.XXXXX; ASP.NET Version:X.X.XXXX.X` in the error body. This banner discloses both the runtime and ASP.NET-version-specific patch level. .NET 4.0.30319 + ASP.NET 4.8.x is the most common modern combination.
@@ -107,10 +106,7 @@ agent_created: true
 
 12. **SafeControl enumeration via reflection.** SharePoint's `Picker.aspx?PickerDialogType=<TypeName>` (and DNN-equivalent endpoints) accept class names and return DIFFERENT error messages for "type exists but not whitelisted" vs "type does not exist." Feed a wordlist of `Microsoft.SharePoint.*.WebControls.*` types to enumerate the SafeControl list — useful for CVE-2019-0604-family hunting.
 
----
-
-### Signals and surfaces
-
+---### Signals and surfaces
 ### Crown Jewel Targets
 
 ASP.NET deserialization bugs pay among the highest amounts in bug bounty when they reach RCE. Even when patched, the disclosure-tier findings (signed-only ViewState, dual-parser differential, request-validator quirks) reliably pay Low-Medium.
@@ -235,10 +231,7 @@ Set-Cookie: ASP.NET_SessionId=...; SameSite=None  (suggests cross-origin embeddi
 - `__VIEWSTATE` in form bodies — Webforms (NOT MVC, NOT Razor Pages, NOT Blazor)
 - `MicrosoftSharePointTeamServices` header (sometimes stripped by ELB but leaks in `start.aspx` body) — SharePoint
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### Common Root Causes
 
 1. **`viewStateEncryption="Auto"` defaults to signed-only on pages without sensitive ViewState data.** Many SharePoint pages are configured this way. When `__VIEWSTATEENCRYPTED` is empty, ViewState is signed-only — recovery of `validationKey` alone enables forgery.
@@ -387,10 +380,7 @@ curl -sk "https://target.example/Telerik.Web.UI.WebResource.axd?type=rau" -X POS
 | `SafeControl` whitelist enforced | Inheritance gate (`instanceof PickerDialog`) IS the gate on patched SP — bypass requires finding a SafeControl subclass with a deserialization sink; enumerate via Picker.aspx |
 | `customErrors mode="On"` (no stack traces) | Force a different error path: invalid Content-Length, malformed ViewState that triggers a parser-level exception below the customErrors handler |
 
----
-
-### Validation and proof
-
+---### Validation and proof
 ### Gate 0 Validation
 
 Before writing the report, confirm:
@@ -433,10 +423,7 @@ known/public, signed-only         | ""                   | yes              | Cr
 known/public, encrypted (both)    | non-empty            | yes              | Critical
 shared vendor key, fleet-wide     | either               | yes on 2nd host  | Critical
 CVE-2025-3600 type=iec/prtype     | n/a                  | app-pool recycle | Medium (DoS)
-```
-
-### Escalation and related chains
-
+```### Escalation and related chains
 ### Related Skills & Chains
 
 - **`rce`** — ViewState deserialization is the headline ASP.NET RCE path; signed-only ViewState + leaked machineKey = RCE every time. Chain primitive: ASP.NET ViewState dual-parser MAC-bypass anti-pattern detected (signed but not encrypted, `<%@ Page enableViewStateMac="true" viewStateEncryptionMode="Never" %>`) + machineKey recovered (from web.config disclosure, `elmah.axd`, source leak, or GitHub) → `rce` ysoserial.net `TypeConfuseDelegate` gadget → arbitrary command in `w3wp.exe` worker-process identity.
@@ -453,24 +440,15 @@ CVE-2025-3600 type=iec/prtype     | n/a                  | app-pool recycle | Me
 - **`hunt-sharepoint`** — SharePoint farms inherit every ASP.NET anti-pattern plus their own surface. Chain primitive: ASP.NET fingerprint reveals SharePoint (X-SharePoint headers + `/_layouts/` reachable) → pivot to `hunt-sharepoint` for SP-specific RCE paths (ToolShell, SafeControl reflection) before generic ViewState attack.
 - **`hunt-ntlm-info`** — IIS sites that advertise NTLM/Negotiate anonymously leak AD topology. Chain primitive: ASP.NET app behind IIS with `WWW-Authenticate: NTLM` → `hunt-ntlm-info` Type-2 challenge capture → internal forest name → cross-reference Entra tenant via `m365-entra-attack` discovery.
 - **`hunt-file-upload`** — Telerik RadAsyncUpload, Kentico, Umbraco, and DotNetNuke all have historical upload-handler RCE. Chain primitive: ASP.NET CMS fingerprinted → `hunt-file-upload` bypass matrix against the CMS upload handler → `.aspx` written into web-accessible path → request → RCE under app-pool identity.
-- **`triage-validation`** — `trace.axd`/`elmah.axd` disclosure is only Critical when it actually leaks live credentials/tokens; pure stack traces are usually Low. Chain primitive: pull every reported finding through `triage-validation` 7-Question Gate before submission — distinguish "verbose error" (informational) from "live bearer token in error log" (Critical) before writing the report (`redteam-report-template`).
-
-### Tools and wordlists
-
+- **`triage-validation`** — `trace.axd`/`elmah.axd` disclosure is only Critical when it actually leaks live credentials/tokens; pure stack traces are usually Low. Chain primitive: pull every reported finding through `triage-validation` 7-Question Gate before submission — distinguish "verbose error" (informational) from "live bearer token in error log" (Critical) before writing the report (`redteam-report-template`).### Tools
 ### Scenario A — Signed-only ViewState + permissive ToolPane on EoL SharePoint 2013
 
-`https://target-portal.example/_layouts/15/ToolPane.aspx?DisplayMode=Edit` returns 200 anonymously. The form contains `__VIEWSTATE` (signed only — `__VIEWSTATEENCRYPTED=""`), and `__REQUESTDIGEST` is anonymously issued via `_api/contextinfo`. Combined with SP2013 being end-of-life (no patch will ever ship), this is the canonical CVE-2025-53770 "ToolShell" precondition chain on a permanently-unpatched code path. Reported severity: **Critical**. The dual-parser test (Section 4 of Methodology) confirmed that XML-shaped payloads reach the legacy `ObjectStateFormatter` BEFORE MAC validation — additional evidence that the chain is reachable even without full machineKey recovery (though full RCE requires both).
-
-### Sources and related reading
-
+`https://target-portal.example/_layouts/15/ToolPane.aspx?DisplayMode=Edit` returns 200 anonymously. The form contains `__VIEWSTATE` (signed only — `__VIEWSTATEENCRYPTED=""`), and `__REQUESTDIGEST` is anonymously issued via `_api/contextinfo`. Combined with SP2013 being end-of-life (no patch will ever ship), this is the canonical CVE-2025-53770 "ToolShell" precondition chain on a permanently-unpatched code path. Reported severity: **Critical**. The dual-parser test (Section 4 of Methodology) confirmed that XML-shaped payloads reach the legacy `ObjectStateFormatter` BEFORE MAC validation — additional evidence that the chain is reachable even without full machineKey recovery (though full RCE requires both).### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://www.microsoft.com/en-us/security/blog/2025/02/06/code-injection-attacks-using-publicly-disclosed-asp-net-machine-keys/
 2. https://cloud.google.com/blog/topics/threat-intelligence/knowledgedeliver-viewstate-deserialization-vulnerability
-3. https://www.telerik.com/products/aspnet-ajax/documentation/knowledge-base/kb-security-unsafe-reflection-cve-2025-3600
-
-### Additional notes
-
+3. https://www.telerik.com/products/aspnet-ajax/documentation/knowledge-base/kb-security-unsafe-reflection-cve-2025-3600### Additional notes
 ### Scenario B — Telerik RadAsyncUploadHandler exposed on legacy bank portal
 
 `/Telerik.Web.UI.WebResource.axd?type=rau` returns the Telerik upload handler. Telerik version (visible in JS bundle metadata) is 2016.3.1027. CVE-2017-11317 applies — keys are baked into the public Telerik DLL of that version. Upload → write `aspx` to `/app_data/` → request → RCE. Reported severity: **Critical**.
@@ -479,173 +457,8 @@ CVE-2025-3600 type=iec/prtype     | n/a                  | app-pool recycle | Me
 
 `trace.axd` 200 returns 50 most recent requests, including `Authorization: Bearer eyJ...` headers on API requests. `elmah.axd` 200 returns full error log with database connection-string in one of the exceptions. Reported severity: **Critical** (credentials in plaintext to anonymous internet).
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# aspnet — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payload & Detection Patterns
-
-
-
-**Stack-trace fingerprint (trigger via stale ViewState POST):**
-
-```bash
-
-curl -sk -X POST "https://target.example/page.aspx" \
-
-  --data "__VIEWSTATE=AAAA&__VIEWSTATEGENERATOR=AAAA"
-
-# Inspect body for:
-
-#  - "Validation of viewstate MAC failed" → confirms signed ViewState
-
-#  - "The state information is invalid for this page" → confirms ALTERNATE parser path
-
-#  - "Version Information: Microsoft .NET Framework Version:X.X.XXXXX" → exact patch level
-
-#  - "Microsoft.SharePoint.Client.ServerStub..." → SharePoint farm
-
-```
-
-
-
-**ViewState parser-error differential probe (Python):**
-
-```python
-
-import requests, re, json
-
-S = requests.Session(); S.verify = False
-
-# Get fresh form
-
-r = S.get("https://target.example/path/page.aspx")
-
-real_vs = re.search(r'__VIEWSTATE" id="__VIEWSTATE" value="([^"]+)', r.text).group(1)
-
-real_vsg = re.search(r'__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="([^"]+)', r.text).group(1)
-
-
-
-# Test 7 payload shapes
-
-for label, vs in [
-
-    ("trivial",      "AAAA"),
-
-    ("real",         real_vs),
-
-    ("flipped-bit",  real_vs[:50] + "X" + real_vs[51:]),
-
-    ("oversize",     "A" * 100000),
-
-    ("base64",       "VGVzdE1hcmtlcjY3OFhZWg=="),
-
-    ("xml-shaped",   "<xss/>"),
-
-    ("losformatter", "/wEPDwUKMTcxNzgyOTQwMmRkkz9p4lzA" + "A"*50),
-
-]:
-
-    r = S.post("https://target.example/path/page.aspx",
-
-               data={"__VIEWSTATE": vs, "__VIEWSTATEGENERATOR": real_vsg})
-
-    title = re.search(r'<title>([^<]+)</title>', r.text)
-
-    title = title.group(1)[:100] if title else "—"
-
-    print(f"  [{label:14s}] {r.status_code}  {title}")
-
-```
-
-
-
-**`trace.axd` anonymous check:**
-
-```bash
-
-curl -sk -o /dev/null -w "%{http_code}\n" "https://target.example/trace.axd"
-
-# 200 = full trace dump exposed → Critical
-
-# 403 = mod set to localhost-only → check via X-Forwarded-For: 127.0.0.1
-
-```
-
-
-
-**WCF service enumeration:**
-
-```bash
-
-# Find all .svc files
-
-curl -sk "https://target.example/" -o body.html
-
-grep -oE '/[a-zA-Z0-9/_-]+\.svc' body.html | sort -u
-
-# For each found:
-
-curl -sk "https://target.example/Service.svc?wsdl" | xmllint --format - | head -60
-
-```
-
-
-
-**Request-validator bypass categories:**
-
-```
-
-# Default: <script>alert(1)</script> in ?q= → "Potentially dangerous Request.QueryString value detected"
-
-# Bypasses that sometimes work:
-
-?q=%3cscript%3e            (URL-encoded — depends on validator config)
-
-?q=<svg/onload=alert(1)>  (depends on validator version)
-
-?q=<%00script>             (NUL-byte; older validators)
-
-?q=javascript:alert(1)     (no < at all — passes validator)
-
-Cookie: foo=<script>       (cookie body not validated by default)
-
-Referer: http://x.com/<script>  (referer not validated in classic ASP.NET)
-
-```
-
-
-
-**Telerik exploit gate (CVE-2019-18935 — requires encryption keys):**
-
-```bash
-
-# Fingerprint Telerik
-
-curl -sk "https://target.example/Telerik.Web.UI.WebResource.axd?type=rau" -X POST
-
-# If response is RadAsyncUploadHandler-style → Telerik present; try keys
-
-# Public exploits require leaked machineKey AND telerikEncryptionKey
-
-```
-
-
-
----
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # aspnet — Technique reference
 
@@ -679,17 +492,9 @@ Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you 
 
 
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `aspnet`
-- `cbh` — `hunt-aspnet`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 2 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/payloads.md` — curated payload bank + upstream payload references
 - `bbhunt-methodology` — orchestrator, state machine and class router

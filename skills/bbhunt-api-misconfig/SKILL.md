@@ -4,14 +4,13 @@ description: "Hunt mass assignment, verb tampering, prototype pollution and sche
 agent_created: true
 ---
 
-# API misconfiguration hunting — unified skill
+# API misconfiguration hunting — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### A. Discovery checklist — concrete places, params, headers, flows to look
 
 - Reframe the hunt around **OWASP API3:2023 Broken Object Property Level Authorization (BOPLA)**, which formally merged *Excessive Data Exposure* (API3:2019) and *Mass Assignment* (API6:2019). BOLA = wrong object; BOPLA = right object, wrong *property* of it. Test both the read side (fields the API returns) and the write side (fields the API silently accepts).
@@ -25,10 +24,7 @@ agent_created: true
 - Use **response-schema allowlisting as the oracle**: if the API documents a schema (Swagger/OpenAPI/JSON Schema), compare every response against it. Fields present in the response but absent from the schema are exactly the BOPLA "excessive exposure" candidates; fields accepted in requests but absent from the schema are the mass-assignment candidates.
 - Probe **pagination/filter/sort parameters** for silent internal-field access: `?sort=isAdmin`, `?fields=password,role`, `?expand=owner`, `?filter[verified]=false`, `?include=internalNotes`. Many frameworks let these reach the ORM unchecked, exposing or mutating properties the UI never mentions.
 - Watch for **out-of-band side effects** as the only symptom of a bound field: a changed `notifyEmail`/`webhookUrl` causes a Collaborator callback; a flipped `verified` sends a welcome email. Side-effect analysis is required when the target property is not echoed in the response (OWASP BOPLA guidance).
-- Look for verbose errors/stack traces (`API8`): force invalid JSON, wrong field types (string where int expected), huge field values — framework exceptions often print the internal DTO/entity class and its full field list, which *is* the mass-assignment wordlist.
-
-### Techniques, payloads and bypasses
-
+- Look for verbose errors/stack traces (`API8`): force invalid JSON, wrong field types (string where int expected), huge field values — framework exceptions often print the internal DTO/entity class and its full field list, which *is* the mass-assignment wordlist.### Techniques and bypasses
 ### B. Techniques & bypasses — specific actionable techniques/payload shapes
 
 - **Invalid-value oracle** (PortSwigger mass-assignment lab methodology): first send the suspected hidden field with a valid value, then with an invalid type (`"percentage": "x"`, `"isAdmin": []`). If the invalid value changes behavior (error/500) while the valid one is silently ignored, the field is being processed server-side. Escalate only then.
@@ -80,10 +76,7 @@ GET /api?%2524filter=...                                # double-encoded
 GET /Users(1)/$value                                    # path-segment style
 ```
 
-Mixed-case operators (`Eq`, `EQ`) and obscure ones (`substringof`, `tolower`, `concat`, `replace`) look unlike `SELECT`/`UNION` so SQLi-keyword signatures never fire. WAFs that key on the literal string `$filter` see neither form — but the OData server normalises both before evaluating the predicate. Documented since Kalra Black Hat AD 2012; canonical OData-vs-WAF impedance mismatch. ([OWASP Double Encoding](https://owasp.org/www-community/Double_Encoding))
-
-### Validation and proof
-
+Mixed-case operators (`Eq`, `EQ`) and obscure ones (`substringof`, `tolower`, `concat`, `replace`) look unlike `SELECT`/`UNION` so SQLi-keyword signatures never fire. WAFs that key on the literal string `$filter` see neither form — but the OData server normalises both before evaluating the predicate. Documented since Kalra Black Hat AD 2012; canonical OData-vs-WAF impedance mismatch. ([OWASP Double Encoding](https://owasp.org/www-community/Double_Encoding))### Validation and proof
 ### C. Validation / proof bar — how to confirm and avoid false positives
 
 - A declared field is **not** a finding. Prove state change: after adding `role=admin`, re-fetch `GET /api/users/me` (privileged field now true) **and** access one admin-only function. Two independent observations beat a single reflected value.
@@ -94,10 +87,7 @@ Mixed-case operators (`Eq`, `EQ`) and obscure ones (`substringof`, `tolower`, `c
 - Watch for **false-positive field reflection**: a field echoed in the response does not prove it was *bound*. Test persistence across a new `GET`; verify the value survives a round trip and is not merely a client-supplied echo.
 - Watch for **false-negative silent filtering**: if a validated framework strips the field before binding, no error appears. Use the type-confusion and nested-binding variants above before concluding "not vulnerable."
 - Verb-tampering positives must be proven functionally: a `200` from a bogus verb with no privilege change (e.g., just echoing data you already can read) is misconfiguration, not authz bypass. Show that the forbidden action completed.
-- Safety: target low-value objects when fuzzing verbs (a `DELETE` on a real record is destructive); use a throwaway object you created. Keep mass-assignment probes on your own account until exploitation is confirmed.
-
-### Escalation and related chains
-
+- Safety: target low-value objects when fuzzing verbs (a `DELETE` on a real record is destructive); use a throwaway object you created. Keep mass-assignment probes on your own account until exploitation is confirmed.### Escalation and related chains
 ### Attack chains
 
 **A. Spec disclosure → mass IDOR / BOLA.** Spec lists every `GET /api/v1/users/{userId}/...`. `jq '.paths | keys' swagger.json` → swap `{userId}` for victim's ID via Autorize/`ffuf -mc 200`. Common case: spec leaks `/api/admin/users/{id}/reset-password` documented but missing `[Authorize(Roles="Admin")]` on the controller — low-priv ATO.
@@ -124,10 +114,7 @@ Mixed-case operators (`Eq`, `EQ`) and obscure ones (`substringof`, `tolower`, `c
 - **`hunt-rce`** — Prototype pollution gadgets in Node.js dependencies (lodash, mongoose, jQuery) reach `child_process.spawn`. Chain primitive: Prototype pollution (`__proto__.shell=true`) + `hunt-rce` (Node.js gadget chain) → RCE on the API node.
 - **`hunt-subdomain`** — CORS regex with wildcard subdomain trusts a takeoverable host. Chain primitive: CORS allowlist `*.target.com` + subdomain takeover → attacker-controlled origin reads credentialed API responses.
 - **`security-arsenal`** — Load the JWT Attack Payloads section (alg=none, kid path traversal, JWK injection, embedded JWK) and the Mass-Assignment Field Wordlist (`is_admin`, `role`, `verified`, `permissions`, `org_id`, `tenant_id`).
-- **`triage-validation`** — Apply the Server-Policy-vs-State gate: a permissive CORS header alone is informational; demonstrate actual cross-origin credentialed read of sensitive data before reporting.
-
-### Sources and related reading
-
+- **`triage-validation`** — Apply the Server-Policy-vs-State gate: a permissive CORS header alone is informational; demonstrate actual cross-origin credentialed read of sensitive data before reporting.### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://api-security.owasp.org/editions/2023/en/0x11-t10/
@@ -136,10 +123,7 @@ Mixed-case operators (`Eq`, `EQ`) and obscure ones (`substringof`, `tolower`, `c
 4. https://cheatsheetseries.owasp.org/cheatsheets/Mass_Assignment_Cheat_Sheet.html
 5. https://portswigger.net/web-security/api-testing
 6. https://portswigger.net/web-security/api-testing/lab-exploiting-mass-assignment-vulnerability
-7. https://learn.microsoft.com/en-us/azure/api-management/mitigate-owasp-api-threats
-
-### Additional notes
-
+7. https://learn.microsoft.com/en-us/azure/api-management/mitigate-owasp-api-threats### Additional notes
 ### Mass Assignment
 
 ```javascript
@@ -350,13 +334,8 @@ Authorisation decorators applied to top-level entity sets; the engine joins alon
 - Probe each entity set with `$filter=1 eq 1`, `$top=1`, `$select=*`, then `$orderby=<column-you-shouldnt-see>` for column-level ACL.
 - Send the same payload three ways (`$filter=`, `%24filter=`, `%2524filter=`) and through `$batch` — divergent WAF behaviour confirms the parser-discrepancy bug.
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # api-misconfig — Technique reference
 
@@ -496,17 +475,8 @@ Authorisation decorators applied to top-level entity sets; the engine joins alon
 
 
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `api-misconfig`
-- `cbh` — `hunt-api-misconfig`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 1 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

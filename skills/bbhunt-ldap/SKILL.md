@@ -4,14 +4,13 @@ description: "Hunt authentication bypass, blind attribute exfiltration and direc
 agent_created: true
 ---
 
-# LDAP and XPath injection hunting — unified skill
+# LDAP and XPath injection hunting — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### A. Discovery checklist — concrete places, params, headers, file types to look
 
 - LDAP-backed surfaces: corporate SSO/intranet login, "find a colleague"/org-chart/address-book search, group-membership checks, and any legacy Java/Spring/PHP or Windows/IIS "integrated auth" form.
@@ -21,10 +20,7 @@ agent_created: true
 - XPath injection lives in the same skill family: XML-backed auth/config, `//users/user[name/text()='...']`, and any XML data store queried with concatenated XPath.
 - Look for double-decoding layers: client-side validation of a first-decoded username followed by a second server-side decode before filter construction is a real, documented bypass (HackTricks / HTB Hercules).
 - Check whether the login is search-then-bind or search-only — a widened search alone does not bypass a later password bind. Only authorization checks that trust the search filter as the sole gate are bypassable.
-- Zimbra-style edge case: wildcard in an unescaped login changes which entry is selected; with external LDAP auth + lazy auto-provisioning this becomes a password-response oracle, and local per-account lockout does not apply when no local account exists.
-
-### Signals and surfaces
-
+- Zimbra-style edge case: wildcard in an unescaped login changes which entry is selected; with external LDAP auth + lazy auto-provisioning this becomes a password-response oracle, and local per-account lockout does not apply when no local account exists.### Signals and surfaces
 ### Crown Jewel Targets
 
 LDAP injection that bypasses authentication = **Critical**. Blind attribute
@@ -58,10 +54,7 @@ Error strings that confirm an LDAP backend:
   "Bad search filter"  /  net.ldap (Go)  /  python-ldap SERVER_DOWN
 ```
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### Phase 2 — Auth-bypass payloads (balance your parentheses)
 
 ```bash
@@ -111,10 +104,7 @@ balanced. An unbalanced filter = syntax error = NOT a bypass (false positive).
 - Extra-bind timing oracle: a zero-match search and a match+wrong-password bind return the same failure, but the latter costs an extra LDAP round trip — compare repeated latency for a candidate prefix vs an impossible one, and confirm with directory logs.
 - XPath equivalents: `' or '1'='1`, `' or ''='`, `admin' or '1'='1' or 'a'='b`, `x'] | //user/* | //user[name()='x` for blind node enumeration. XPath has no comment syntax — keep quotes/brackets balanced.
 - AD enumeration filters: `(&(objectClass=user)(objectCategory=person)(adminCount=1))`, `(userAccountControl:1.2.840.113556.1.4.803:=4194304)` (AS-REP roastable), `(serviceprincipalname=*)` for Kerberoasting, `(description=*pw*)` and `(description=*pass*)` for secrets admins stash in descriptions.
-- OPSEC-aware AD enumeration: hex-encode filter values (`\64\6F\6D\61\69\6E`), append junk after a wildcard (ANR ignores it), or use OID notation and comparison-operator obfuscation to reduce MDI detection/logging (2NS, 2025).
-
-### Validation and proof
-
+- OPSEC-aware AD enumeration: hex-encode filter values (`\64\6F\6D\61\69\6E`), append junk after a wildcard (ANR ignores it), or use OID notation and comparison-operator obfuscation to reduce MDI detection/logging (2NS, 2025).### Validation and proof
 ### Phase 6 — Tooling & OOB confirmation
 
 ```bash
@@ -223,10 +213,7 @@ WAF-block, and length-jitter explanations.
 - Auth bypass landing as admin/privileged directory entry: **Critical**
 - `userPassword` hash exfil (non-AD) or `description`-field credential read: **High**
 - AD user/group enumeration only: **Medium-High**
-- Blind boolean oracle confirmed but no useful attribute reachable: **Medium**
-
-### Escalation and related chains
-
+- Blind boolean oracle confirmed but no useful attribute reachable: **Medium**### Escalation and related chains
 ### Chain Table
 
 | LDAP finding | Chain to | Impact |
@@ -242,17 +229,11 @@ WAF-block, and length-jitter explanations.
 > chain. Against AD, the credential win comes from `description`/`info` misuse or
 > from enumerated usernames feeding a spray, never from `unicodePwd`.
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://cheatsheetseries.owasp.org/cheatsheets/LDAP_Injection_Prevention_Cheat_Sheet.html
-2. https://hacktricks.wiki/en/pentesting-web/ldap-injection.html
-
-### Additional notes
-
+2. https://hacktricks.wiki/en/pentesting-web/ldap-injection.html### Additional notes
 ### CRITICAL — Active Directory vs generic LDAP
 
 Do **not** conflate the two. They behave very differently:
@@ -406,16 +387,8 @@ for L in {a..z}; do echo "$L* -> $(count $L)  (vs control $CTRL)"; done
 # Then pivot to memberOf / description for privileged accounts:
 #   (&(sAMAccountName=*)(memberOf=*Domain Admins*))
 #   (description=*pw*)   (description=*pass*)   — admins stash secrets here
-```
+```## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `ldap`
-- `cbh` — `hunt-ldap`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

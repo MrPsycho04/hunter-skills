@@ -4,14 +4,13 @@ description: "Hunt login/OTP/token brute force, credential stuffing and enumerat
 agent_created: true
 ---
 
-# Weak rate-limiting and brute-force hunting — unified skill
+# Weak rate-limiting and brute-force hunting — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Autonomous Testing Priority
 
 **Work within your turn budget — prioritize signal over volume.**
@@ -56,10 +55,7 @@ Research basis: HackTricks "Rate Limit Bypass" (endpoint variants, blank charact
 - **Parallel-issuance endpoints:** OTP send/resend endpoints may have a different (or no) limit versus the verify endpoint — test both.
 - **Normalisation pairs:** `user@x` vs `USER@x` vs `user@x.` vs percent-encoded forms — the limiter and authenticator may disagree.
 - **Single-packet preconditions:** confirm HTTP/2 support and that the target tolerates 20 simultaneous streams before relying on the race.
-- **Lockout semantics:** does a *successful* login reset the failure counter? Does a failure on one login path count on another (SSO, mobile API)?
-
-### Signals and surfaces
-
+- **Lockout semantics:** does a *successful* login reset the failure counter? Does a failure on one login path count on another (SSO, mobile API)?### Signals and surfaces
 ### Crown Jewel Targets
 
 OTP brute force (6-digit = 1,000,000 combinations) with no effective rate limit = Critical ATO bypass.
@@ -71,10 +67,7 @@ OTP brute force (6-digit = 1,000,000 combinations) with no effective rate limit 
 - **Coupon / gift-card / referral code brute** — no rate limit on code validation → financial impact
 - **ReDoS** — attacker-controlled input hits a catastrophic-backtracking regex → CPU exhaustion → DoS
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### Phase 4 — IP / Source Rotation Bypass
 
 ```bash
@@ -106,10 +99,7 @@ done
 - **Fixed-window boundary burst** using `X-RateLimit-Reset`: maximum burst just before reset plus another immediately after ≈ 2× nominal allowance.
 - **CDN PoP sharding / authorized egress rotation:** one quota per data center; validate only with tester-owned proxies inside scope.
 - **Session/CSRF rotation and "keep trying":** a new session or new CSRF cookie+token pair may reset the counter; and even after a 401 throttle begins, a *valid* OTP may still return 200 (the "closed Intruder too soon" ATO pattern) — don't stop early.
-- **Lockout DoS (inverse):** with only a test account, send wrong passwords from a second IP until lockout, then try the correct password from the owner's context; measure lock duration, whether failures extend it, and whether SSO/mobile/API paths are also blocked.
-
-### Validation and proof
-
+- **Lockout DoS (inverse):** with only a test account, send wrong passwords from a second IP until lockout, then try the correct password from the owner's context; measure lock duration, whether failures extend it, and whether SSO/mobile/API paths are also blocked.### Validation and proof
 ### Validation — false-positive discipline
 
 Before writing the report, each must hold:
@@ -155,10 +145,7 @@ Before writing the report, each must hold:
 - **Enumeration evidence:** ≥20 samples per side, compare medians, and ensure the difference is server state (valid user) not server policy (generic message).
 - **Keyspace bound:** state the exact code length and rotation interval observed; 4-digit codes with session rotation differ in severity from 6-digit rotating codes.
 - **Tool reproducibility:** include the Turbo Intruder gate script or `h2load` command in the report so a triager can replay the connection-count claim.
-- **Severity discipline:** a rate-limit gap with no reachable outcome (no session, no data, no DoS) is informational, not Medium.
-
-### Escalation and related chains
-
+- **Severity discipline:** a rate-limit gap with no reachable outcome (no session, no data, no DoS) is informational, not Medium.### Escalation and related chains
 ### Chain Table
 
 | Finding | Chain to | Impact |
@@ -171,17 +158,11 @@ Before writing the report, each must hold:
 | ReDoS on a public input field | Single-request CPU exhaustion → DoS | Medium–High |
 | Hard lockout triggerable by attacker | Targeted account DoS (lock victim out) | Medium |
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://hacktricks.wiki/en/pentesting-web/rate-limit-bypass.html
-2. https://portswigger.net/research/cracking-recaptcha-turbo-intruder-style
-
-### Additional notes
-
+2. https://portswigger.net/research/cracking-recaptcha-turbo-intruder-style### Additional notes
 ### CRITICAL: Four rate-limit states — do not collapse them
 
 A `200`/`401` with no `429` does **not** mean "no rate limiting". A rate-limiting
@@ -373,16 +354,8 @@ hydra -l admin@target.com -P ~/wordlists/top-1000.txt "$TARGET" \
 nuclei -u "https://$TARGET" -t http/fuzzing/ -t http/default-logins/ -severity medium,high,critical
 ```
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `brute-force`
-- `cbh` — `hunt-brute-force`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

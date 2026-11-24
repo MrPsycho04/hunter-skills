@@ -4,13 +4,13 @@ description: "Use for APK/IPA analysis, deep links, WebViews, exported component
 agent_created: true
 ---
 
-# Mobile App and Client-Side Flaws — unified skill
+# Mobile App and Client-Side Flaws — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across h1skills, hunting and the local HackerOne corpus is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across h1skills, hunting and grounded in 15,259 disclosed HackerOne reports. Payloads, wordlists and supporting data are in `references/`.
 
-## Corpus evidence — 49 valid HackerOne reports (14 paid / 29%)
+## Corpus signal — 49 valid reports (14 paid / 29%)
 
-Every disclosed report is valid; payment is an impact signal, not a validity test.
+Every disclosed report is valid; payment is an impact signal, not a validity test. Full technique frequencies, case studies and approach patterns: `references/evidence.md`.
 
 ### Techniques ranked across ALL valid reports
 
@@ -28,92 +28,6 @@ Every disclosed report is valid; payment is an impact signal, not a validity tes
 | fuzzing / wordlist brute force | 2 |
 | DOM / HTML source inspection | 2 |
 | public source-code / repo review | 2 |
-|  HosT/absolute-URL reset poisoning | 1 |
-| Content-Type / body-format switch | 1 |
-| header injection (Host / X-Forwarded / etc.) | 1 |
-| parameter pollution / duplicate keys | 1 |
-| search-engine dorking | 1 |
-| error message / stack trace probing | 1 |
-| parser confusion / normalization | 1 |
-| race / concurrency / timing | 1 |
-| subdomain / DNS / cert-transparency recon | 1 |
-
-### Parameters observed in writeups
-
-`str4` (2), `str5` (2), `localbundle` (1), `str1` (1), `str2` (1), `str3` (1), `localhttpmethod` (1), `exported` (1), `report_id` (1), `view` (1), `text_query` (1), `sort_type` (1), `sort_direction` (1), `limit` (1), `page` (1)
-
-### Bypass primitives observed
-
-`bypass` (5), `bypassed` (4), `content-type` (1), `trailing dot` (1), `bypassing` (1), `normalization` (1), `normalized` (1), `unicode` (1)
-
-### Impact language observed
-
-`password` (13), `admin` (13), `token` (12), `unauthorized` (3), `credential` (2), `privilege escalation` (1), `remote code execution` (1), `arbitrary code` (1), `secret` (1)
-
-### Case studies — full excerpts (paid and unpaid)
-
-#### [1189162](https://hackerone.com/reports/1189162) — End to end encryption public key is not properly verified on Desktop and Android
-
-Nextcloud · $1500 · medium
-
-Since last time when I reported something on multiple platforms you seems to prefer handling it in 1 spot. I now just do one. Let me know if You want me to fill separate for android as well. This issue does not seem to happen on iOS as there a test string is encrypted and decrypted, in short binding the keypair. So the attack vector results in weird behavior but that seems to be due to random bugs in the end to end encryption implementations (because I also ran into those when just messing around with the end to end encryption). In any case there should be a big error if this happens. 1. userA has an account on serverA 2. End2End encryption is enabled on serverA 3. userA setups device1 and enabled end to end encryption. Stores the nonce. Uploads some data. All is good. 4. Now an attacker obtains access to the server, for sake of argument assume there is an evil Admin. 5. They replace the public key of userA with their own 6. userA now setups device2 7, userA enters the nonce 8. userA uploads more data 9. the evil admin now has access to the uploaded data ## Impact In short it breaks the whole premise of your end to end encryption. An evil admin is able to make the device encrypt to their key. It is even in the RFC: "Client checks if private key belongs to previously downloaded public certificate." Recommendations: 1. the clients should verify that the private key matches with t
-
-#### [519059](https://hackerone.com/reports/519059) — Protected Tweets setting overridden by Android app
-
-X / xAI · $560 · low
-
-**Summary:** Protected Tweets setting overridden by Android app **Description:** The Android app overrides the "Protect your Tweets" setting set from outside the app in some cases when changing other settings. ## Steps To Reproduce: 1. Log in to an account with unprotected tweets on the Android app. 1. Log in to the same account on mobile.twitter.com and turn on protected tweets. 1. Confirm that the account's tweets are protected. 1. In the Android app, go to the Direct Messages tab, click the gear icon and change a setting such as "Receive message requests" or "Show read receipts." 1. The account's tweets are now unprotected. If this does not work, you may have to first explicitly unset the protected tweets setting in the Android app before setting it elsewhere. ## Impact: This can cause a user's tweets to unknowingly become public. It is possible this could be exploited by an attacker asking the user to change their settings but that is less likely to succeed than with the previous bug where only changing the email address was required. ## Impact See above.
-
-#### [1189168](https://hackerone.com/reports/1189168) — Android app does not clear end to end encryption keys
-
-Nextcloud · $100 · low
-
-1. userA on serverA sets up end to end encryption on their android device 2. userA has some end to end encrypted data 3. userA removes their account on serverA from their android device (for whatever reason) 4. attacker (evil admin) obtains the device of userA 5. attacker (evil admin) logs in on the account of userA (reset the pw and just log in) 6. attacker (evil admin) can see and access all encrypted files ## Impact While I believe the impact is minimal since you need to obtain the device of the victim. Once you remove your account all information regarding that account should be removed. * the keys * the mnemonic And certainly when you re-add an account you should be asked to enter your mnemonic!
-
-#### [57764](https://hackerone.com/reports/57764) — ByPassing the email Validation Email on Sign up process in mobile apps
-
-Coinbase · $100 · severity n/a
-
-Hi, According to the design When the new user sign up using mobile apps(android,ios).It will ask for the confirmation of the email.It will send a confirmation mail to mail id and a screen will also appear in the mobile app. The user needs to open the email in the device then the screen will Off and user will successfully login. Bypass: Here simply we can bypass this validation and can successfully login to the application without verifying the validation email which comes to the user.Using this the attacker can create so many spoofed accounts. 1.Sign for new user using email id and password 2.Next screen will appear saying please click on the validation which sent to proceed further 3.Here in the second screen click the back button now you will go to Login screen 4.Now login with the creds which you have given in the registration process 5.Now you will successfully login to the application 6.Here it is not asking for email verification email. Pls follow above procedure to reproduce the issue. Pls respond to remaining bugs which I had reported Thanks, kaleem
-
-#### [1454002](https://hackerone.com/reports/1454002) — Theft of protected files on Android
-
-ownCloud · $50 · low
-
-There is an issue that allows to retrieve any files from protected directory of application - . The issue is caused by exported activity with intent filter that accepts URI of files for upload. Any 3rd-party application could start this activity and upload on server any files such as database file from protected directory in context of owncloud application. Tested on latest stable version of app - 2.19. Version of android - 11. Java PoC: **Mitigation:** There is valid protection for preventing reading files from directory in similar intent-filter . Copy this protection for . ## Impact Potential attacker could steal files from protected directory of application for example files of databases, cache and history of files.
-
-#### [2553026](https://hackerone.com/reports/2553026) — Domain highlighting on External link warning is not working on Chrome & Microsoft Edge browsers on Mobile
-
-HackerOne · no bounty — still valid · low
-
-There have been multiple issues with External Link Warning in the past. Sometimes it's Homograph, sometimes more than 2 slashes in link, sometimes domain highlighting and/or weird markdown. And these all have been fixed. Recently, I've noticed a strange issue with Chrome and Edge browsers on mobile. The highlighting of domains doesn't work at all on External Link Warning interstitial page. None of the links are highlighted. Similar issues were fixed in the past by HackerOne (you can see the bug references below). It seems like these problems have appeared again in the code. ### Steps To Reproduce 1. Log into your account on your mobile from either Latest version of Microsoft Edge browser or Google Chrome. 1. Click on links mentioned below in **Impact** section. 1. Observe that none External link warning interstitial page highlights domain. ## Test cases: Google Chrome, Microsoft Edge & Firefox👇 - Below are the images from Chrome browser along with Chrome's details: {F3363744} {F3363747} {F3363766} - Below are the images from Microsoft Edge browser along with Edge's details: {F3362316} {F3362317} {F3363753} - Below are the images from Firefox Browser along with Firefox's details: {F3362321} {F3362323} {F3363752} ## Impact - Browsers automatically convert decimal to IP address. Upon clicking the link from mobile on Edge or Chrome browser, nothing is highlighted in External link w
-
-#### [328486](https://hackerone.com/reports/328486) — [Zomato Android/iOS] Theft of user session
-
-Eternal · no bounty — still valid · severity n/a
-
-Hi, I'd like to report a bug which allows to theft user data even without installing third-party apps. Activity is exported, and can be accessed by browser. When any WebView (in a client app, or a browser) meets a URL it will automatically launch Zomato app. File File PoC video is very simple: {F277437} Code on local server: All tokens were sent to Google page: {F277440} Third-party apps can also attack your app, PoC from ADB: Hopefully in this case the latest app, but not 2 year old build :) ## Impact 1) Leakage of user tokens to arbitrary sites 2) XSS/Ability of open arbitrary sites in your internal WebView
-
-### Recurring approach patterns from real reports
-
-- 1× i have already tried to logout from my twitter apps including from built in twitter apps for ios and then i already reboot the idevice too
-- 1× so when testing i entered the random mobile number and twitter says that verification code sent to the mobile number and asking for the verification code i cant provide the code coz i entered the random number
-- 1× hello i have recently found several critical vulnerabilities in odnoklassniki android application which is one of your projects thus i am reporting it here
-- 1× you have been tricked u putextra conversation id u putextra mediatopic id u putextra dsc id user photo getactivity sendbroadcast u another vulnerability that i have found is unauthorized intent receipt in this certain case it is unauthorized notification message receipt
-- 1× when logging in to an account on the website a user s account gets locked out after tries to prevent an attacker from brute forcing access to the account
-- 1× these same restrictions do not apply to the mobile sign in endpoint a post request to which allows an attacker to brute force login of any user s account i have attempted logging into my account times with no restrictions
-- 1× as an example i found a list of the most common passwords and added my own password somewhere in the list
-- 1× products affected in ios affected is the latest version in android affected in brave latest version steps to reproduce i created a html code which would spoof address bar of brave browser bravespoof html in the attachments
-- 1× as we can understand the code contains a form which i have created just to demonstrate a look a like impact where it asks for username and password of any user
-- 1× additionally to complete the exploit i used setinterval function to execute the function f continuously after every milliseconds
-- 1× i tested the same on many browsers and brave turned out to be affected
-- 1× hey summary i ve found an address bar spoofing vulnerability in the latest version of brave for ios
-- 1× today i discovered that search engines can access the private users messages otp pins group invites information etc it happens because the host allows search indexing and can leak the auth token to the search engines which also can lead to privilege escalation
-- 1× when vieving notifications section on the app i noticed the unsecure get request to the i was surprised when tried to repeat it in the browser it gave me access to my messages
-- 1× hello i want to report the vulnerability found since the following activity com application zomatomerchant home homesalt has exported true it can be exploited by another application
-- 1× malicious apps can thus crash the nextcloud client by sending following data in intent nc login
-- 1× recently i ve noticed a strange issue with chrome and edge browsers on mobile
-- 1× reference bugs fixed in past by hackerone multiple issues with markdown and url parsing fake url additional vectors for homograph attack homograph fix bypass
 
 ## Corpus-backed method (this class)
 
@@ -141,18 +55,13 @@ Hi, I'd like to report a bug which allows to theft user data even without instal
 - Client secret -> API access -> cross-tenant data.
 - Deep link -> WebView injection -> local data theft.
 
-### Probes
-
-- Decompile grep for keys/URLs; inspect AndroidManifest exported components; enumerate custom URL schemes.
-
 ### Veteran tip
 
 Treat the mobile app as a rich source of API surface and secrets; the highest-impact bugs are usually on the server.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Quick wins
 
 Start here. These are the highest-yield tests for this class.
@@ -179,10 +88,7 @@ Start here. These are the highest-yield tests for this class.
 - **Pattern 3 — Intent redirection into private components.** Exported activity extracts a nested Intent from extras (or `Intent.parseUri()` on an `intent://` URL) and calls `startActivity()` → launches non-exported activities, ContentProviders, and can grant `FLAG_GRANT_READ_URI_PERMISSION` for file theft. **GHSL-2026-103 / CVE-2026-65994** (Wikipedia `PageActivity` → `SingleWebViewActivity`, JavaScript enabled + cookie-proxying OkHttp client, no domain validation). **EngageSDK (Microsoft, Apr 2026)**: intent redirection in a 3rd-party SDK, 50M+ installs across crypto wallets; fixed in v5.2.1 by making the activity non-exported. **CVE-2025-21079** (Samsung Members, Pwn2Own 2025): WebView 302 → `intent:` URI → `Intent.parseUri` → arbitrary exported activity, one-click via `CATEGORY_BROWSABLE`.
 - **Pattern 4 — WebView as second-stage amplifier.** Authenticated WebView carries session cookies, localStorage, JS bridges, file access. Wikipedia's `OkHttpWebViewClient` injected `Access-Control-Allow-Origin: *` on every proxied response (same-origin-policy bypass → authenticated cross-origin reads). Message-handler actions (`{"action":"link"}` etc.) can open arbitrary URLs / `geo:` / `mailto:` intents or autoplay attacker audio.
 - **Pattern 5 — Expired whitelist domain takeover.** The whitelist is not bypassed; a whitelisted domain expired and was re-registered by the attacker. Android checks pass, but the app sends auth headers to the attacker. Static analysis cannot detect ownership changes — needs runtime + domain-registration history checks (Oversecured, Apr 2026).
-- **iOS equivalents:** custom URL schemes (validate input AND source application — MASTG-BEST-0054/0055), ATS exceptions in `Info.plist`, Keychain items with `kSecAttrAccessibleAlways` / `AfterFirstUnlock` instead of `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`, plaintext plists in the app container, jailbreak-detection and SSL-pinning implementations. MASVS v2.1 / MASTG v2 / MASWE (2026 refactoring) are the current mapping — profiles L1 / L2 / R / P replace the old verification levels.
-
-### Signals and surfaces
-
+- **iOS equivalents:** custom URL schemes (validate input AND source application — MASTG-BEST-0054/0055), ATS exceptions in `Info.plist`, Keychain items with `kSecAttrAccessibleAlways` / `AfterFirstUnlock` instead of `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`, plaintext plists in the app container, jailbreak-detection and SSL-pinning implementations. MASVS v2.1 / MASTG v2 / MASWE (2026 refactoring) are the current mapping — profiles L1 / L2 / R / P replace the old verification levels.### Signals and surfaces
 ### Signal
 
 - Reports: **198** · paid: **67**
@@ -206,10 +112,7 @@ Start here. These are the highest-yield tests for this class.
 
 Parameters, endpoints, and fields that commonly carry this bug:
 
-`deeplink` `intent` `webview` `keystore` `shared_prefs` `keychain`
-
-### Techniques, payloads and bypasses
-
+`deeplink` `intent` `webview` `keystore` `shared_prefs` `keychain`### Techniques and bypasses
 ### Payloads & probes
 
 - Deep link -> `app://open?url=https://evil.com` `app://webview?url=javascript:...`
@@ -344,10 +247,7 @@ file download /var/mobile/Containers/Data/Application/<UUID>/Library/Preferences
 # class-dump -H <binary> -o headers/ ; strings <binary> | grep -iE 'key|secret|token|password|api'
 ```
 
-Chains to test in order: **custom scheme hijack → captured OAuth code → token (PKCE absent)**; **deep link open-redirect → authenticated WebView → cookie/token exfil**; **exported activity → nested Intent → non-exported ContentProvider → file read**.
-
-### Validation and proof
-
+Chains to test in order: **custom scheme hijack → captured OAuth code → token (PKCE absent)**; **deep link open-redirect → authenticated WebView → cookie/token exfil**; **exported activity → nested Intent → non-exported ContentProvider → file read**.### Validation and proof
 ### Reporting bar
 
 - Prove real impact on a second controlled account or a safe callback.
@@ -369,17 +269,11 @@ Chains to test in order: **custom scheme hijack → captured OAuth code → toke
 - **Static-analysis blind spots:** host-string checks can look correct while the whitelisted domain has expired (Pattern 5), and SDK code may be the vulnerable layer (EngageSDK) rather than first-party code. Always confirm at runtime with a controlled domain.
 - **WebView context is the amplifier:** require evidence that the loaded page actually had cookies/localStorage/JS bridge access (e.g., `setCookies()`/`loadForRequest()` call, `javaScriptEnabled=true`), not just "WebView navigated to attacker.com". An `Access-Control-Allow-Origin: *` injection must be shown enabling a cross-origin authenticated read.
 - **iOS caveats:** keychain `kSecAttrAccessibleAlways` is a real finding only if the item is a secret; `env`/plist dumps on a simulator do not prove file-protection or Secure Enclave behavior. Check the actual accessibility class (`aku` = WhenUnlockedThisDeviceOnly is the safe value; `ak`, `dk`, `ck` are violations) and note jailbreak/simulator limitations in the report. A clean advisory/OSV lookup is not proof of absence.
-- **MASVS mapping:** Android findings → MASVS-PLATFORM / MASTG-KNOW-0019; iOS → MASVS-STORAGE / NETWORK / PLATFORM; cite MASWE weakness IDs from the 2026 mapping where possible. Severity: token theft / WebView takeover = Critical; intent redirection to private data = High; missing `autoVerify`/scheme collision without a sensitive callback = Medium.
-
-### Escalation and related chains
-
+- **MASVS mapping:** Android findings → MASVS-PLATFORM / MASTG-KNOW-0019; iOS → MASVS-STORAGE / NETWORK / PLATFORM; cite MASWE weakness IDs from the 2026 mapping where possible. Severity: token theft / WebView takeover = Critical; intent redirection to private data = High; missing `autoVerify`/scheme collision without a sensitive callback = Medium.### Escalation and related chains
 ### Escalation chains
 
 - Deeplink -> token theft.
-- WebView bridge -> RCE.
-
-### Tools and wordlists
-
+- WebView bridge -> RCE.### Tools
 ### Tools
 
 `apktool` · `jadx` · `Frida` · `objection` · `MobSF`
@@ -415,10 +309,7 @@ nuclei -u https://target -t ~/nuclei-templates/http/misconfiguration \
 # authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
 ```
 
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Sources and related reading
-
+Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.### Sources and related reading
 ### Query the corpus
 
 ```sh
@@ -463,10 +354,7 @@ python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class mobi
 13. https://owasp.github.io/DevSecOpsGuideline/2-Process/2-4-Test/2-4-3-Mobile-Application-Security-Test
 14. https://payloadplayground.com/blog/ios-security-testing-guide
 15. https://www.redfoxsec.com/blog/ios-pen-testing-with-objection-a-complete-guide-for-security-professionals
-16. https://codezup.com/ios-app-security-auditing-guide
-
-### Additional notes
-
+16. https://codezup.com/ios-app-security-auditing-guide### Additional notes
 ### Parameters observed
 
 `view` · `url` · `diff` · `navigation_bar_title` · `id` · `raw_json` · `include_zero_rate` · `settings_version` · `ro` · `auth_token` · `session` · `screenType` · `report_id` · `text_query` · `sort_type` · `sort_direction` · `limit` · `page` · `path` · `name`
@@ -494,159 +382,8 @@ python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class mobi
 ### [PayPal Android] Remote theft of user session using push_notification_webview deeplink
 
 `#424443` · PayPal · $0 · medium · 2019-02-07 · ▲188
-> A deeplink feature built into the PayPal Android application failed to validate the requested endpoint. A specifically crafted request from a website or separate app on the device could call the deeplink and direct traffic to any destination. While the impact was limited by compensating controls, headers containing sensitive data could be collected by a malicious actor.
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# Mobile Application Security — HackerOne field guide — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payloads & probes
-
-
-
-- Deep link -> `app://open?url=https://evil.com` `app://webview?url=javascript:...`
-
-- WebView -> `addJavascriptInterface` abuse
-
-- Backup -> extract shared_prefs / Keychain
-
-
-
-## Payload fragments observed
-
-
-
-Recurring payloads from this class's writeups. Adapt, don't paste blindly.
-
-
-
-| Seen | Fragment |
-
-|---:|---|
-
-| 2× | `www.pscp.tv/<user-id>/follow` |
-
-| 2× | `<meta>` |
-
-| 2× | `../../../lib-1/libjnigraphics.so` |
-
-| 1× | `) could lead that an arbtrary URL was opened in a built-in browser in activity` |
-
-| 1× | `pscp://user/<user-id> or pscpd://user/<user-id>` |
-
-| 1× | `and be the connected to the Grab account on Android app) - or you can use my test number` |
-
-| 1× | `<script>alert('Javascript is executed.')</script>` |
-
-| 1× | `alert()` |
-
-| 1× | `DELETE /api/v1/logout HTTP/1.1 / authorization: Bearer atkn_********************************** / Host: accounts.shopify.com / Connection: cl` |
-
-| 1× | `GET /oauth/userinfo HTTP/1.1 / Accept-Encoding: gzip, deflate / authorization: Bearer *************** / ....` |
-
-| 1× | `adb shell / am start -n com.quora.android/com.quora.android.ActionBarContentActivity -e url 'http://test/test' -e html 'XSS<script>alert(123` |
-
-| 1× | `am start -n com.quora.android/com.quora.android.ModalContentActivity -e url 'http://test/test' -e html '<script>alert(QuoraAndroid.getClipbo` |
-
-| 1× | `Intent i = new Intent(); / i.setComponent(new ComponentName("com.quora.android","com.quora.android.ActionBarContentActivity")); / i.putExtra` |
-
-| 1× | `HTTP/1.1 400 Bad Request / Content-Encoding: gzip / Content-Type: application/json; charset=utf-8 / Date: Tue, 31 Jan 2017 17:45:43 GMT / X-` |
-
-| 1× | `ImageList.fetchImageInfo(..)` |
-
-| 1× | `<script> / location="https://www.google.com/search?q=</title><h1><marquee><s>Injection<!--" / </script>` |
-
-| 1× | `<body> / <a href="intent://app/feedback#Intent;scheme=mymos;package=█████████;S.URL=javascript:(function() { alert('XSS by Cleanchain') })()` |
-
-| 1× | `../../../../../../../data/data/jp.naver.line.android/files/something` |
-
-| 1× | `getLastPathSegment()` |
-
-| 1× | `file:///data/data/com.attacker/x/x/x/x/..%2F..%2F..%2F..%2Fsdcard%2Fprefs.xml` |
-
-
-
-## Parameters observed
-
-
-
-`view` · `url` · `diff` · `navigation_bar_title` · `id` · `raw_json` · `include_zero_rate` · `settings_version` · `ro` · `auth_token` · `session` · `screenType` · `report_id` · `text_query` · `sort_type` · `sort_direction` · `limit` · `page` · `path` · `name`
-
-
-
-## Wordlists
-
-
-
-Mined from this class's writeups and ready for `ffuf`/`feroxbuster`. Paths and parameters recur across programs; verify each hit.
-
-
-
-| File | Entries |
-
-|---|---:|
-
-| `~/.local/share/hackerone-reports/wordlists/paths_mobile.txt` | 77 |
-
-| `~/.local/share/hackerone-reports/wordlists/params_mobile.txt` | 35 |
-
-| `~/.local/share/hackerone-reports/wordlists/paths.txt` (global) | 500 |
-
-| `~/.local/share/hackerone-reports/wordlists/params.txt` (global) | 400 |
-
-
-
-```sh
-
-W=~/.local/share/hackerone-reports/wordlists
-
-ffuf -u https://target/FUZZ -w $W/paths_mobile.txt \
-
-     -mc all -fc 404 -fs 0 -rate 40
-
-ffuf -u 'https://target/api?FUZZ=canary' -w $W/params_mobile.txt \
-
-     -mr 'canary|error|invalid|not found' -rate 40
-
-```
-
-
-
-## Nuclei
-
-
-
-Nuclei only sees the backend. Decompile the app and test deep links, WebViews, and local storage manually.
-
-
-
-```sh
-
-nuclei -u https://target -tags android,ios \
-
-       -severity low,medium,high,critical -rl 40 -o nuclei_mobile.txt
-
-nuclei -u https://target -t ~/nuclei-templates/http/misconfiguration \
-
-       -rl 40 -o nuclei_mobile_misconfiguration.txt
-
-# authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
-
-```
-
-
-
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Companion: hunting / references/techniques.md
+> A deeplink feature built into the PayPal Android application failed to validate the requested endpoint. A specifically crafted request from a website or separate app on the device could call the deeplink and direct traffic to any destination. While the impact was limited by compensating controls, headers containing sensitive data could be collected by a malicious actor.### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # Mobile Application Security — HackerOne field guide — Technique reference
 
@@ -902,141 +639,13 @@ python3 ~/.local/share/hackerone-reports/h1.py search "wordpress" --class mobile
 
 python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class mobile --min-bounty 1000
 
-```
+```## Probes
 
-## Corpus wordlists (mined)
+- Decompile grep for keys/URLs; inspect AndroidManifest exported components; enumerate custom URL schemes.
 
-### `params_mobile.txt`
+## Supporting data
 
-```text
-view
-url
-diff
-navigation_bar_title
-id
-raw_json
-include_zero_rate
-settings_version
-ro
-auth_token
-session
-screenType
-report_id
-text_query
-sort_type
-sort_direction
-limit
-page
-path
-name
-search
-usp
-feature
-sr_detail
-expand_srs
-from_detail
-api_type
-always_show_media
-request_timestamp
-token
-package_name
-product_id
-correlation_id
-mt
-dl
-```
-
-### `paths_mobile.txt`
-
-```text
-/data/data/
-/passenger/passenger.html
-/follow
-/reference/android/support/v4/content/LocalBroadcastManager.html
-/settings
-/edited/page2.html
-/blog/account-takeover-kayak/
-/oks██████
-/data/user/0/com.owncloud.android/
-/v1_1/reverb/usage
-/en/manual/products
-/admin/products
-/download/safest_file
-/api/passenger/v2/profiles/activationsms
-/api/passenger/v2/profiles/activate
-/cspmeta.php
-/web3attack.php
-/cspheader.php
-/oauth/userinfo
-/api/v1/logout
-/.json
-/test
-/odt
-/api/passenger/v2/profiles/edit
-/HEAD/docs/security/url_display_guidelines/url_display_guidelines.md
-/chromium/src/+/HEAD/docs/security/url_display_guidelines/url_display_guidelines.md
-/brave
-/api/v2/gold/android/verify_purchase
-/1.1/help/settings.json
-/security/chromiumwebview/cve-2020-6506-keypress-2.html
-/security/chromiumwebview/cve-2020-6506.html
-/2020/06/stable-channel-update-for-desktop_15.html
-/x/x/x/x/
-/data/data/com.irccloud.android/shared_prefs/prefs.xml
-/data/data/com.irccloud.android/cache/
-/data/data/com.attacker/sdcard/prefs.xml
-/iOS
-/data/data/com.evernote/lib-1/libjnigraphics.so
-/data/data/com.evernote/cache/preview/:UUID/
-/documentation/webkit/wkpreferences
-/data/data/pwn.pwn/
-/data/data/com.exness.android.pa/app_webview/Cookies
-/r/
-/data/data/pwn.pwn/pwn.html
-/data/data/com.nextcloud.client
-/data/data/com.nextcloud.client/shared_prefs/com.nextcloud.client_preferences.xml
-/storage/emulated/0/Android/media/com.nextcloud.client
-/data/data/com.quora.android/app_webview/Cookies
-/cloudflare-one/connections/connect-devices/warp/warp-settings/
-/guide/topics/manifest/intent-filter-element.html
-/google_login_auth
-/api/v2/users/google_login_auth
-/s/zionksi1pt7lot5/Coinbase-Android.mov
-/data/user/0/com.nextcloud.client/
-/data/data
-/data/user/0/
-/reference/android/content/BroadcastReceiver.html
-/oauth/token
-/security/threat-model/
-/data/data/co.vine.android/databases/webview.db
-/tools/drozer/
-/xxxx
-/blob.html
-/community/metasploit/blog/2015/01/02/2014-a-year-of-android-exploits-in-metasploit
-/cve/CVE-2013-4710/
-/apn-unregister
-/driver_invitations
-/referrals/
-/urlschemes/facetime.html
-/data/definitions/926.html
-/sdcard/Android/media/com.nextcloud.client/nextcloud/ACCOUNT/
-/in/app/brave-web-browser/id1052879175
-/aas.do
-/metrics
-/s/acvr4g7lv63tti5/runtime%20manipulation%20coinbase.mov
-/portal/visitor-log/
-/stream
-```
-
-## Source skills merged into this topic
-
-- `h1skills` — `hackerone-mobile`
-- `hunting` — `mobile`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 2 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/evidence.md` — corpus technique frequencies, case studies, approach patterns
+- `references/payloads.md` — curated payload bank + upstream payload references
+- `references/wordlists/` — 2 mined paths/params/payload lists
 - `bbhunt-methodology` — orchestrator, state machine and class router

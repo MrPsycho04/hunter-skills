@@ -4,14 +4,13 @@ description: "Hunt username enumeration, token exposure, weak generation, reusab
 agent_created: true
 ---
 
-# Account-recovery flaw hunting — unified skill
+# Account-recovery flaw hunting — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Autonomous Testing Priority
 
 **Start with username enumeration — it's the fastest win and gates the rest.**
@@ -60,10 +59,7 @@ Research basis: the OWASP Forgot Password Cheat Sheet (general practices, URL to
 - **Resend path:** request a reset, then hit "resend" with modified Host/email — several real cases were poisonable only on the resend path.
 - **GraphQL/mobile/websocket surface:** query the reset flow through alternate clients; token fields may be named differently there and leak in debug/polling responses.
 - **Canary accounts:** keep two test accounts (A attacker, B victim) to prove cross-account token/identifier confusion rather than a self-reset.
-- **Recovery-info state:** after reset, are recovery email/phone/MFA methods preserved or replaced? Newly changed recovery info must not be the only proof for account recovery.
-
-### Techniques, payloads and bypasses
-
+- **Recovery-info state:** after reset, are recovery email/phone/MFA methods preserved or replaced? Newly changed recovery info must not be the only proof for account recovery.### Techniques and bypasses
 ### B. Techniques & bypasses — specific actionable techniques/payload shapes
 
 - **Host-header poisoning for link takeover.** Set `Host: attacker.tld` and override headers (`X-Forwarded-Host`, `Forwarded`, `X-Host`, `X-Original-Host`). OWASP says URLs must be hard-coded or allow-listed; a URL built from the header points at you. Note: mail-security scanners and preview services may auto-fetch the link, so the victim need not click.
@@ -76,10 +72,7 @@ Research basis: the OWASP Forgot Password Cheat Sheet (general practices, URL to
 - **Registration-as-reset (upsert).** A signup handler that silently updates an existing email with a supplied password is a pre-auth reset: `{"email":"victim@x","password":"New@12345"}`. Likewise look for `action=change_password` + `user_name` with `skipOldPwdCheck=true`.
 - **OTP attempt-counter reset via session rotation** (weak 4-digit codes): rotate the session cookie after N failures; if the counter is session-scoped, brute force becomes feasible. Note the OTP changes too — use randomized guessing, not sequential.
 - **Token generation reverse-engineering:** timestamp / userID / email / first+last name / DOB bases; check UUIDv1; compare many tokens in parallel for identical values or constant deltas; quantify with Burp Sequencer (`ent` as fallback).
-- **Response manipulation** (swap a bad response for a good one) is worth testing but is usually client-side only — see proof bar.
-
-### Validation and proof
-
+- **Response manipulation** (swap a bad response for a good one) is worth testing but is usually client-side only — see proof bar.### Validation and proof
 ### C. Validation / proof bar — how to confirm and avoid false positives
 
 - **Gold standard:** request a reset for a test account you control, then actually change that account's password with the captured/forged token and log in. Nothing short of a state change is an ATO.
@@ -96,10 +89,7 @@ Research basis: the OWASP Forgot Password Cheat Sheet (general practices, URL to
 - **Token entropy evidence:** Burp Sequencer effective-bits or a decoded timestamp/counter — "looks short" is not evidence.
 - **Bounty-report note:** cite the primitive here (enumeration, token reuse, poisoning) and hand the full takeover chain to `account-takeover`; don't claim ATO from enumeration alone.
 - **Resend-vs-first-request evidence:** if both paths are poisonable, show which one leaks the token; if only one, include both request captures in the report.
-- **Uniform-response check:** OWASP requires both message consistency and timing consistency — a correct-looking message that arrives 150ms faster for existing accounts is still enumeration.
-
-### Escalation and related chains
-
+- **Uniform-response check:** OWASP requires both message consistency and timing consistency — a correct-looking message that arrives 150ms faster for existing accounts is still enumeration.### Escalation and related chains
 ### Related Skills
 
 - **`account-takeover`** — owns the account-takeover CHAIN (password-reset is its path #1). This skill finds/proves the recovery-flow primitive; hand off to account-takeover to assemble the full takeover.
@@ -114,17 +104,11 @@ Research basis: the OWASP Forgot Password Cheat Sheet (general practices, URL to
 - **`hunt-cache-poison`** — host-header injection during reset email generation (different vulnerability, same flow)
 - **`hunt-brute-force`** — rate-limit testing pattern applies to the reset endpoint too
 - **`hunt-auth-bypass`** — if the reset flow can be skipped entirely (go to `/reset-password?token=` with empty/null token)
-- **`hunt-mfa-bypass`** — if MFA is required after reset, test the bypass there
-
-### Sources and related reading
-
+- **`hunt-mfa-bypass`** — if MFA is required after reset, test the bypass there### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html
-2. https://hacktricks.wiki/en/pentesting-web/reset-password.html
-
-### Additional notes
-
+2. https://hacktricks.wiki/en/pentesting-web/reset-password.html### Additional notes
 ### 1. Username Enumeration via Password Reset
 
 Different error messages for valid vs invalid accounts leaks the user list without authentication. Even timing differences (fast "no user found" vs slow "email queued") count.
@@ -155,16 +139,8 @@ An uncapped reset endpoint enables:
 - Token brute-force if the token space is small
 - Username enumeration at scale
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `forgot-password`
-- `cbh` — `hunt-forgot-password`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

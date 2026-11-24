@@ -4,14 +4,13 @@ description: "Hunt password-reset poisoning, cache poisoning, routing SSRF and a
 agent_created: true
 ---
 
-# Host header injection hunting — unified skill
+# Host header injection hunting — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Step-by-Step Hunting Methodology
 
 > Always test against **your own** registered test account. Never request another user's reset.
@@ -24,10 +23,7 @@ agent_created: true
 - Test every Host mutation class: omit Host (HTTP/1.0), duplicate Host, absolute-form request line (`GET https://target/ HTTP/1.1` plus a different Host), port suffix, userinfo, prefix/whitelist bypass, trailing `@`, whitespace before colon, and duplicate values concatenated with commas.
 - Note that validation often covers only the first header instance or only `Host` — not overrides. Confirm what the app actually reflects in the response/email before escalating.
 - For routing-based SSRF, identify reverse proxies/load balancers that select an upstream from Host. Any internal hostname or IP in Host that reaches the origin is a signal.
-- Record cookies/CSRF tokens required for the reset request (some apps need the session and CSRF token for the double-Host trick to work).
-
-### Signals and surfaces
-
+- Record cookies/CSRF tokens required for the reset request (some apps need the session and CSRF token for the double-Host trick to work).### Signals and surfaces
 ### Crown Jewel Targets
 
 Host header injection that reaches password reset links = Critical (ATO for any user).
@@ -69,10 +65,7 @@ X-Forwarded-Server   X-HTTP-Host-Override  Forwarded
 X-Original-URL       X-Rewrite-URL         X-Override-URL   (path-override class)
 ```
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### B. Techniques & bypasses — specific actionable techniques/payload shapes
 
 - Password-reset poisoning — the canonical probe:
@@ -115,10 +108,7 @@ X-Original-URL       X-Rewrite-URL         X-Override-URL   (path-override class
   X-Original-URL: /admin
   ```
   Diff against a direct `GET /admin` (blocked) — a different status/body proves override.
-- OAuth/OIDC poisoning: if the authorize endpoint derives `redirect_uri` or the discovery issuer from Host, redirect code/tokens to the attacker host. If discovery documents reflect Host, the entire OIDC flow can be re-pointed.
-
-### Validation and proof
-
+- OAuth/OIDC poisoning: if the authorize endpoint derives `redirect_uri` or the discovery issuer from Host, redirect code/tokens to the attacker host. If discovery documents reflect Host, the entire OIDC flow can be re-pointed.### Validation and proof
 ### Validation (house discipline)
 
 ✅ **Password reset:** the token URL in **your own test account's email** uses an
@@ -154,10 +144,7 @@ not merely reflected.
 - Distinguish Host injection from web cache poisoning: if the malicious Host only affects your own request, it is low impact. It becomes High/Critical when the poisoned response is cached and served to other users (check `X-Cache` stays HIT on a clean fetch) or when it enables ATO/SSRF.
 - Beware false positives from wildcard DNS / catch-all virtual hosts: if any random Host resolves to the app, reflection is expected. Require that the app uses the value in a security-relevant URL.
 - Confirm which Host instance each hop uses; somelabs require the victim's `session` and `_lab` cookie for the double-Host behavior. Document session/cookie prerequisites so triage can reproduce.
-- Defensive framing: avoid absolute URLs from Host (use a configured canonical domain), validate Host against an allowlist, reject duplicate Host headers, and do not support override headers by default.
-
-### Escalation and related chains
-
+- Defensive framing: avoid absolute URLs from Host (use a configured canonical domain), validate Host against an allowlist, reject duplicate Host headers, and do not support override headers by default.### Escalation and related chains
 ### Chain Table
 
 | Finding | Chain to | Impact |
@@ -168,10 +155,7 @@ not merely reflected.
 | `X-Original-URL` overrides path | Reach `/admin` blocked at edge | High — ACL bypass / SSRF |
 | OAuth redirect_uri/issuer built from Host | Re-point flow → capture code/token on Collaborator | Critical — ATO via code theft |
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://www.fastly.com/learning/security/what-are-http-host-header-attacks
@@ -180,10 +164,7 @@ not merely reflected.
 4. https://portswigger.net/web-security/host-header/exploiting/lab-host-header-web-cache-poisoning-via-ambiguous-requests
 5. https://www.vaadata.com/en/blog/host-header-attacks-exploitations-and-security-tips
 6. https://github.com/advisories/GHSA-gv7r-3mr9-h5x8
-7. https://www.invicti.com/learn/password-reset-poisoning
-
-### Additional notes
-
+7. https://www.invicti.com/learn/password-reset-poisoning### Additional notes
 ### Grounding / Provenance
 
 This skill is built from the public Host-header attack literature, not invented payloads.
@@ -352,16 +333,8 @@ for H in "${HOST_HEADERS[@]}"; do
 done
 ```
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `host-header`
-- `cbh` — `hunt-host-header`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

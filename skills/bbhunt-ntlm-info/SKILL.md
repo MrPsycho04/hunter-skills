@@ -4,14 +4,13 @@ description: "Hunt internet-reachable IIS/SharePoint/Exchange NTLM Negotiate inf
 agent_created: true
 ---
 
-# NTLM information disclosure hunting — unified skill
+# NTLM information disclosure hunting — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Step-by-Step Hunting Methodology
 
 1. **Probe every anonymous endpoint for `WWW-Authenticate: NTLM`.** Send a vanilla GET and inspect response headers. If NTLM is offered, proceed.
@@ -110,10 +109,7 @@ agent_created: true
 
 8. **Cross-reference with subdomain enum.** The DNS Tree name often reveals the *parent forest* — e.g. `customer.parent-corp.example` reveals the customer is a sub-domain INSIDE corporate-parent AD, not a separate tenant. This is a privacy / topology-disclosure escalation that programs sometimes accept as Medium.
 
----
-
-### Signals and surfaces
-
+---### Signals and surfaces
 ### Crown Jewel Targets
 
 NTLM info disclosure is a **Medium-severity finding when chained to context** — the leak itself is intentional protocol behavior (RFC-compliant NTLMSSP challenge), but on internet-exposed enterprise infrastructure it provides exact reconnaissance for the next stage of an attack. Highest-value targets:
@@ -183,10 +179,7 @@ NTLM info disclosure is a **Medium-severity finding when chained to context** �
 - Timestamp leak (used in NTLMv2 hash cracking acceleration)
 - Direct attack-map enrichment for credential spraying combined with `hunt-auth-bypass` Legacy-Protocol Matrix
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### Common Root Causes
 
 1. **Dual-auth IIS bindings on the public zone.** Administrators leave NTLM enabled on the public-facing IIS site even when Forms auth is the intended entry point. Internal users get SSO; external attackers get the AD topology leak.
@@ -314,10 +307,7 @@ This skill describes a disclosure leak, not an authentication bypass. The "bypas
 
 For the attacker: there's no "bypass" needed — the leak is the finding.
 
----
-
-### Validation and proof
-
+---### Validation and proof
 ### Gate 0 Validation
 
 Before writing the report, confirm:
@@ -373,10 +363,7 @@ Before writing the report, confirm:
 3. **Can you reproduce in <5 minutes from a fresh shell?**
    - The Python snippet above is the canonical reproduction. Include it verbatim in the report.
 
----
-
-### Escalation and related chains
-
+---### Escalation and related chains
 ### Related Skills & Chains
 
 - **`sharepoint`** — SharePoint farms emit anonymous Type-2 challenges on `/_vti_bin/` by default; this is one of the most reliable ways to get internal AD topology. Chain primitive: SharePoint discovered → NTLM Type-2 capture on `/_vti_bin/Lists.asmx` → `ntlm-info` AV_PAIR decode → internal forest name → `m365-entra-attack` ROPC spray on Entra tenant tied to that forest.
@@ -391,10 +378,7 @@ Before writing the report, confirm:
 - **`m365-entra-attack`** — Leaked NetBIOS domain + UPN suffix is the missing piece for a credible password spray. Chain primitive: NTLM Type-2 yields `corp.example.com` DNS tree → cross-reference Entra tenant via `https://login.microsoftonline.com/corp.example.com/.well-known/openid-configuration` → `m365-entra-attack` AADSTS error-differential username enumeration on resolved tenant.
 - **`hunt-aspnet`** — IIS sites running ASP.NET frequently expose NTLM on management paths. Chain primitive: NTLM Type-2 on `/owa/`, `/ecp/`, `/rpc/`, `/aspnet_client/` → confirm IIS + ASP.NET version → `hunt-aspnet` ViewState / `.axd` enumeration on same host.
 - **`offensive-osint`** — The hostname pattern `WIN-XXXXXXXXXXX` signals lazy provisioning and predicts other weak hygiene. Chain primitive: NTLM Type-2 returns default-installer hostname → flag as low-maturity environment → `offensive-osint` deep recon (cert transparency, GitHub leakage, breach corpus correlation) is high-yield on this org.
-- **`triage-validation`** — Most NTLM info-disclosure findings die at the 7-Question Gate on "is this exploitable" — pure topology disclosure is Low/Informational. Chain primitive: pull every NTLM-info finding through `triage-validation` BEFORE writing it up; only report if (a) leaks UPN format that accelerates spray, or (b) leaks production hostname mapping (`redteam-report-template` for the chain-narrative).
-
-### Sources and related reading
-
+- **`triage-validation`** — Most NTLM info-disclosure findings die at the 7-Question Gate on "is this exploitable" — pure topology disclosure is Low/Informational. Chain primitive: pull every NTLM-info finding through `triage-validation` BEFORE writing it up; only report if (a) leaks UPN format that accelerates spray, or (b) leaks production hostname mapping (`redteam-report-template` for the chain-narrative).### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://davenport.sourceforge.net/ntlm.html
@@ -403,10 +387,7 @@ Before writing the report, confirm:
 4. https://research.checkpoint.com/2025/cve-2025-24054-ntlm-exploit-in-the-wild
 5. https://www.synacktiv.com/en/publications/ntlm-reflection-is-dead-long-live-ntlm-reflection-an-in-depth-analysis-of-cve-2025
 6. https://www.praetorian.com/blog/cve-2025-33073-ntlm-reflection-one-hop
-7. https://www.tenable.com/plugins/nessus/342664
-
-### Additional notes
-
+7. https://www.tenable.com/plugins/nessus/342664### Additional notes
 ### Scenario A — Enterprise SharePoint inside parent corporate AD
 
 Target: `https://target-portal.example/` — a enterprise dealer portal (test mirror) operated by a system integrator.
@@ -463,167 +444,8 @@ Reported severity: **Medium**, with a note that the chain with the Authenticatio
 
 ### Scenario B — Exchange edge with NTLM-protected EWS
 
-Target: `https://mail.example.com/EWS/Exchange.asmx`. Type-1 probe returns Type-2 with DNS Tree Name `corp.example.com` and DNS Computer Name `MAIL01.corp.example.com`. Confirms the Exchange edge is domain-joined to corporate AD (rather than running in a DMZ-isolated AD). For an attacker with the matching `hunt-mfa-bypass` / `hunt-auth-bypass` chain, the leaked UPN format and server-name format accelerate credential spraying by removing the recon step. Reported severity: Low-Medium depending on program.
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# ntlm-info — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payload & Detection Patterns
-
-
-
-**Generic NTLM Type-1 anonymous probe (curl + raw socket fallback):**
-
-```bash
-
-# Most one-shot curl runs DON'T return Type-2 because the connection closes.
-
-# Use this as a quick probe to confirm NTLM is offered:
-
-curl -sk -I -H "Authorization: NTLM TlRMTVNTUAABAAAAB4IIogAAAAAAAAAAAAAAAAAAAAAGAbEdAAAADw==" \
-
-  "https://target.example/_api/web/CurrentUser" 2>&1 | grep -i "WWW-Authenticate"
-
-```
-
-
-
-**Burp `send_http1_request` (recommended for full Type-2 capture):**
-
-```
-
-GET /_api/web/CurrentUser HTTP/1.1
-
-Host: target.example
-
-Authorization: NTLM TlRMTVNTUAABAAAAB4IIogAAAAAAAAAAAAAAAAAAAAAGAbEdAAAADw==
-
-Connection: keep-alive
-
-User-Agent: Mozilla/5.0
-
-
-
-```
-
-
-
-**Python raw socket + AV_PAIR decoder:**
-
-```python
-
-import socket, ssl, base64, struct, re
-
-from datetime import datetime, timezone
-
-
-
-HOST = "target.example"
-
-ctx = ssl.create_default_context()
-
-ctx.check_hostname = False
-
-ctx.verify_mode = ssl.CERT_NONE
-
-
-
-s = ctx.wrap_socket(socket.create_connection((HOST, 443)), server_hostname=HOST)
-
-s.sendall(
-
-    f"GET /_api/web/CurrentUser HTTP/1.1\r\n"
-
-    f"Host: {HOST}\r\n"
-
-    "Authorization: NTLM TlRMTVNTUAABAAAAB4IIogAAAAAAAAAAAAAAAAAAAAAGAbEdAAAADw==\r\n"
-
-    "User-Agent: Mozilla/5.0\r\nConnection: keep-alive\r\n\r\n".encode()
-
-)
-
-data = b""
-
-while True:
-
-    chunk = s.recv(8192)
-
-    if not chunk: break
-
-    data += chunk
-
-    if b"\r\n\r\n" in data: break
-
-
-
-m = re.search(rb"WWW-Authenticate:\s*NTLM\s+([A-Za-z0-9+/=]{20,})", data, re.I)
-
-if m:
-
-    b = base64.b64decode(m.group(1).decode("ascii"))
-
-    assert b[:8] == b"NTLMSSP\x00"
-
-    tn_len, _, tn_off = struct.unpack_from('<HHI', b, 12)
-
-    ti_len, _, ti_off = struct.unpack_from('<HHI', b, 40)
-
-    print(f"TargetName: {b[tn_off:tn_off+tn_len].decode('utf-16-le', errors='ignore')!r}")
-
-    av_types = {1:'NetBIOS Computer Name', 2:'NetBIOS Domain Name',
-
-                3:'DNS Computer Name', 4:'DNS Domain Name',
-
-                5:'DNS Tree Name', 7:'Timestamp', 9:'Target Name'}
-
-    i = 0
-
-    ti = b[ti_off:ti_off+ti_len]
-
-    while i < len(ti):
-
-        av_id, av_len = struct.unpack_from('<HH', ti, i)
-
-        if av_id == 0: break
-
-        val = ti[i+4:i+4+av_len]
-
-        if av_id == 7:
-
-            ts = struct.unpack('<Q', val[:8])[0]
-
-            secs = (ts - 116444736000000000) / 10000000
-
-            vs = datetime.fromtimestamp(secs, tz=timezone.utc).isoformat()
-
-        else:
-
-            vs = val.decode('utf-16-le', errors='ignore')
-
-        print(f"  AV[{av_id}] {av_types.get(av_id, '?'):28s}: {vs!r}")
-
-        i += 4 + av_len
-
-```
-
-
-
-**Burp Collaborator NOT needed** for this finding class — the data leak is in the synchronous response, not via OOB.
-
-
-
----
-
-### Companion: hunting / references/techniques.md
+Target: `https://mail.example.com/EWS/Exchange.asmx`. Type-1 probe returns Type-2 with DNS Tree Name `corp.example.com` and DNS Computer Name `MAIL01.corp.example.com`. Confirms the Exchange edge is domain-joined to corporate AD (rather than running in a DMZ-isolated AD). For an attacker with the matching `hunt-mfa-bypass` / `hunt-auth-bypass` chain, the leaked UPN format and server-name format accelerate credential spraying by removing the recon step. Reported severity: Low-Medium depending on program.### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # ntlm-info — Technique reference
 
@@ -661,17 +483,9 @@ For the attacker: there's no "bypass" needed — the leak is the finding.
 
 
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `ntlm-info`
-- `cbh` — `hunt-ntlm-info`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 2 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/payloads.md` — curated payload bank + upstream payload references
 - `bbhunt-methodology` — orchestrator, state machine and class router

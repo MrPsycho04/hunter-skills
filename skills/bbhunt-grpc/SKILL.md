@@ -4,14 +4,13 @@ description: "Unified methodology for grpc.. Unified from 2 upstream skills (cbh
 agent_created: true
 ---
 
-# Grpc — unified skill
+# Grpc — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### A. Discovery checklist — concrete places, params, headers, flows to look
 
 - **Fingerprint by content-type and trailers** (OWASP WSTG WSTG-APIT-10): requests with `application/grpc`, `application/grpc-web`, `application/grpc-web-text`; responses with `grpc-status` / `grpc-message` trailers; POST paths of the form `/<package>.<Service>/<Method>` (e.g. `/shop.v1.OrderService/GetOrder`). Generated gRPC-Web client code in JS bundles leaks service paths and often message field names/numbers.
@@ -28,10 +27,7 @@ agent_created: true
 - Fingerprint the implementation from `grpc-status` / `grpc-message` wording and error details (`google.rpc.DebugInfo`, `BadRequest`, `Help`) — rich details often leak stack traces, internal service names, and library versions.
 - Check whether both reflection versions are registered — `grpc.reflection.v1.ServerReflection` and the deprecated `grpc.reflection.v1alpha.ServerReflection`. Some proxies route one but not the other; v1alpha can remain exposed after a "we disabled reflection" fix.
 - When a transcoder is present, map every `google.api.http` route from the descriptor back to a gRPC method and verify auth parity on both paths. Note any route whose HTTP verb differs from the RPC's semantics (e.g. a state-changing method exposed via `GET`).
-- Establish a size baseline: send the smallest valid message for each method, then a 4 MiB+ message. A server that accepts far more than the typical 4 MiB `MaxRecvMsgSize` (or that returns a rich error describing the limit) is misconfigured and gives you a resource-exhaustion primitive.
-
-### Signals and surfaces
-
+- Establish a size baseline: send the smallest valid message for each method, then a 4 MiB+ message. A server that accepts far more than the typical 4 MiB `MaxRecvMsgSize` (or that returns a rich error describing the limit) is misconfigured and gives you a resource-exhaustion primitive.### Signals and surfaces
 ### Crown Jewel Targets
 
 gRPC reflection enabled = full service catalog enumeration without source code. The highest-value gRPC bugs come from the architectural assumption that a service is "internal" — auth is enforced at the edge proxy, and the backend trusts any caller that reaches it. Once you reach the backend directly (exposed port, SSRF, proxy bypass), that trust collapses.
@@ -43,10 +39,7 @@ gRPC reflection enabled = full service catalog enumeration without source code. 
 - **Plaintext gRPC** — gRPC h2c (cleartext HTTP/2) on a non-standard port → credential/metadata interception.
 - **HTTP/2 Rapid Reset DoS (CVE-2023-44487)** — interleaved HEADERS + immediate RST_STREAM frames bypass `MAX_CONCURRENT_STREAMS` accounting → resource exhaustion. **DoS is in scope on almost no program — get explicit written authorization before sending a single burst.**
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### B. Techniques & bypasses — specific actionable techniques/payload shapes
 
 - **Authz matrix**: for every discovered method × every call type × every entry point, call (a) with no metadata, (b) expired token, (c) low-privileged user's token. A `grpcurl -plaintext target:50051 pkg.AdminService/DeleteUser` that succeeds with no metadata is direct BFLA.
@@ -90,10 +83,7 @@ grpcurl -plaintext $TARGET:50051 -H "auth-token-bin: $(printf admin|base64)" \
 
 The metadata-stripping bug (b) is the gRPC-specific crown jewel: confirm it by sending the spoofed header **directly to the backend port** AND, separately, **through the public proxy** — if the proxy forwards your `x-user-id` unchanged to the backend, it is exploitable for real users, not just on the bypassed port.
 
----
-
-### Validation and proof
-
+---### Validation and proof
 ### Validation — false-positive discipline
 
 gRPC's failure modes look like successes to a naive `grep`. Apply these gates before any submission.
@@ -155,10 +145,7 @@ gRPC's failure modes look like successes to a naive `grep`. Apply these gates be
 - Internal service externally reachable (transcoder or open port) → **High**
 - Plaintext h2c leaking bearer metadata → **High**
 - Reflection enabled exposing non-public catalog → **Medium** (enabler)
-- Proto/descriptor leak, no callable sensitive method → **Low**
-
-### Escalation and related chains
-
+- Proto/descriptor leak, no callable sensitive method → **Low**### Escalation and related chains
 ### Chain Table
 
 | gRPC finding | Chain to | Impact |
@@ -189,10 +176,7 @@ Related skills: **idor** (id enumeration logic), **api-misconfig** (JWT alg=none
 
 Related skills: **hunt-idor** (id enumeration logic), **hunt-api-misconfig** (JWT alg=none / mass-assignment in request messages), **hunt-auth-bypass** (edge-vs-backend trust boundary), **hunt-tls-network** (h2c/plaintext + ALPN), **cloud-iam-deep** (if a called RPC returns cloud creds).
 
----
-
-### Tools and wordlists
-
+---### Tools
 ### Tools
 
 ```bash
@@ -205,10 +189,7 @@ buf       # lint/inspect proto, drive Connect endpoints
 #   use them to "prove" CVE-2023-44487.
 ```
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://wstg.owasp.org/latest/16-API_Testing/10-gRPC/
@@ -217,10 +198,7 @@ buf       # lint/inspect proto, drive Connect endpoints
 4. https://grpc.io/docs/guides/auth/
 5. https://hacktricks.wiki/en/pentesting-web/grpc-web-pentest.html
 6. https://grpc-ecosystem.github.io/grpc-gateway/docs/operations/security_considerations/
-7. https://www.securify.nl/en/blog/security-assessing-grpc-grpc-web-services/
-
-### Additional notes
-
+7. https://www.securify.nl/en/blog/security-assessing-grpc-grpc-web-services/### Additional notes
 ### Phase 1 — Fingerprint & Port Discovery
 
 ```bash
@@ -388,13 +366,8 @@ curl -sI --http2 https://$TARGET/ | grep -i '^server:'
 ```
 Report the *version-confirmed* mitigation gap rather than a benchmark slowdown. "Server got slower under load" is not proof of CVE-2023-44487 — it produces false positives on slow/under-provisioned servers and false negatives on patched ones that throttle resets gracefully.
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # HUNT-GRPC — gRPC Security — Technique reference
 
@@ -454,17 +427,8 @@ The metadata-stripping bug (b) is the gRPC-specific crown jewel: confirm it by s
 
 
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `grpc`
-- `cbh` — `hunt-grpc`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 1 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

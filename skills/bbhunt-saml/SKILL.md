@@ -4,14 +4,13 @@ description: "Unified methodology for saml.. Unified from 2 upstream skills (cbh
 agent_created: true
 ---
 
-# Saml — unified skill
+# Saml — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### A. Discovery checklist — concrete places, params, headers, flows to look
 
 - Find every SAML handler: POSTs carrying `SAMLResponse` to the ACS (`/saml/acs`, `/sso/saml`, `/Shibboleth.sso`, `/_layouts/`, `/cgi/samlauth`), plus signed `AuthnRequest`, `LogoutRequest` and `AttributeQuery` endpoints. Use SAMLExtractor over a subdomain list; install SAML Raider in Burp.
@@ -29,20 +28,14 @@ agent_created: true
 - Mutate `InResponseTo`: omit it, reference an unrelated AuthnRequest, or replay an old one — SP-initiated SSO must bind the response to a still-pending request.
 - Check time conditions independently: future `NotBefore`, expired `NotOnOrAfter`, or entirely absent `<Conditions>` (some code only checks time when the element exists).
 - Use the assertion-context matrix from HackTricks: for each property (signature, certificate/trust, issuer, destination, audience, time, InResponseTo, StatusCode) record whether a mutation is rejected — one enforced property does not imply the others are.
-- Probe fail-open handlers when SSO is disabled or the verification certificate is missing/empty — CVE-2026-28323 (SolarWinds Web Help Desk) showed unconfigured endpoints can route attacker input straight to identity extraction.
-
-### Signals and surfaces
-
+- Probe fail-open handlers when SSO is disabled or the verification certificate is missing/empty — CVE-2026-28323 (SolarWinds Web Help Desk) showed unconfigured endpoints can route attacker input straight to identity extraction.### Signals and surfaces
 ### Attack Surface
 
 ```bash
 # Find SAML endpoints
 cat recon/$TARGET/urls.txt | grep -iE "saml|sso|login.*redirect|oauth|idp|sp"
 # Key endpoints: /saml/acs (assertion consumer service), /sso/saml, /auth/saml/callback
-```
-
-### Techniques, payloads and bypasses
-
+```### Techniques and bypasses
 ### B. Techniques & bypasses — specific actionable techniques/payload shapes
 
 - Signature stripping: remove every `<ds:Signature>` or empty the `SignatureValue` — some SPs treat "no signature" as "nothing to verify" and fail open. Compare valid baseline, corrupted signature, and fully unsigned variants.
@@ -64,10 +57,7 @@ cat recon/$TARGET/urls.txt | grep -iE "saml|sso|login.*redirect|oauth|idp|sp"
 - WS-Federation valueless-parameter overread: `GET /wsfed/passive?wctx` (no `=`, no value) returns a 302 whose Base64 `NSC_TASS` cookie may contain heap fragments — sample multiple responses and search decoded blobs for `Cookie:` / `Authorization:`.
 - NetScaler RelayState failure-path length oracle: decoded `ctx=` + 16 NUL bytes (20 bytes total) with `SAMLResponse=AAAA` is the safe 20-byte probe; nearby lengths can create anonymous sessions or crash nsppe.
 - Unterminated/unquoted SAMLRequest attribute overread on IdP parsers: replace an attribute separator with a newline/tab and append another attribute, then decode the reflected cookie/redirect to look for bytes that were not in your request.
-- Forged-response workflow: GET login page (keep cookie) → parse form action and CSRF token → build schema-valid Response with target NameID and no signatures → Base64 for HTTP-POST binding → POST with the same cookie jar → request a protected page.
-
-### Validation and proof
-
+- Forged-response workflow: GET login page (keep cookie) → parse form action and CSRF token → build schema-valid Response with target NameID and no signatures → Base64 for HTTP-POST binding → POST with the same cookie jar → request a protected page.### Validation and proof
 ### C. Validation / proof bar — how to confirm and avoid false positives
 
 - Reach a protected resource as a *known existing* federated user. Auto-provisioning an unknown `NameID` yields an authenticated-looking but unusable session; prefer `DOMAIN\Administrator` or `user@domain` when local usernames are blocked.
@@ -85,10 +75,7 @@ cat recon/$TARGET/urls.txt | grep -iE "saml|sso|login.*redirect|oauth|idp|sp"
 - Comment/PI differentials are parser/library-specific — reproduce against the detected SAML library version and keep the exact raw SAMLResponse in evidence; do not generalize from one framework.
 - For XSW, confirm the SP consumed the *evil* assertion (attacker NameID) rather than merely returning 200 with a generic error or a session for your own test user.
 - Treat parser-level DoS/memory-disclosure probes as high-risk on production appliances: use only the published safe probes, avoid length sweeps, and coordinate with the program.
-- Redact the SAMLResponse's signature bytes, certificates, and any other-user PII in reports, but keep enough of the XML structure for triage to understand which node was modified.
-
-### Escalation and related chains
-
+- Redact the SAMLResponse's signature bytes, certificates, and any other-user PII in reports, but keep enough of the XML structure for triage to understand which node was modified.### Escalation and related chains
 ### Related Skills & Chains
 
 - **`account-takeover`** — SAML XSW with absent audience-restriction validation is the canonical SP-impersonation-of-admin chain. Chain primitive: XSW1 attack relocates signed assertion to a secondary position + injects evil assertion with `NameID=admin@target.com` in primary position + SP processes first assertion (the evil one) + SP doesn't validate `<AudienceRestriction>` so an assertion intended for IdP-A is accepted by SP-B → admin ATO across federated tenant boundary.
@@ -105,10 +92,7 @@ cat recon/$TARGET/urls.txt | grep -iE "saml|sso|login.*redirect|oauth|idp|sp"
 - **`hunt-oauth`** — SAML-fronted OAuth issuers turn assertion-level bugs into token-level ATO. Chain primitive: SP issues OAuth bearer tokens after SAML assertion validation + XSW alters NameID to admin → SP's token endpoint issues OAuth token bearing admin claims → all downstream OAuth-scoped APIs (admin API, billing API, user-management API) grant admin access from a single forged assertion.
 - **`hunt-xxe`** — SAML assertions ARE XML; XXE in the assertion parser is a separate chain on top of XSW. Chain primitive: SAML parser without `disallow-doctype-decl` + `<!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]>` in assertion + `<NameID>&xxe;</NameID>` → SP renders/logs NameID → /etc/passwd contents leak in error response or audit log → file-read primitive on SAML SP infrastructure.
 - **`security-arsenal`** — Pull the SAML/XSW Payload Catalog (XSW1-XSW8 templates, comment-injection variants for libxml/Xerces/MSXML parser differences, signature-wrapping with multiple Reference elements, key-confusion payloads where attacker-IdP-signed assertions are accepted by trust-naive SPs) and the always-rejected list for "SAMLResponse accepted on the wrong endpoint" claims that don't actually validate.
-- **`triage-validation`** — Run the Pre-Severity Gate before claiming Critical on a SAML "vulnerability" that only modifies non-security-relevant attributes (display name, locale) without altering NameID, AuthnContext, or role-bearing AttributeStatements. Theoretical XML manipulation that doesn't cross an authorization boundary is Informational, not Critical — the auth-decision-changing step is the gate.
-
-### Tools and wordlists
-
+- **`triage-validation`** — Run the Pre-Severity Gate before claiming Critical on a SAML "vulnerability" that only modifies non-security-relevant attributes (display name, locale) without altering NameID, AuthnContext, or role-bearing AttributeStatements. Theoretical XML manipulation that doesn't cross an authorization boundary is Informational, not Critical — the auth-decision-changing step is the gate.### Tools
 ### Tools
 
 ```bash
@@ -120,17 +104,11 @@ echo "BASE64_SAML" | base64 -d > saml.xml
 # Edit saml.xml
 base64 -w0 saml.xml  # Re-encode
 # URL-encode the result before sending as SAMLResponse parameter
-```
-
-### Sources and related reading
-
+```### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://portswigger.net/research/the-fragile-lock
-2. https://hacktricks.wiki/en/pentesting-web/saml-attacks/index.html
-
-### Additional notes
-
+2. https://hacktricks.wiki/en/pentesting-web/saml-attacks/index.html### Additional notes
 ### 20. SAML / SSO ATTACKS
 
 > SSO bugs frequently pay High–Critical. XML parsers are notoriously inconsistent.
@@ -214,16 +192,8 @@ XXE in assertion = High (file read / SSRF)
 NameID manip     = Medium/High (depends on what NameID maps to)
 ```
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `saml`
-- `cbh` — `hunt-saml`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

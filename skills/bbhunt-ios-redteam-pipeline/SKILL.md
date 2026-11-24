@@ -4,14 +4,13 @@ description: "Acquire, decrypt, static-analyze and runtime-instrument an in-scop
 agent_created: true
 ---
 
-# iOS IPA red-team pipeline — unified skill
+# iOS IPA red-team pipeline — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### A. Discovery checklist — concrete artifacts, endpoints, patterns, tools to look for
 
 - **IPA acquisition paths (2024–2026):** `ipatool auth/download -b <bundle>` (free App Store copy with your own Apple ID), Apple Configurator 2 temporary download, OTA `itms-services://` manifest via `itms-services -u ... -o - > out.ipa`, or client-supplied Xcode-exported IPA. App Store binaries are FairPlay-encrypted (`LC_ENCRYPTION_INFO_64`, `cryptid 1`) — a raw unzip of that IPA yields unusable `strings`/class-dump until decrypted.
@@ -21,10 +20,7 @@ agent_created: true
 - **Universal Links vs custom schemes (MASTG-KNOW-0080):** Universal Links are `https://` and cannot be claimed by other apps; require a valid `apple-app-site-association` at the domain. Custom `tg://`-style schemes are claimable by any installed app and are the weaker surface — test whether a legacy scheme remains registered alongside Universal Links.
 - **Keychain & storage (MASTG-KNOW-0057):** Keychain items with `SecAccessControl` (Touch ID/passcode gating), accessibility class `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`; compare `UserDefaults`, plists, CoreData, Realm, SQLite, and `UIPasteboard` (expiry/`.localOnly`). Keychain survives uninstall — plan migration in fixes.
 - **Pinning sources:** `TrustKit`, custom `URLSessionDelegate`/`WKNavigationDelegate` `URLSession:didReceiveChallenge:`, `SecTrustEvaluate` hooks; third-party analytics/ads SDKs typically do **not** honor the app's pinning and must be enumerated per MASVS-NETWORK.
-- **Frameworks:** MobSF (automated static), class-dump/class-dump-swift, Hopper/Ghidra/IDA/Binary Ninja for Swift name mangling, Frida + objection for dynamic, `xcrun simctl openurl` for deep-link testing, `mitmproxy`/Burp with a trusted CA, `ipropxy` + SSH for jailbroken device access.
-
-### Techniques, payloads and bypasses
-
+- **Frameworks:** MobSF (automated static), class-dump/class-dump-swift, Hopper/Ghidra/IDA/Binary Ninja for Swift name mangling, Frida + objection for dynamic, `xcrun simctl openurl` for deep-link testing, `mitmproxy`/Burp with a trusted CA, `ipropxy` + SSH for jailbroken device access.### Techniques and bypasses
 ### Network traffic capture (once pinning is bypassed)
 
 ```bash
@@ -68,10 +64,7 @@ In practice, prefer **SSL Kill Switch 2** (jailbroken device, installs as a twea
 **objection's `ios sslpinning disable`** over any hand-rolled script — both cover the common
 pinning implementations (`NSURLSession`, `AFNetworking`, `TrustKit`) without per-app tuning.
 
----
-
-### Validation and proof
-
+---### Validation and proof
 ### C. Validation / proof bar — how to confirm and avoid false positives
 
 - **Pinning is defense-in-depth** (MASVS-RESILIENCE): absence of pinning alone is not a critical finding — prove what the intercepted API exposes. Pinning fails closed with a bad test cert (missing `serverAuth` EKU) — ensure the test CA is valid or matching/non-matching pins are both cancelled and you get a false negative.
@@ -93,10 +86,7 @@ pinning implementations (`NSURLSession`, `AFNetworking`, `TrustKit`) without per
 - **Scope discipline:** use only apps you own or are engaged to test; device instrumentation is performed on a device/emulator you control with test accounts and test data.
 
 - **Non-production resources in the bundle:** development/staging configuration, test credentials, and internal hostnames shipped in the release IPA are common high-yield findings (MASWE-0064) — grep the decrypted bundle and bundled plists for `dev`/`staging`/`internal`.
-- **Holistic ordering:** acquire → decrypt → automated MobSF triage → manual static review → targeted Frida/objection hooks → traffic capture → chain to API testing; each step's output should feed the next rather than being reported in isolation.
-
-### Escalation and related chains
-
+- **Holistic ordering:** acquire → decrypt → automated MobSF triage → manual static review → targeted Frida/objection hooks → traffic capture → chain to API testing; each step's output should feed the next rather than being reported in isolation.### Escalation and related chains
 ### Keychain items left in a backup (if you have a device backup, encrypted or not)
 
 ```bash
@@ -139,10 +129,7 @@ pip install --break-system-packages iphone_backup_decrypt   # for encrypted loca
 - **`evidence-hygiene`** — extracted Keychain items and secrets need redaction before report
   inclusion.
 - **`offensive-osint`** — App Store developer-page enumeration is part of the broader org recon
-  graph; pair with certificate-transparency lookups for the same brand.
-
-### Tools and wordlists
-
+  graph; pair with certificate-transparency lookups for the same brand.### Tools
 ### Tooling install (one-time)
 
 ```bash
@@ -152,10 +139,7 @@ pip install --break-system-packages frida-tools objection iphone_backup_decrypt
 # frida-server installed on-device via the Frida Cydia/Sileo repo
 ```
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### Decrypting an App-Store-sourced binary (only if extracted from a jailbroken device)
 
 App Store binaries are FairPlay-encrypted at rest; a binary copied off a jailbroken device
@@ -203,10 +187,7 @@ plutil -extract NSAppTransportSecurity xml1 -o - Info.plist 2>/dev/null
 7. https://codezup.com/ios-app-security-auditing-guide (release entitlements, Keychain accessibility, pinning caveats, simulator limitations)
 8. https://bugbounty.info/Attack-Surface/Mobile/iOS/ (ipatool/frida-ios-dump acquisition, Info.plist ATS checks, URL-scheme hijack PoC)
 9. https://platformsecurity.com/blog/decrypt-ios-apps-pentest-guide (decrypted-binary-first workflow, MobSF/Ghidra/Frida ordering)
-10. https://notsunde.com/blogs/ios-pentest-setup-pt1 (non-jailbroken setup, `LC_ENCRYPTION_INFO_64` inspection, MinimumOSVersion tweak)
-
-### Additional notes
-
+10. https://notsunde.com/blogs/ios-pentest-setup-pt1 (non-jailbroken setup, `LC_ENCRYPTION_INFO_64` inspection, MinimumOSVersion tweak)### Additional notes
 ### When to use this skill
 
 Trigger when:
@@ -429,13 +410,8 @@ plaintext credential/token interception without touching pinning at all.
 | Entitlements show `keychain-access-groups` shared with other apps | Cross-app Keychain read — a compromised sibling app reads this app's secrets |
 | Older API version referenced vs. what the current web app calls | Hand off to `hunt-shadow-api` for version-diffing |
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # ios-redteam-pipeline — Technique reference
 
@@ -513,17 +489,8 @@ pinning implementations (`NSURLSession`, `AFNetworking`, `TrustKit`) without per
 
 
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `ios-redteam-pipeline`
-- `cbh` — `ios-redteam-pipeline`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 1 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

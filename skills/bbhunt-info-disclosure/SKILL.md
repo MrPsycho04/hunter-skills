@@ -4,13 +4,13 @@ description: "Use for sensitive data exposure: debug files, stack traces, source
 agent_created: true
 ---
 
-# Information Disclosure — unified skill
+# Information Disclosure — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across h1skills, hunting and the local HackerOne corpus is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across h1skills, hunting and grounded in 15,259 disclosed HackerOne reports. Payloads, wordlists and supporting data are in `references/`.
 
-## Corpus evidence — 1827 valid HackerOne reports (339 paid / 19%)
+## Corpus signal — 1827 valid reports (339 paid / 19%)
 
-Every disclosed report is valid; payment is an impact signal, not a validity test.
+Every disclosed report is valid; payment is an impact signal, not a validity test. Full technique frequencies, case studies and approach patterns: `references/evidence.md`.
 
 ### Techniques ranked across ALL valid reports
 
@@ -28,121 +28,6 @@ Every disclosed report is valid; payment is an impact signal, not a validity tes
 | error message / stack trace probing | 99 |
 | XML / SOAP / SAML / XXE | 92 |
 | public bucket / storage exposure | 87 |
-| unauthenticated / removed-cookie test | 85 |
-| webhook / OAuth / SAML / integration abuse | 84 |
-| HTTP method / verb tampering | 77 |
-| two-account / cross-account replay | 73 |
-| employee / developer public info | 65 |
-| parameter pollution / duplicate keys | 64 |
-| intercept & replay request in Burp | 60 |
-| race / concurrency / timing | 57 |
-| third-party data / paste / breach reuse | 53 |
-| verbose debug / framework fingerprint | 53 |
-| second-order / stored / blind delivery | 53 |
-| DOM / HTML source inspection | 48 |
-| fuzzing / wordlist brute force | 45 |
-| API docs / Swagger / introspection | 43 |
-| cloud metadata / IAM abuse | 41 |
-| JWT / token / base64 decode | 36 |
-| JS bundle / source-map inspection | 35 |
-| WAF / sanitizer / filter bypass | 32 |
-| OAST / DNS / HTTP callback proof | 28 |
-|  HosT/absolute-URL reset poisoning | 28 |
-| redirect chain / Location header | 27 |
-| git history / exposed .git | 25 |
-| swap object ID / parameter value | 22 |
-| search-engine dorking | 20 |
-| browser DevTools / network tab | 18 |
-| parser confusion / normalization | 17 |
-| response diff / status / length comparison | 14 |
-| archive / Wayback endpoint discovery | 12 |
-| deserialization / gadget chain | 10 |
-| replay / modify a captured request | 9 |
-| template injection (SSTI) | 8 |
-| mass assignment / extra request fields | 3 |
-
-### Parameters observed in writeups
-
-`max-age` (30), `charset` (27), `path` (22), `domain` (20), `name` (16), `type` (15), `col` (12), `height` (12), `username` (11), `sid` (10), `href` (7), `mode` (7), `session` (7), `url` (7), `expires` (7), `src` (7), `no_proxy` (7), `phpsessid` (6), `_ga` (6), `new_env` (6), `prove` (6), `query` (6), `__cfduid` (5), `csrftoken` (5), `email` (5), `class` (5), `value` (5), `template` (5), `password` (5), `debug` (5)
-
-### Bypass primitives observed
-
-`content-type` (218), `bypass` (103), `whitelist` (33), `bypassed` (23), `bypasses` (20), `content type` (20), `host header` (19), `bypassing` (18), `blacklist` (18), `blind` (15), `url encoded` (14), `open redirect` (11), `normalized` (11), `lowercase` (8), `transfer-encoding` (7), `race condition` (7), `unicode` (5), `chunked` (5), `url encoding` (5), `uppercase` (4), `http method` (3), `trailing dot` (3), `mixed case` (3), `desync` (3), `backslash` (2), `%00` (2), `url encode` (2), `normalization` (2)
-
-### Impact language observed
-
-`password` (854), `token` (748), `admin` (651), `secret` (447), `credential` (422), `sensitive information` (235), `payment` (182), `localhost` (155), `unauthorized` (121), `pii` (96), `sensitive data` (81), `api key` (57), `rce` (23), `arbitrary file` (18), `exfiltrate` (17), `full access` (15), `personally identifiable` (15), `exfiltration` (12), `unauthorised` (12), `financial` (12)
-
-### Case studies — full excerpts (paid and unpaid)
-
-#### [2032716](https://hackerone.com/reports/2032716) — An attacker can can view any hacker email via  /SaveCollaboratorsMutation operation name
-
-HackerOne · $12500 · high
-
-**Summary:** An attacker can view any attacker or normal user email after send invitation via dummy report , disclose their private email. **Description:** ### Steps To Reproduce 1 - Create a dummy report and send it 2 - Add a hacker that you want to disclose his email , Max is only 2 invites per report 3 - send the invite after sending the invite the hacker will be pending status until accept the report . 4- Go the pen on the right for adding more collaborator and click on the pen and capture traffic , you will see the user email in first request, even that the user not accept the invitation yet HTTP Request : ` Example : Here is email for todayisnew , Hacker 1 rank in H1 : Video PoC : ████████ ## Impact An attacker can view any user's email registered with Hackerone as hacker .
-
-#### [186230](https://hackerone.com/reports/186230) — Internal attachments can be exported via "Export as .zip" feature
-
-HackerOne · $12500 · high
-
-Hello HackerOne Team This newly disclosed report: #182358 __Partial disclosure of report activity through new "Export as .zip" feature__ was not completely fix. I have found that i can still view the attachment after it is being removed on the thread. Best PoC is this #182358 since this is the newly fix and disclosed. Steps to reproduce 1. Go to 2. Export the report as .zip 3. Now extract the .zip file (`HackerOne_Report-security#182358.zip`) 4. You will see that the image is still there, but base on the thread, you guys removed it on disclosed report. I have attached the .zip file downloaded and save on my local and i can still view the removed image. __Disclosed partially removed attachment:__ {F138022} Regards Japz
-
-#### [509924](https://hackerone.com/reports/509924) — JSON serialization of any Project model results in all Runner tokens being exposed through Quick Actions
-
-GitLab · $12000 · critical
-
-The Quick Actions interpreter allows an attacker to reference a Project it does not have access to. The model attributes are then being serialized and returned to the user, which results in the Runner token (both encrypted and unencrypted) being returned to the user. This vulnerability is currently exploitable on GitLab.com. # Proof of concept The vulnerability is relatively straightforward to reproduce. 1. Create a project 1. Create an issue 1. Write `/move <full path of any other project>` and click "Comment", a request to `/:namespace/:project/notes` is submitted 1. Observe the JSON response that is being returned, which contains the serialized Project model: ## Impact This vulnerability gives any user who can create an Issue or comment on one the ability to obtain Runner tokens of Projects. This allows any user to register a runner for a project, which may give the attacker access to secret project variables. Given how these variables are used, this may allow an attacker to deploy arbitrary code to a victim's environment.
-
-#### [663628](https://hackerone.com/reports/663628) — Access to multiple production Grafana dashboards
-
-Snapchat · $10000 · high
-
-@damian89 found a production Grafana instance which displayed confidential metrics inside various dashboards. While fuzzing patterns of certain snapchat related projects, I was able to find an instance of Grafana which was accessible by a guest user. That instance contained hundreds of production dashboards, valuable data about company. Furthermore one of the custom modules was vulnerable to SQL Injection.
-
-#### [850447](https://hackerone.com/reports/850447) — gitlab-workhorse bypass in Gitlab::Middleware::Multipart allowing files in `allowed_paths` to be read
-
-GitLab · $10000 · critical
-
-### Summary Extracted from While testing and looking at the patch for the nuget package workhorse bypass ( I think) I came across a more widespread bypass: Using `[package]` as the field name causes the `@rewritten_fields` to contain: This is then used `parsed_field = Rack::Utils.parse_nested_query(field)` which ends up creating the hash `{"package"=>nil}` (same as package would return). This passes the validation, but the `Multipart::Handler` will then use the query params as they match instead of the payload that workhorse sends through. This also allows for any file in the following to be accessed: This could be done anywhere that accelerated uploads, eg the `UploadsController` or uploading a wiki file. Using the wiki api removes the restriction that the file needs to be owned by `git` due to `file_content: attrs[:file].read` happening instead of moving the original file: It's also fairly easy to steal incoming files tmp files that are currently opened in rails by: 1. Determine a valid PID by looping over `/proc/PID` until a `cwd` is found and readable by `git` (eg the `unicorn` worker will have `/proc/19606/cwd -> /var/opt/gitlab/gitlab-rails/working`) and traverse to a valid upload path: 1. Using this pid, use `/proc/PID/fd/XX` as the `file.path` (looking at my server a fd of 44 was the used pretty consistently for tmp files) and run it in a loop: 1. Upload a bunch of thin
-
-#### [489146](https://hackerone.com/reports/489146) — Confidential data of users and limited metadata of programs and reports accessible via GraphQL
-
-HackerOne · no bounty — still valid · critical
-
-**Summary:** The GraphQL endpoint doesn't have access controls implemented properly. **Description:** Any attacker can get personally identifiable information of users of Hackerone such as email address, backup hash codes, facebook_user_id, account_recovery_phone_number_verified_at, totp_enabled, etc. These are just some examples of fields which are getting leaked directly from GraphQL. This is the request sent to GraphQL: Sample Response: █████████ Please fix it. Thanks, Yash :) ## Impact This could potentially leak many users' info
-
-#### [542340](https://hackerone.com/reports/542340) — Sensitive user information disclosure at bonjour.uber.com/marketplace/_rpc via the 'userUuid' parameter
-
-Uber · no bounty — still valid · high
-
-It was possible for an attacker to insert another user’s UUID into the userUuid POST parameter when making a request to allowing them to retrieve personal data from the victim user’s account, as well as the user's mobile auth token, which could allow them to make requests to mobile APIs as the victim. Thanks again, @appsecure_in! Public API endpoint leaked mobile API token of a user by passing driver uuid/rider uuid in the request. Using the API token attacker could have gained full access to driver/rider account.
-
-### Recurring approach patterns from real reports
-
-- 2× hi i found an information disclosure vulnerability full path disclosure on your application
-- 2× proof of concept sign in as a normal user i used my personal email address on the domain
-- 2× i was able to fire this feature using gab2 subtitle chunks inside an avi file
-- 2× even though tokens were immediately invalidated we decided to re engineer the process to eliminate any possibility of token leakage
-- 2× reference impact the secure flag is an option that can be set by the application server when sending a new cookie to the user within an http response
-- 2× description during poking around range looking for the cisco devices i came across which resolved to the while it s a not mil host it s likely related to the dod since it hosted in the dod controlled asn
-- 2× at the following address i have found debug log file disclose the application full path on the server
-- 2× i found that at least userid and password combination from that compromised db can still be used
-- 2× description hi while going through the testing of dod assets i have came across a subdomain that is vulnerable to cve
-- 2× and now we found a directory is jira sensitive
-- 2× i created this php code for testing
-- 2× ai disclosure i used an ai assistant claude for code review test setup and drafting
-- 1× which is why i added a frontend that is tested under the following conditions
-- 1× see attached hackerone2 jpg i have read this workaround in a post by sir troy hunt sending an email a notification that the user is already registered if registered or a link to continue the registration process if still not registered
-- 1× i have tried to check if cross site tracing is possible fired up my command line and curl x trace www relateiq com
-- 1× hello while i was testing the upload method on i have found that if you try to upload a php file or any other file html in this shape test php jpg an information disclosure will happen showing the webroot of the server
-- 1× i attempted email addresses threads simultaneously via burp suite intruder
-- 1× bitcoin wallet leaks the oauth response code which can be obtained using adb logcat s coinbase command line for testing and any android application on the same phone can read the response code for the user by reading the logs
-- 1× hello i have found a full path disclosure on a website that runs a wordpress installation
-- 1× hello i found a information disclosure vulnerability
-- 1× during the import of an xml file i edited the file to url for importing xml s through url so it became and then i tried to import a random xml file i tried with this it was not a valid xml file and after the importing it showed the following error which discloses full path of the application
-- 1× the information from page warning trim expects parameter to be string array given in var www vhosts lvps178 dedicated hosteurope de httpdocs localize classes phrase php on line i also added a screenshot of that fpd as attachment
-- 1× hi i found a information disclosure vulnerability full path disclosure vulnerable link you can see in the page the path of the site fatal error call to undefined function deprecated file in home jaalweb stopthehacker com wp includes rss functions php on line regards florin
-- 1× suggestion i saw that you rejected many path disclosure reports cause those are not in your hand it depends upon server settings how that will handle error messages but this case is different its not actually an error message and cant be mitigated by switching off error display
 
 ## Corpus-backed method (this class)
 
@@ -173,20 +58,13 @@ It was possible for an attacker to insert another user’s UUID into the userUui
 - Debug endpoint -> cloud credential -> infrastructure access.
 - Public bucket -> JS bundles -> client secret -> OAuth chain.
 
-### Probes
-
-- /.git/config, /.env, /actuator/env, /telescope, /debug, /swagger.json, /*.js.map
-- Force verbose errors with wrong types, malformed JSON, oversized fields
-- Compare response bodies across roles for the exact same object ID
-
 ### Veteran tip
 
 Public source-code/repo review and admin-context comparison lead the valid writeups; use them before broad file brute force.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Quick wins
 
 Start here. These are the highest-yield tests for this class.
@@ -218,10 +96,7 @@ Start here. These are the highest-yield tests for this class.
 - **Error/debug surface:** verbose stack traces, ORM internals, file paths, framework versions; `debug` modes, profilers, feature-flag dashboards; `customErrors mode=Off`, TRACE/`trace.axd`, `elmah.axd`.
 - **Headers/metadata:** `Server`, `X-Powered-By`, `X-AspNet-Version`, `X-Request-Id`, `traceparent`, `Server-Timing`; ETag/If-None-Match and Last-Modified caching oracles; `Access-Control-Expose-Headers` widening cross-origin reads.
 - **File metadata:** EXIF and Office/PDF properties (authors, paths, software versions, timestamps); cloud storage object metadata leaking owner/project IDs.
-- **Tooling:** `git-dumper` (parallel `holly-hacker/git-dumper` >10x faster, `Ebryx/GitDump` brute-forces object names when directory listing is off), GitTools Finder/Dumper/Extractor, `gitleaks git -v --log-opts="--all"`, `trufflehog filesystem`, `detect-secrets`, `ggshield`, `Titus` (replaces Nosey Parker).
-
-### Signals and surfaces
-
+- **Tooling:** `git-dumper` (parallel `holly-hacker/git-dumper` >10x faster, `Ebryx/GitDump` brute-forces object names when directory listing is off), GitTools Finder/Dumper/Extractor, `gitleaks git -v --log-opts="--all"`, `trufflehog filesystem`, `detect-secrets`, `ggshield`, `Titus` (replaces Nosey Parker).### Signals and surfaces
 ### Signal
 
 - Reports: **1,827** · paid: **339**
@@ -259,10 +134,7 @@ Source map exposing TypeScript source = see all API routes, auth logic, secrets.
 - **`asset-manifest.json` / `_next/static/`** — all JS bundle paths → systematic source map discovery
 - **`build-info` / `info.json`** — git commit hash, build timestamp, dependency versions → CVE targeting
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### Payloads & probes
 
 - `/.git/config` `/.env` `/.DS_Store` `/server-status` `/actuator/env`
@@ -377,10 +249,7 @@ Recurring payloads from this class's writeups. Adapt, don't paste blindly.
 - **Engineer informative responses:** fuzz with wrong types, broken JSON, oversized fields, null bytes, alternate content types; normalize and diff by status/body length/ETag/headers across owner vs non-owner vs anonymous.
 - **Trace-to-LFI chain:** stack-trace paths reveal filesystem layout → LFI/traversal to fetch config/keys → for Next.js target `.env`, `.next/routes-manifest.json`, and compiled NextAuth config.
 - **Server-side Git integrations** (HackTricks): if the app clones attacker-controlled repos and later runs `git status/diff/checkout/pull`, `.git/config` write or hook abuse can turn a file write into command execution during later Git actions.
-- **Swagger UI posture:** usually an exposure, not a standalone flaw — but OWASP API9 says docs should be available only to authorized users; a spec listing a deprecated version tells an attacker which old host is still running.
-
-### Validation and proof
-
+- **Swagger UI posture:** usually an exposure, not a standalone flaw — but OWASP API9 says docs should be available only to authorized users; a spec listing a deprecated version tells an attacker which old host is still running.### Validation and proof
 ### Reporting bar
 
 - Prove real impact on a second controlled account or a safe callback.
@@ -434,10 +303,7 @@ Recurring payloads from this class's writeups. Adapt, don't paste blindly.
 - **Report framing:** ASVS V13.4 issues alone are usually Info/Low but are "bar-raisers" — state the chain (version → CVE, path → LFI, key → cloud access, schema → auth bypass) that converts them into a finding.
 
 - **Error-page fuzzing matrix:** wrong type, broken JSON, oversized field, null byte, and alternate content-type (XML vs JSON) on a single endpoint often yields four different disclosure shapes — diff them side by side.
-- **Backup/config filename sweep:** `.env`, `.env.local`, `.env.bak`, `config.yaml`, `credentials.json`, `docker-compose.yml`, `wp-config.php.bak`, and `web.config` are the usual high-value targets after the DVCS pass.
-
-### Escalation and related chains
-
+- **Backup/config filename sweep:** `.env`, `.env.local`, `.env.bak`, `config.yaml`, `credentials.json`, `docker-compose.yml`, `wp-config.php.bak`, and `web.config` are the usual high-value targets after the DVCS pass.### Escalation and related chains
 ### Escalation chains
 
 - Info leak -> creds -> ATO.
@@ -455,10 +321,7 @@ Recurring payloads from this class's writeups. Adapt, don't paste blindly.
 | build-info with git hash | CVE targeting exact version | High |
 | .env with DB_PASSWORD | Direct database access | Critical |
 
----
-
-### Tools and wordlists
-
+---### Tools
 ### Tools
 
 `ffuf` · `gobuster` · `nuclei` · `trufflehog` · `waybackurls`
@@ -516,10 +379,7 @@ npm install -g unwebpack-sourcemap
 trufflehog filesystem /tmp/repo/
 ```
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### Query the corpus
 
 ```sh
@@ -626,10 +486,7 @@ grep -r "http://internal\|localhost\|127\.0\.0\.1\|10\.\|172\.\|192\.168" /tmp/s
 6. https://bugbounty.info/Recon/Exposed-Git (httpx `/.git/HEAD` sweep, git-dumper/GitTools workflow)
 7. https://github.com/usestrix/strix/blob/main/strix/skills/vulnerabilities/information_disclosure.md (channel map, diff harness, schema→auth-bypass chain)
 8. https://vibe-eval.com/patterns/graphql-swagger-grpc-exposure (Swagger/introspection/gRPC runtime detection and prefilled-token check)
-9. https://www.inspectiv.com/articles/source-code-reconstruction-from-.git-directory-exposure (403 vs 404 interpretation, commit-history mining)
-
-### Additional notes
-
+9. https://www.inspectiv.com/articles/source-code-reconstruction-from-.git-directory-exposure (403 vs 404 interpretation, commit-history mining)### Additional notes
 ### Parameters observed
 
 `text_query` · `page` · `url` · `token` · `subject` · `sort_type` · `client_id` · `sentry_key` · `action` · `query` · `defid` · `id` · `username` · `email` · `sort` · `file.path` · `SRBHeaderID` · `isBoard` · `OT` · `redirect_uri`
@@ -794,165 +651,8 @@ curl -s "https://$TARGET/static/js/main.*.js" | \
 done
 ```
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# Info Disclosure — Combined Field Guide — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payloads & probes
-
-
-
-- `/.git/config` `/.env` `/.DS_Store` `/server-status` `/actuator/env`
-
-- `/api/v1/users?limit=1000` `/api/v1/users/0`
-
-- `?fields=all` `?expand=*` `?include=deleted`
-
-- S3 -> `https://bucket.s3.amazonaws.com/?list-type=2`
-
-
-
-## Payload fragments observed
-
-
-
-Recurring payloads from this class's writeups. Adapt, don't paste blindly.
-
-
-
-| Seen | Fragment |
-
-|---:|---|
-
-| 6× | `acf_get_posts()` |
-
-| 6× | `is_trusted_daemon()` |
-
-| 5× | `try_to_connect_and_handshake_with_new_peer()` |
-
-| 4× | `rescan_spent()` |
-
-| 3× | `connections_maker()` |
-
-| 3× | `curl_easy_reset()` |
-
-| 3× | `\x00` |
-
-| 3× | `data->state.referer` |
-
-| 3× | `wallet2::rescan_spent()` |
-
-| 2× | `jdh34k' and 1=0 union all select 1,2,3;--` |
-
-| 2× | `doSearch()` |
-
-| 2× | `{id}` |
-
-| 2× | `<feature.flag>` |
-
-| 2× | `<REDACTED>` |
-
-| 2× | `{F_number_file}` |
-
-| 2× | `fetch()` |
-
-| 2× | `https://fetlife.com/events/{event-id}` |
-
-| 2× | `curl -XPOST -H 'Content-Type: application/json' -d ‘{"solution": "Facade\\Ignition\\Solutions\\MakeViewVariableOptionalSolution", "parameter` |
-
-| 2× | `/wp-json/wp/v2/sensei-messages/<numericID>` |
-
-| 2× | `get_outgoing_connections_count()` |
-
-
-
-## Parameters observed
-
-
-
-`text_query` · `page` · `url` · `token` · `subject` · `sort_type` · `client_id` · `sentry_key` · `action` · `query` · `defid` · `id` · `username` · `email` · `sort` · `file.path` · `SRBHeaderID` · `isBoard` · `OT` · `redirect_uri`
-
-
-
-## Wordlists
-
-
-
-Mined from this class's writeups and ready for `ffuf`/`feroxbuster`. Paths and parameters recur across programs; verify each hit.
-
-
-
-| File | Entries |
-
-|---|---:|
-
-| `~/.local/share/hackerone-reports/wordlists/paths_info-disclosure.txt` | 150 |
-
-| `~/.local/share/hackerone-reports/wordlists/params_info-disclosure.txt` | 150 |
-
-| `~/.local/share/hackerone-reports/wordlists/paths.txt` (global) | 500 |
-
-| `~/.local/share/hackerone-reports/wordlists/params.txt` (global) | 400 |
-
-
-
-```sh
-
-W=~/.local/share/hackerone-reports/wordlists
-
-ffuf -u https://target/FUZZ -w $W/paths_info-disclosure.txt \
-
-     -mc all -fc 404 -fs 0 -rate 40
-
-ffuf -u 'https://target/api?FUZZ=canary' -w $W/params_info-disclosure.txt \
-
-     -mr 'canary|error|invalid|not found' -rate 40
-
-```
-
-
-
-## Nuclei
-
-
-
-Run exposures/misconfiguration templates against every host; triage for real secrets and PII.
-
-
-
-```sh
-
-nuclei -u https://target -tags exposure,disclosure,debug,config,files,keys,tokens \
-
-       -severity info,low,medium,high,critical -rl 40 -o nuclei_info-disclosure.txt
-
-nuclei -u https://target -t ~/nuclei-templates/http/exposures \
-
-       -rl 40 -o nuclei_info-disclosure_exposures.txt
-
-nuclei -u https://target -t ~/nuclei-templates/http/misconfiguration \
-
-       -rl 40 -o nuclei_info-disclosure_misconfiguration.txt
-
-# authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
-
-```
-
-
-
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # Info Disclosure — Combined Field Guide — Technique reference
 
@@ -1264,329 +964,15 @@ done
 
 
 
----
+---## Probes
 
-## Corpus wordlists (mined)
+- /.git/config, /.env, /actuator/env, /telescope, /debug, /swagger.json, /*.js.map
+- Force verbose errors with wrong types, malformed JSON, oversized fields
+- Compare response bodies across roles for the exact same object ID
 
-### `params_info-disclosure.txt`
+## Supporting data
 
-```text
-hash
-id
-template
-username
-url
-password
-query
-page
-data
-token
-text_query
-subject
-action
-height
-col
-email
-sort_type
-payload
-type
-sort
-template[]
-name
-start
-client_id
-maxResults
-format
-code
-status
-uuid
-sentry_key
-defid
-vulnId
-author
-path
-prove
-tx
-month
-year
-ticket_id
-file.path
-redirect_uri
-cid
-api_key
-SRBHeaderID
-isBoard
-OT
-view
-limit
-video
-user_id
-shop
-per_page
-switch
-char
-response_type
-scope
-key
-debug
-Mode
-Id
-locale
-source
-uid
-report_id
-reported_to_team
-ver
-feature
-loc
-offasgid
-preview_data
-FUZZ
-family
-stream_id
-circle-token
-src
-dl
-sr
-service
-usp
-full
-sort_direction
-reference
-add_reporter_to_original
-reply_action
-reports_count
-bounty_currency
-callback
-output_mode
-size
-next
-rdReport
-rdShowModes
-authenticity_token
-db
-table
-ws
-petIncluded
-filterByTotalPrice
-ssr
-navigation_bar_type
-job_id
-redact_usernames
-pdf_type
-filename
-_v
-_s
-ul
-de
-dt
-sd
-vp
-je
-_u
-jid
-gjid
-tid
-_gid
-_page_size
-stu
-ti
-Ver
-sid
-byline
-title
-state
-rnd
-sitekey
-tag_id
-model_id
-_bt
-page_id
-redirect_to
-substate
-bounty_amount
-perId
-shop_id
-ref
-consumerUri
-accounts
-shareToken
-affiliateid
-channelid
-dag_id
-task_id
-execution_date
-userId
-firstName
-lastName
-partnerOrg
-highSchool
-```
-
-### `paths_info-disclosure.txt`
-
-```text
-/graphql
-/login
-/wp-json/wp/v2/users
-/robots.txt
-/secure/QueryComponent!Default.jspa
-/cgi-bin/cvename.cgi
-/wp-json/wp/v2/users/
-/admin
-/phpinfo.php
-/index.php
-/show_bug.cgi
-/view/vuln/detail
-/config
-/user
-/start
-/my-diary/
-/s3cr3t-ar3a
-/.htaccess
-/wp-login.php
-/browse/JRASERVER-71536
-/file.ashx
-/SelfService/esrbss/PDF/Index
-/redirect.php
-/portal/viewrfo.aspx
-/uploads
-/api/v4/projects/171/wikis/attachments
-/api/user
-/api
-/r3c0n_server_4fdk59
-/blog/
-/rest/menu/latest/admin
-/vuln/detail/CVE-2020-14179
-/metrics
-/api/30/csp-report/
-/rest/api/2/user/picker
-/wp/v2/users/(
-/wp/v2/users
-/wp-content/uploads/
-/vimeo/sprite.php
-/wp-content/debug.log
-/package/serve
-/path/to/curl
-/static/
-/phpmyadmin
-/ap
-/templates
-/album
-/actuator
-/rest/api/2/resolution
-/rest/api/2/projectCategory
-/test.php
-/assets/
-/v1/recoveryKey/hint
-/data/definitions/200.html
-/https:/
-/cvss/calculator/3.0
-/uploads/
-/video/[VIDEO_ID
-/check
-/settings
-/plugins/servlet/oauth/users/icon-uri
-/admin/
-/CMT_View/CMT_View_List.cfm
-/accounts/autologin/
-/forgot
-/haproxy-status
-/search
-/security/advisory/
-/_vti_bin/lists.asmx
-/vendor/composer/installed.json
-/xmlrpc.php
-/files
-/apps
-/score
-/nextcloud/index.php/apps/files_sharing/ajax/publicpreview.php
-/migration/%0A/
-/r3c0n_server_4fdk59/picture
-/images.ashx
-/proxy-rt/product/city/rider-view
-/launch
-/resources/ipv4-converter/
-/api/stock
-/CyberChef/
-/john/
-/swag-shop/api/stock
-/owncloud
-/profile
-/data/data/
-/docs/apache-airflow/stable/release_notes.html
-/docs/api/
-/bounties
-/debug
-/browse/JRASERVER-73060
-/wp-json
-/blogs/news.atom
-/author-sitemap.xml
-/bugs
-/projects/torbrowser.html.en
-/admin/api/graphql
-/events/
-/basemaps/v1/mosaics
-/cve/CVE-2020-14179
-/uploads/default/original/1X/
-/channels/barebackstudios/
-/admin/api/unversioned/graphql
-/shopify
-/video.new.php
-/status
-/testrail/files.md5
-/get-started
-/invitations/
-/vimeo/vl/videoLeak.php
-/users/
-/integrations/oauth/create
-/users/sign_in
-/api/models/get-offline-models-by-tags.php
-/api/models/recommend-models-to-cust.php
-/en-US/splunkd/__raw/services/server/info/server-info
-/.bash_history
-/s/sfsites/aura
-/acc/aura
-/logout
-/users
-/seed
-/docs/http-cookies.html
-/svc/reviewController/listReviews
-/seller/onboarding/1
-/admin/internal/web/graphql/core
-/debug/pprof
-/account
-/wp-admin/
-/BinaryHandler.ashx
-/php/instagram_tag_relay
-/rendered-templates
-/examples
-/-/graphql-explorer
-/api/web_resource/url
-/reference/android/support/v4/content/LocalBroadcastManager.html
-/sink
-/secure/project/BrowseProjects.jspa
-/author
-/private
-/api/getEnvVars
-/ncas/alerts/aa20-107a
-/2020/04/pulse-secure-vpn-vulnerability.html
-/new/checkout/order/
-/pages/create_project/
-/api/v4/projects
-/elmah.axd
-/downloads/
-```
-
-## Source skills merged into this topic
-
-- `h1skills` — `hackerone-info-disclosure`
-- `hunting` — `info-disclosure`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 2 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/evidence.md` — corpus technique frequencies, case studies, approach patterns
+- `references/payloads.md` — curated payload bank + upstream payload references
+- `references/wordlists/` — 2 mined paths/params/payload lists
 - `bbhunt-methodology` — orchestrator, state machine and class router

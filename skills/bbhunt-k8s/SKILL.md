@@ -4,14 +4,13 @@ description: "Unified methodology for k8s.. Unified from 2 upstream skills (cbh,
 agent_created: true
 ---
 
-# K8S — unified skill
+# K8S — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### A. Discovery checklist — concrete fingerprints, endpoints, headers, CVEs to look for
 
 - **CVE-2025-1974 "IngressNightmare" (CVSS 9.8) — the headline 2025 cluster-takeover path.** Unauthenticated RCE in the **ingress-nginx admission controller** (typically `:8443`, cluster-internal but sometimes exposed on the public internet). An attacker sends a crafted `AdmissionReview` directly to the webhook; the controller builds an NGINX config from the Ingress object, validates it by invoking `nginx`, and the injected directive executes code in the controller pod — whose service account is powerful enough to read Secrets cluster-wide. Wiz found **~43% of cloud environments** vulnerable and **6,500+ publicly exposed admission controllers**. Fixed in **v1.11.5 / v1.12.1**; related CVE-2025-1097 / 1098 / 24513 / 24514.
@@ -25,10 +24,7 @@ agent_created: true
 - **Blast-radius context for reporting:** the ingress-nginx controller's ClusterRole in default installs grants read access to Secrets cluster-wide, so RCE in that pod is effectively a full credential dump. State this explicitly rather than grading it as "RCE in one pod"; the 2025 campaign saw attackers read Secrets across all namespaces.
 - **Gateway API migration signal:** Kubernetes published "Before You Migrate: Five Surprising Ingress-NGINX Behaviors" (2026-02-27) and `Ingress2Gateway 1.0` (2026-03-20). A cluster still running ingress-nginx after those dates is knowingly on an unmaintained data path — useful context for the EOL finding.
 - **CISA/CYBER.gc.ca confirmation:** AV25-161 (2025-03-24, update 1) notes public PoC code was available for CVE-2025-1974 within a day of disclosure — treat any exposed pre-1.11.5/1.12.1 controller as already scanned, not as a theoretical risk.
-- **Detection query to keep handy:** `kubectl get pods --all-namespaces --selector app.kubernetes.io/name=ingress-nginx` with `app.kubernetes.io/component=controller` to extract the exact image tag; this is the single most reliable version fingerprint because the ingress itself may not expose a banner.
-
-### Signals and surfaces
-
+- **Detection query to keep handy:** `kubectl get pods --all-namespaces --selector app.kubernetes.io/name=ingress-nginx` with `app.kubernetes.io/component=controller` to extract the exact image tag; this is the single most reliable version fingerprint because the ingress itself may not expose a banner.### Signals and surfaces
 ### Crown Jewel Targets
 
 K8s API anonymous cluster-admin = full cluster control. docker.sock + RCE = host root. A single privileged-pod create or a kubelet `/run` shell pivots one finding to total compromise.
@@ -43,10 +39,7 @@ K8s API anonymous cluster-admin = full cluster control. docker.sock + RCE = host
 - **SA token abuse** — auto-mounted token at `/var/run/secrets/kubernetes.io/serviceaccount/token`; check its real grants with SelfSubjectRulesReview before claiming impact.
 - **K8s Dashboard skip-login / token-less API** — full cluster management UI reachable unauthenticated.
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### B. Techniques & bypasses — specific actionable techniques/payload shapes
 
 - **IngressNightmare non-destructive probe (use `kube-review` to generate the AdmissionReview from an Ingress manifest):** send the JSON to `https://<controller>:8443/` with `dryRun: true`, an annotation payload of `nginx.ingress.kubernetes.io/auth-url: "http://example.com#;load_module test;\n"` or `auth-tls-match-cn: "x#;load_module /tmp/x.so;"`, and match on the `directive is not allowed here` / `load_module` response. Do not load a real shared object during authorized testing — the config-injection error proves the primitive; only escalate to code execution in a lab / owned cluster.
@@ -57,10 +50,7 @@ K8s API anonymous cluster-admin = full cluster control. docker.sock + RCE = host
 - **SA-token audience check remains mandatory:** decode `aud`/`exp` before claiming cluster impact; a projected token with `aud: ["vault"]` will not authenticate to the API server.
 - **Patch-effect verification for 1974:** the upstream fix **removed NGINX config validation from the admission controller** entirely. On a patched build, the same crafted AdmissionReview should no longer produce a `nginx`-generated error — but it may still return a generic 200/400. Absence of the error string alone is weak evidence; combine with the image-tag check.
 - **When the webhook is internal-only:** do not scan-and-stop. A principal with `ingresses/create` can trigger the same code path via the API server, so test the *RBAC reachability* of Ingress creation (SelfSubjectAccessReview for `networking.k8s.io/ingresses`) before concluding the flaw is unreachable.
-- **Runtime-only detections to aim for:** anomalous DNS/OAST from the ingress-nginx pod, `exec`/`curl` spawned by the controller container, and Secret `list`/`get` calls from an identity that never made them before. These distinguish exploitation from a harmless config-validation error in a red-team report.
-
-### Validation and proof
-
+- **Runtime-only detections to aim for:** anomalous DNS/OAST from the ingress-nginx pod, `exec`/`curl` spawned by the controller container, and Secret `list`/`get` calls from an identity that never made them before. These distinguish exploitation from a harmless config-validation error in a red-team report.### Validation and proof
 ### OOB / Confirmation Gate (Read First)
 
 K8s findings are RCE/credential-disclosure class. House rule: **prove state change or data read, never infer from a status code.**
@@ -114,10 +104,7 @@ K8s findings are RCE/credential-disclosure class. House rule: **prove state chan
 **Severity:**
 - API anon→secret read, kubelet/nodes-proxy RCE, etcd dump, docker.sock/runc escape, CVE-2018-1002105: **Critical**
 - Dashboard token-less data access, exposed Tiller: **High**
-- Read-only kubelet 10255, anon `/version`/`/pods` info disclosure: **Medium**
-
-### Escalation and related chains
-
+- Read-only kubelet 10255, anon `/version`/`/pods` info disclosure: **Medium**### Escalation and related chains
 ### Chain Table
 
 | K8s finding | Chain to | Impact |
@@ -132,10 +119,7 @@ K8s findings are RCE/credential-disclosure class. House rule: **prove state chan
 | Projected SA token (aud matches) | API access scoped to its real RBAC | Depends on RBAC — verify first |
 | Tiller 44134 exposed | helm install as Tiller SA | Cluster-admin if Tiller is privileged |
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://kubernetes.io/blog/2025/03/24/ingress-nginx-cve-2025-1974/
@@ -152,10 +136,7 @@ K8s findings are RCE/credential-disclosure class. House rule: **prove state chan
 12. https://www.reddit.com/r/kubernetes/comments/1td0922/nginx_cve202642945_rewrite_module_check_your/
 13. https://nvd.nist.gov/vuln/detail/CVE-2025-1974
 14. https://github.com/kubernetes/ingress-nginx/releases/tag/controller-v1.12.1
-15. https://github.com/anderseknert/kube-review
-
-### Additional notes
-
+15. https://github.com/anderseknert/kube-review### Additional notes
 ### Phase 1 — Fingerprint & Port Discovery
 
 ```bash
@@ -381,16 +362,8 @@ curl -sk "$SRV/apis/admissionregistration.k8s.io/v1/validatingwebhookconfigurati
 - **Version-gated CVEs.** Confirm `gitVersion` (Phase 1) / runc version before asserting CVE-2018-1002105, -2024-21626, -2019-5736, etc. A version match is a lead; the PoC output is the proof.
 - **Dashboard `200` on the HTML shell** is just the login page; only a `200` with real resource JSON under `/api/v1/<resource>/<ns>` proves token-less data access.
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `k8s`
-- `cbh` — `hunt-k8s`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

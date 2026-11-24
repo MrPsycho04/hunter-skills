@@ -4,14 +4,13 @@ description: "Hunt omitted fields, replayed tokens, predictable solutions and cl
 agent_created: true
 ---
 
-# CAPTCHA bypass hunting — unified skill
+# CAPTCHA bypass hunting — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Autonomous Testing Priority
 
 **The fastest test: just omit the CAPTCHA field entirely. Most CAPTCHA bypass bugs are client-side-only validation.**
@@ -86,10 +85,7 @@ Research basis: HackTricks "Captcha Bypass" and PortSwigger Research "Cracking r
 - **Counter increments:** send a valid-but-wrong captcha value and confirm whether the failure counter still advances — this is the sliding-window condition in this skill.
 - **Audio path:** enumerate the audio challenge endpoint; it often has a far smaller answer set than the image variant.
 - **Cookie-bound challenges:** check whether the solution is stored in a cookie and merely echoed back — if so, forge the cookie.
-- **Multi-tenant reuse:** a token solved in tenant A accepted in tenant B.
-
-### Techniques, payloads and bypasses
-
+- **Multi-tenant reuse:** a token solved in tenant A accepted in tenant B.### Techniques and bypasses
 ### B. Techniques & bypasses — specific actionable techniques/payload shapes
 
 - **Omit / empty / null the parameter** entirely (the fastest test), then try `""`, `null`, `0`, `undefined`, and an entirely bogus token. Compare against a baseline that includes a real token.
@@ -100,10 +96,7 @@ Research basis: HackTricks "Captcha Bypass" and PortSwigger Research "Cracking r
 - **Rotate the limiter key:** test-owned session IDs and source IPs, User-Agent/header rotation, and normal flows that reset the counter. Stay within the authorized scope.
 - **reCAPTCHA single-use race (second-order TOCTOU).** reCAPTCHA validation happens at the *target website → Google* hop, so the target can be made to race on your behalf. With Turbo Intruder last-byte synchronisation (gate + `openGate`), one solved token can be accepted several times — PortSwigger tripled Reddit registration rate with three concurrent uses. Impact: N× spam accounts and the ability to win races in thread-unsafe code that CAPTCHA was protecting. Defensive fix is to lock/synchronise on the `g-recaptcha-response` token.
 - **Sliding-window concurrency:** if the gate is "N requests in T seconds," fire N concurrently (see the existing timing note) — garbage placeholder values count because the counter increments regardless of the request's own validation result.
-- **Third-party solvers** (e.g. CapSolver-style APIs) are a last resort and must be treated as data processors: only in-scope challenges, no sensitive screenshots or production tokens.
-
-### Validation and proof
-
+- **Third-party solvers** (e.g. CapSolver-style APIs) are a last resort and must be treated as data processors: only in-scope challenges, no sensitive screenshots or production tokens.### Validation and proof
 ### 1. Client-Side-Only CAPTCHA Validation
 
 JavaScript hides/disables the submit button until CAPTCHA is solved, but the server never checks the CAPTCHA token. Direct API calls bypass the UI gate entirely.
@@ -124,10 +117,7 @@ JavaScript hides/disables the submit button until CAPTCHA is solved, but the ser
 - **Effect on other users:** a bypass that only lets you spam yourself is informational; show it reaches another account or a shared resource.
 - **Response-time check:** a server that always returns 200 but silently drops the action is the CAPTCHA analogue of shadow-throttling; verify the state actually changed.
 - **No solved token needed:** if omitting the field works, say so explicitly — it strengthens the finding.
-- **Scope hygiene:** note in the report that external solver services were not used (or only on in-scope challenges), so evidence stays reproducible.
-
-### Escalation and related chains
-
+- **Scope hygiene:** note in the report that external solver services were not used (or only on in-scope challenges), so evidence stays reproducible.### Escalation and related chains
 ### Impact Chain
 
 CAPTCHA bypass alone: **Medium** (enables automation of rate-limited actions)
@@ -162,17 +152,11 @@ CAPTCHA bypass + password reset = **token flooding** → chain with `hunt-forgot
 
 - **`hunt-brute-force`** — CAPTCHA is often the only rate-limit gate; bypass unlocks brute force
 - **`hunt-forgot-password`** — reset endpoints sometimes protected by CAPTCHA only
-- **`hunt-race-condition`** — race the CAPTCHA validation window (submit before the token is revoked)
-
-### Sources and related reading
-
+- **`hunt-race-condition`** — race the CAPTCHA validation window (submit before the token is revoked)### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://hacktricks.wiki/en/pentesting-web/captcha-bypass.html
-2. https://portswigger.net/research/cracking-recaptcha-turbo-intruder-style
-
-### Additional notes
-
+2. https://portswigger.net/research/cracking-recaptcha-turbo-intruder-style### Additional notes
 ### 2. CAPTCHA Not Tied to Session or Action
 
 A token solved for login is accepted on the registration endpoint (or any other). The server validates "is this a real CAPTCHA solution?" but not "is this the right solution for THIS action?".
@@ -189,16 +173,8 @@ Some apps only show CAPTCHA after 3-5 failed login attempts. Before that thresho
 
 Math CAPTCHAs (`3 + 4 = ?`), simple image CAPTCHAs, or text CAPTCHAs with a finite answer set can be automated. These are custom CAPTCHA implementations, not Google/hCaptcha.
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `captcha-bypass`
-- `cbh` — `hunt-captcha-bypass`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

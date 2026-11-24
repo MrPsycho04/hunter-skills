@@ -4,14 +4,13 @@ description: "Separate target-owned assets from namespace-collision noise before
 agent_created: true
 ---
 
-# Recon ownership triage — unified skill
+# Recon ownership triage — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Escalation and related chains
-
 ### Related Skills & Chains
 
 - **`triage-validation`** — asset-ownership triage (this skill) precedes finding-validity triage (the 7-Question Gate). Ownership first, then validity.
@@ -24,10 +23,7 @@ agent_created: true
 - **`triage-validation`** — asset-ownership triage (this skill) precedes finding-validity triage (the 7-Question Gate). Ownership first, then validity.
 - **`redteam-mindset`** — "aggressive default" means probe every *owned* live surface; this skill defines which surfaces are owned so persistence isn't wasted on collisions.
 - **`hunt-spa-api`** — once an API host passes ownership triage, this is how you test it.
-- **`offensive-osint` / `osint-methodology`** — feed ownership anchors (verified domains, tenant brand, dev accounts) from OSINT into this triage.
-
-### Sources and related reading
-
+- **`offensive-osint` / `osint-methodology`** — feed ownership anchors (verified domains, tenant brand, dev accounts) from OSINT into this triage.### Sources and related reading
 ### The collision sources (where keyword-matching lies)
 
 | Recon source | How it collides | Verify ownership by |
@@ -39,10 +35,7 @@ agent_created: true
 | **Typosquats** | Generated permutations of the name | These are *defensive*/brand-protection findings, not offensive scope — note and move on. |
 | **Stack/forum/paste hits** | Brand word in body | Body references the target's real domain/subdomain/employee/secret. Ownership-confidence < threshold = drop. |
 
----
-
-### Additional notes
-
+---### Additional notes
 ### When to use this skill
 
 Trigger when:
@@ -116,16 +109,8 @@ For a target whose brand is a common word, expect the bulk of automated "owned" 
 
 On a real engagement against a dictionary-word brand, after clearing this noise the only genuinely-owned high-severity finding was discoverable solely by manual tradecraft (a JS-bundle → API discovery, see `hunt-spa-api`) — it was nowhere in the hundreds of scanner "Criticals." Triage-first is what made the engagement productive instead of a goose chase.
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `recon-scope-triage`
-- `cbh` — `recon-scope-triage`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

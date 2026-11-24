@@ -4,13 +4,13 @@ description: "Use when multiple primitives combine to control another account: r
 agent_created: true
 ---
 
-# Account Takeover Chains — unified skill
+# Account Takeover Chains — unified methodology
 
-> **Complete merged skill.** Everything from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 3 upstream skills across cbh, h1skills, hunting and grounded in 15,259 disclosed HackerOne reports. Payloads, wordlists and supporting data are in `references/`.
 
-## Corpus evidence — 64 valid HackerOne reports (10 paid / 16%)
+## Corpus signal — 64 valid reports (10 paid / 16%)
 
-Every disclosed report is valid; payment is an impact signal, not a validity test.
+Every disclosed report is valid; payment is an impact signal, not a validity test. Full technique frequencies, case studies and approach patterns: `references/evidence.md`.
 
 ### Techniques ranked across ALL valid reports
 
@@ -28,113 +28,6 @@ Every disclosed report is valid; payment is an impact signal, not a validity tes
 | header injection (Host / X-Forwarded / etc.) | 4 |
 | HTTP method / verb tampering | 4 |
 | two-account / cross-account replay | 4 |
-| public source-code / repo review | 4 |
-| internal service / port / container | 3 |
-| WAF / sanitizer / filter bypass | 3 |
-| DOM / HTML source inspection | 3 |
-| cloud metadata / IAM abuse | 2 |
-| third-party data / paste / breach reuse | 2 |
-| fuzzing / wordlist brute force | 2 |
-| second-order / stored / blind delivery | 2 |
-| JWT / token / base64 decode | 2 |
-| race / concurrency / timing | 2 |
-| archive / Wayback endpoint discovery | 2 |
-| cache / CDN / unkeyed header | 2 |
-| API docs / Swagger / introspection | 1 |
-| verbose debug / framework fingerprint | 1 |
-| intercept & replay request in Burp | 1 |
-| browser DevTools / network tab | 1 |
-| JS bundle / source-map inspection | 1 |
-| git history / exposed .git | 1 |
-| OAST / DNS / HTTP callback proof | 1 |
-| error message / stack trace probing | 1 |
-| parameter pollution / duplicate keys | 1 |
-| template injection (SSTI) | 1 |
-| public bucket / storage exposure | 1 |
-| response diff / status / length comparison | 1 |
-
-### Parameters observed in writeups
-
-`password` (2), `month` (2), `year` (2), `username` (1), `challenge` (1), `challenge_answer` (1), `url` (1), `page.` (1), `risk.` (1), `approved` (1), `address` (1), `takeover` (1), `scope` (1)
-
-### Bypass primitives observed
-
-`content-type` (13), `bypass` (12), `bypassing` (2), `whitelist` (2), `parameter pollution` (2), `blind` (2), `%00` (1), `blacklist` (1), `header injection` (1)
-
-### Impact language observed
-
-`password` (68), `token` (48), `admin` (32), `credential` (18), `account takeover` (12), `unauthorized` (6), `privilege escalation` (3), `exfiltrate` (3), `rce` (3), `sensitive data` (2), `payment` (2), `exfiltration` (2), `secret` (1), `api key` (1), `remote code execution` (1), `sensitive information` (1), `full access` (1)
-
-### Case studies — full excerpts (paid and unpaid)
-
-#### [862589](https://hackerone.com/reports/862589) — Spring Actuator endpoints publicly available, leading to account takeover
-
-LY Corporation · $5000 · critical
-
-Due to insufficient access controls, it was possible to access the Spring Boot Actuator endpoints /heapdump and /env. The /heapdump endpoint leaks data from the Java Virtual Machine, leading to disclosure of admin credentials, user tokens and a combination of other data. This endpoint was not discovered by the internal security team due to being put on a custom path, avoiding detection through our usual means. The reporter accessing this endpoint also triggered a warning for our CSIRT team, allowing us to take quick and coordinated action. After quickly restricting access to this endpoint, we investigated and found no activity except that of the reporter. The maximum impact of this issue was potential takeover of random LINE Official Accounts through leaked tokens/cookies. We appreciate the professionalism and clear communication from @kazan71p and want to thank him for helping keep LINE secure.
-
-#### [2798380](https://hackerone.com/reports/2798380) — Hackerone supports accounts organitation takeover
-
-HackerOne · $2500 · medium
-
-## Description: - I have discovered a vulnerability in HackerOne's email change process where the system automatically verifies the email address if the verification link is opened in any browser. This behavior differs from report #2128237, as it affects specific situations where email scanning bots automatically open links without human interaction. - The issue arises because some email services, such as security bots that scan emails and analyze links, automatically open verification links. In certain cases, these bots do not validate whether the email originates from a "no-reply" address or another that should prevent verification. By exploiting this behavior, an attacker can verify email addresses without the legitimate owner’s interaction, allowing them to register email addresses as if they belong to a specific company. ## Reproduction Steps: 1. Register an account on HackerOne with any valid email address. 2. Change the email of the account to one belonging to a company that uses email scanning bots (e.g., certain security solutions). example ██████ 3. If the email system of the target automatically scans the link without properly checking the email nature, the email address will be verified without any human action. 4. This allows the attacker to use a fake corporate email address without the legitimate owner’s consent. - In this case, HackerOne attempts to request SAML
-
-#### [1266828](https://hackerone.com/reports/1266828) — Staff who only have apps and channels permission can do a takeover account at the wholesale store (Bypass get invitation link)
-
-Shopify · $1600 · medium
-
-When we invite customers at the wholesale store there is a feature to "Send invite" and "Get invite link" the get invite link feature displays the customner invitation link and can only be used once, but when the customer has accepted the invitation and actived their account already have access to wholesale store then these 2 features will not be able to be used again, this works as it should and the invitation link itself can be used to change the customer's account password, maybe this is why the "Get invite link" feature cannot be used again when the customer has activated his account because to avoid takeover accounts, but here I found a vulnerability to bypass getting an activated account customer invite link so that staff who only have Wholesale permission can get an invitation link even though the customer has activated his account which causes the takeover account Step to reproduce : I tested with Shopify plus partner sandbox store 1. Login to the store using the account staff who only has permission to wholesale 2. At wholesale customers, customers whose accounts are already active will have the status of Enable {F1380035} 3. Here you will not be able to use the Send invite and Get invite link features, and if you use these features you will get an error Error when using the send invite feature : {F1380038} Error when using the Get invite link feature : {F1380040} Here
-
-#### [1626205](https://hackerone.com/reports/1626205) — Wordpress Takeover using setup configuration at http://████.edu [HtUS]
-
-U.S. Dept Of Defense · $1000 · critical
-
-Description: The WordPress 'setup-config.php' installation page allows users to install WordPress in local or remote MySQL databases. This typically requires a user to have valid MySQL credentials to complete. However, a malicious user can host their own MySQL database server and can successfully complete the WordPress installation without having valid credentials on the target system. Reproduce step by step: I found this vulnerable url: Then i configured db I used this site After configure I got wordpress admin access proof: Admin credentials that I set after installing the config username: ████████ password: ███ Login Panel: Video POC has been attached as well. ## Impact Impact Remote Code Execution/Total system compromise. Attacker can upload webshell into the server. I did not upload any shell for security violation. Malware distribution Phishing / Spear phishing XSS Authentication bypass
-
-#### [1679734](https://hackerone.com/reports/1679734) — Account Takeover Vulnerability in Shopify Collabs Platform Due to Missing Email Verification
-
-Shopify · $800 · low
-
-## Summary: Shopify collabs (collabs.shopify.com) is a new platform for content creators / influencers to discover and advertise the millions of brands of Shopify. The content creators can apply for different brands on this platform and get paid (affiliate marketing). In the past, the features of this new platform were provided by Dovetale ( but Dovetale was now * migrated to Shopify (via an extra app for the **brands** * replaced by the new platform collabs.shopify.com for the **creators** I found a way to take over the account of **arbitrary creators** by using the new platform collabs.shopify.com. If a creator applies to be an ambassador of a brand with his email address, an attacker is also able to create a new Shopify ID and sign up at collabs.shopify.com with the **victim's email address**. Due to the fact that there is no email verification needed for using collabs.shopify.com, the attacker is thus able to take over the victim's account. ## Shops Used to Test: ██████ ## Steps To Reproduce: ### Setup 1. (Brand) Install the new Shopify collabs app ( to your store and create an application page for the creators 2. (Victim/Creator) Use the public link to apply for being an ambassador for the brand. You can find the link in the Dashboard of the app: {F1875876} 3. (Victim/Creator) Follow the application process. Choose an email address (kun_19+takeover@wearehackerone.com in my
-
-#### [867513](https://hackerone.com/reports/867513) — Takeover an account that doesn't have a Shopify ID and more
-
-Shopify · no bounty — still valid · critical
-
-## Details The can be exploited to update a staff member email without any email confirmation. Using the partner dashboard, we've the ability to create a store that doesn't have a Shopify ID account on By using these two together, all we have to do is create an arbitrary store to an email that we own and confirm it with received email, then use the the POS Staff endpoint to update our email without having to validate it. You'll then be prompted to create a Shopify ID for your stores (the new created one alongs with the victim stores) and you won't need to validate that you own the email since it is already verified. ## Steps to reproduce 1. Have a victim with a shop that doesn't have a Shopify ID 1. Open and create a development store 1. Within the store creation form, you'll need to update your shop email to one that doesn't exist within Shopify and that you own (so it can be validated). As the field is read-only, that can either be done by intercepting the request with an application like Burp or do the above **within your browser console** to update the form object. 1.. Validate that you own the email address (Link sent to your email) 1. Add the **POS** to your shop **Sales Channels** 1. Open up the **POS > Staff** 1. Save your own staff page and copy the CURL request by using browser inspection 1. Replace the CURL payload email field with the victim email and send the reque
-
-#### [759454](https://hackerone.com/reports/759454) — Helpdesk Takeover at dmc.datastax.com
-
-DataStax · no bounty — still valid · high
-
-## Summary: DNS record [dmc.datastax.com](dmc.datastax.com) is pointing to stale [dmc-support.zendesk.com](dmc-support.zendesk.com) domain on Zendesk which is available for takeover. DNS Stale Records: {F661014} ## Proof of Concept: There was no helpdesk configured at this address, which means that the address was available and anyone could claim it. I was able to claim dmc-support.zendesk.com. On this page, I haven't made the page public, I'm attaching a screenshot of the webpage: {F661004} ## Supporting Material/References: Login page: {F661021} ## Impact Subdomain takeover
-
-### Recurring approach patterns from real reports
-
-- 1× so i was able to claim the domain for my own host and thus can place content on this url
-- 1× description i have noticed that there is no security check at changing password
-- 1× hi summary i have found a design issue on the e mail change functionality offered by the accounts profile handler
-- 1× i changed my email1 to email2 through profile
-- 1× it was failed and when i used email2 its working
-- 1× the researcher was able to pass verification to another account by finding confirmation data in response from the server
-- 1× i was able to claim dmc support zendesk com
-- 1× also attached is the apk of the malicious app i used as poc and for the video
-- 1× after quickly restricting access to this endpoint we investigated and found no activity except that of the reporter
-- 1× f859739 flag flag 736c635d8842751b8aafa556154eb9f3 flag in this report i ll try to focus more on my way of thinking rather than on the technical implementation so others will be able to learn what i ve learned and use it to hit harder and make our world a safer place
-- 1× ctf walkthrough recon i ve started the challenge by performing two basic recon steps subdomain enumeration with subfinder subfinder d bountypay h1ctf com
-- 1× finding credentials in the log file i was able to find base64 encoded strings to make it easier to work with i used the following bash liner which prints only the base64 decoded payload the next step was to actually try and log in with the exposed username and password username brian oliver password v7h0inzx but it required me to do a factor authentication
-- 1× f859768 finding the next door ssrf via load transactions functionality now that i was logged in as brian i saw the bountypay dashboard with no transactions
-- 1× during the recon phase i also found out two more things that now come handy
-- 1× in there is a link to google with an explanation on what is rest api but the link isn t referring directly to google but to an internal redirect endpoint which have some kind of urls whitelist by combining those two clues i decided to enumerate files directories in the software subdomain and was able to achieve it by chaining the ssrf vulnerability with the semi open redirect
-- 1× i created a simple bash script that gets a url and generates the base64 encoded cookie value
-- 1× i created the payloads list and used ffuf for the enumeration one of the responses contained the following data which tells us that directory listing is enabled in uploads and that there is an apk file there
-- 1× i was then able to download the file from android application reverse engineering challenge i started by installing the application on a local android studio emulator
-- 1× then once i clicked the money bag button at the bottom of the app i saw the following notification f860987 deep links
-- 1× let s open up the code in order to start reverse engineering the application i used multiple tools and techniques which will now be explained
-- 1× i used apktool to unpack the apk file
-- 1× once the apk is unpacked we can investigate things like the manifest file and look for hard coded strings
-- 1× after i searched for hard coded strings like urls tokens and api keys without success i moved on to investigating the deep links
-- 1× i used dex2jar and jd gui to decompile the code and view it as java files
 
 ## Corpus-backed method (this class)
 
@@ -163,18 +56,13 @@ DataStax · no bounty — still valid · high
 - Reset poisoning -> token capture -> ATO.
 - Auth bypass -> session issuance -> ATO.
 
-### Probes
-
-- Dual-recipient reset requests, redirect_uri manipulation, email change without verification, session reuse.
-
 ### Veteran tip
 
 ATO is usually the *escalation* from another class — load the root-cause class skill first, then this one for the final proof.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Quick wins
 
 Start here. These are the highest-yield tests for this class.
@@ -212,10 +100,7 @@ Start here. These are the highest-yield tests for this class.
 - Look at the password-change POST for a hidden or predictable `user_id`/`uid` next to `email` — swapping both is often required when `email` alone is validated.
 - Inventory email-change confirmation links: the classic pattern is attacker requests change to their own address, sends the confirmation link to the victim, and the victim's click binds the victim account to the attacker's email, enabling a later password reset.
 - Check whether a password reset invalidates existing sessions. A token that changes the password but leaves the victim's live session untouched may not yield a usable ATO — record this during validation.
-- For financial targets, check whether the same reset/session token is accepted by the withdrawal or payout API — this determines whether the impact is account access alone or direct fund movement (Beek Labs: $3,000 bounty, finance platform).
-
-### Signals and surfaces
-
+- For financial targets, check whether the same reset/session token is accepted by the withdrawal or payout API — this determines whether the impact is account access alone or direct fund movement (Beek Labs: $3,000 bounty, finance platform).### Signals and surfaces
 ### Signal
 
 - Reports: **262** · paid: **39**
@@ -239,10 +124,7 @@ Start here. These are the highest-yield tests for this class.
 
 Parameters, endpoints, and fields that commonly carry this bug:
 
-`reset` `email` `verify` `oauth` `link` `otp` `mfa` `session`
-
-### Techniques, payloads and bypasses
-
+`reset` `email` `verify` `oauth` `link` `otp` `mfa` `session`### Techniques and bypasses
 ### Payloads & probes
 
 - Host header -> `Host: evil.com` in reset request
@@ -373,10 +255,7 @@ Recurring payloads from this class's writeups. Adapt, don't paste blindly.
 - Parameter-pollution on the reset body: `email=victim@x&email=attacker@x` — different parsers (WAF vs app) may select different values, producing a token generated for one address and delivered to another.
 - Stale-link chain with MFA: keep a reset link issued before the victim enables 2FA; after they enable it, replay the link — if it logs straight into the dashboard without an MFA challenge, this is an ATO that defeats the added factor (see MFA skill).
 - Session-token leak chain: if the reset API returns `authenticationToken`, skip the password step entirely — replay the token as `X-User-Token` / `Authorization` against `/api/me` and a write endpoint to prove authenticated access without ever changing the password.
-- Mass-verification across roles: repeat the chain against a test instructor and a test admin account to show the impact is privilege-independent (XHack case study) — this strengthens severity without touching real users.
-
-### Validation and proof
-
+- Mass-verification across roles: repeat the chain against a test instructor and a test admin account to show the impact is privilege-independent (XHack case study) — this strengthens severity without touching real users.### Validation and proof
 ### Reporting bar
 
 - Prove real impact on a second controlled account or a safe callback.
@@ -411,10 +290,7 @@ Recurring payloads from this class's writeups. Adapt, don't paste blindly.
 - Check the token's TTL: a link that expires in minutes narrows the exploit window but does not invalidate the finding; a link that never expires is an independent issue worth noting.
 - When the hidden endpoint returns PII, file the token exposure and the PII disclosure as separate impacts in the same report, but only claim ATO where a login as the victim is demonstrated.
 - Preserve the raw reset email, exact request headers, and the attacker access-log entry; redact other users' names/emails/phones and all session cookies per evidence hygiene.
-- Severity floor: password reset token exposure in the response body with no victim interaction = High to Critical; a poisoned link requiring a click but yielding a working token = High/Critical; a poisoned link with a dead or already-consumed token = Informational.
-
-### Escalation and related chains
-
+- Severity floor: password reset token exposure in the response body with no victim interaction = High to Critical; a poisoned link requiring a click but yielding a working token = High/Critical; a poisoned link with a dead or already-consumed token = Informational.### Escalation and related chains
 ### Escalation chains
 
 - Reset poisoning -> ATO.
@@ -441,10 +317,7 @@ Recurring payloads from this class's writeups. Adapt, don't paste blindly.
 - **`hunt-host-header`** — Path 1 canonical primitive. Chain primitive: `POST /forgot-password` with `Host`/`X-Forwarded-Host: attacker.com` → mailer builds the link from the request Host → link points to `attacker.com/reset?token=XXXX` → victim clicks → token leaked → ATO. Confirm via Collaborator-hosted domain reading the real email, not the reflected header.
 - **`offensive-osint`** — Path 8 force-multiplier: most security-question answers (birth city, pet, first school, mother's maiden name) are OSINT-able from social profiles → recover account B with no brute force at all.
 - **`security-arsenal`** — Pull the Password-Reset Bypass Tables (`X-Forwarded-Host`, `X-Host`, `X-HTTP-Host-Override`, dual-Host smuggling), token-entropy payloads (sequential numeric, time-based predictable), the JWT attack table, and the always-rejected list for "rate-limit on /forgot-password" reports.
-- **`triage-validation`** — Run the Pre-Severity Gate before claiming Critical on an ATO that needs the victim to click a link AND enter credentials AND pass CAPTCHA. The reproducibility step (10-minute fresh-browser walkthrough taking over test account B from attacker A's session) separates Critical-paid from Self-XSS-tier rejected.
-
-### Tools and wordlists
-
+- **`triage-validation`** — Run the Pre-Severity Gate before claiming Critical on an ATO that needs the victim to click a link AND enter credentials AND pass CAPTCHA. The reproducibility step (10-minute fresh-browser walkthrough taking over test account B from attacker A's session) separates Critical-paid from Self-XSS-tier rejected.### Tools
 ### Tools
 
 `Burp` · `Turbo Intruder` · `interactsh`
@@ -482,10 +355,7 @@ nuclei -u https://target -t ~/nuclei-templates/http/exposures/tokens/generic/jwt
 # authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
 ```
 
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Sources and related reading
-
+Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.### Sources and related reading
 ### Query the corpus
 
 ```sh
@@ -518,10 +388,7 @@ python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class acco
 1. https://portswigger.net/web-security/host-header/exploiting/password-reset-poisoning
 2. https://blog.beeklabs.com/undocumented-password-reset-account-takeover/
 3. https://portswigger.net/web-security/authentication/other-mechanisms
-4. https://portswigger.net/web-security/race-conditions
-
-### Additional notes
-
+4. https://portswigger.net/web-security/race-conditions### Additional notes
 ### Parameters observed
 
 `username` · `month` · `year` · `template` · `template[]` · `url` · `email` · `redirectUrl` · `token` · `userId` · `p_datasource_data` · `switch` · `ticket_id` · `canary` · `password` · `continue` · `PositionTitleIds` · `Title` · `FirstName` · `MiddleName`
@@ -692,165 +559,8 @@ dig +short staging.target.com    # CNAME -> nonexistent-app.herokuapp.com  (NXDO
 # (c) claim that host on the cloud provider, serve a callback that logs the ?code=
 # (d) send victim B the crafted authorize URL -> their code/token lands on your claimed subdomain
 ```
-**Confirmation = OOB:** the auth `code` (or implicit `access_token`) must actually arrive at the host you claimed — log it server-side and exchange it for B's token. A redirect_uri that merely *reflects* an off-origin value but bounces the code through a server-pinned exchange is not exploitable. Decode any error body as JSON, not substring — `AADSTS50076` / claims-challenge responses contain a literal `access_token` substring inside the claims field that is NOT a usable token.
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# Account Takeover — Combined Field Guide — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payloads & probes
-
-
-
-- Host header -> `Host: evil.com` in reset request
-
-- Email -> `victim@example.com` with unicode/plus/dot variants
-
-- OAuth -> link attacker provider to victim email
-
-- OTP -> brute force, reuse, response leakage
-
-
-
-## Payload fragments observed
-
-
-
-Recurring payloads from this class's writeups. Adapt, don't paste blindly.
-
-
-
-| Seen | Fragment |
-
-|---:|---|
-
-| 5× | `victim@ato.com` |
-
-| 3× | `attacker@example.com` |
-
-| 3× | `@import` |
-
-| 2× | `GET https://<URL> HTTP/1.1` |
-
-| 2× | `demo-member@hackerone.com` |
-
-| 2× | `https://cdn.kastatic.org/khanacademy/khanacademy.<hash>.js.map` |
-
-| 2× | `badca7@wearehackerone.com` |
-
-| 2× | `application%5Bid%5D` |
-
-| 2× | `check_alter_user()` |
-
-| 2× | `$regex` |
-
-| 2× | `loadDataWithBaseURL()` |
-
-| 2× | `^FLAG^736c635d8842751b8aafa556154eb9f3$FLAG$` |
-
-| 2× | `<input>` |
-
-| 1× | `user[email]":"victim@gmail.com` |
-
-| 1× | `victim@gmail.com` |
-
-| 1× | `attacker@gmail.com` |
-
-| 1× | `GET / HTTP/1.1 / Transfer-Encoding : chunked / Host: slackb.com / User-Agent: Smuggler/v1.0 / Content-Length: 83 / 0 / GET <URL> HTTP/1.1 /` |
-
-| 1× | `https://<URL>` |
-
-| 1× | `Burp->Burp Collaborator Client` |
-
-| 1× | `host: slackb.com , Port: 443 (SSL)` |
-
-
-
-## Parameters observed
-
-
-
-`username` · `month` · `year` · `template` · `template[]` · `url` · `email` · `redirectUrl` · `token` · `userId` · `p_datasource_data` · `switch` · `ticket_id` · `canary` · `password` · `continue` · `PositionTitleIds` · `Title` · `FirstName` · `MiddleName`
-
-
-
-## Wordlists
-
-
-
-Mined from this class's writeups and ready for `ffuf`/`feroxbuster`. Paths and parameters recur across programs; verify each hit.
-
-
-
-| File | Entries |
-
-|---|---:|
-
-| `~/.local/share/hackerone-reports/wordlists/paths_account-takeover.txt` | 150 |
-
-| `~/.local/share/hackerone-reports/wordlists/params_account-takeover.txt` | 150 |
-
-| `~/.local/share/hackerone-reports/wordlists/paths.txt` (global) | 500 |
-
-| `~/.local/share/hackerone-reports/wordlists/params.txt` (global) | 400 |
-
-
-
-```sh
-
-W=~/.local/share/hackerone-reports/wordlists
-
-ffuf -u https://target/FUZZ -w $W/paths_account-takeover.txt \
-
-     -mc all -fc 404 -fs 0 -rate 40
-
-ffuf -u 'https://target/api?FUZZ=canary' -w $W/params_account-takeover.txt \
-
-     -mr 'canary|error|invalid|not found' -rate 40
-
-```
-
-
-
-## Nuclei
-
-
-
-Use Nuclei for exposed tokens and takeover fingerprints, then chain reset/OAuth/email-change primitives manually.
-
-
-
-```sh
-
-nuclei -u https://target -tags takeover,auth-bypass,jwt \
-
-       -severity low,medium,high,critical -rl 40 -o nuclei_account-takeover.txt
-
-nuclei -u https://target -t ~/nuclei-templates/http/takeovers \
-
-       -rl 40 -o nuclei_account-takeover_takeovers.txt
-
-nuclei -u https://target -t ~/nuclei-templates/http/exposures/tokens/generic/jwt-token.yaml \
-
-       -rl 40 -o nuclei_account-takeover_jwt-token.txt
-
-# authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
-
-```
-
-
-
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-### Companion: hunting / references/techniques.md
+**Confirmation = OOB:** the auth `code` (or implicit `access_token`) must actually arrive at the host you claimed — log it server-side and exchange it for B's token. A redirect_uri that merely *reflects* an off-origin value but bounces the code through a server-pinned exchange is not exploitable. Decode any error body as JSON, not substring — `AADSTS50076` / claims-challenge responses contain a literal `access_token` substring inside the claims field that is NOT a usable token.### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # Account Takeover — Combined Field Guide — Technique reference
 
@@ -1106,330 +816,13 @@ python3 ~/.local/share/hackerone-reports/h1.py search "wordpress" --class accoun
 
 python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class account-takeover --min-bounty 1000
 
-```
+```## Probes
 
-## Corpus wordlists (mined)
+- Dual-recipient reset requests, redirect_uri manipulation, email change without verification, session reuse.
 
-### `params_account-takeover.txt`
+## Supporting data
 
-```text
-username
-month
-year
-template
-template[]
-url
-email
-redirectUrl
-token
-userId
-p_datasource_data
-switch
-ticket_id
-canary
-password
-continue
-PositionTitleIds
-Title
-FirstName
-MiddleName
-LastName
-PhoneNumber
-LanguageId
-Password
-ConfirmPassword
-passChange
-PersonProfileId
-CitizenshipId
-__RequestVerificationToken
-reset_password_token
-start
-char
-oauth_token
-id
-key
-code
-rt
-authenticity_token
-next
-challenge
-challenge_answer
-two
-three
-header
-input
-name
-cookie
-redirect_after_login
-csrf
-popup
-petIncluded
-filterByTotalPrice
-ssr
-state
-_method
-openid.ns
-openid.mode
-openid.return_to
-openid.claimed_id
-openid.identity
-openid.ns.ax
-openid.ax.mode
-openid.assoc_handle
-openid.response_nonce
-openid.signed
-openid.op_endpoint
-openid.ax.type.email
-openid.ax.type.fullname
-openid.ax.type.nickname
-openid.sig
-ws
-hmac
-host
-locale
-session
-shop
-timestamp
-domain
-Action
-Domain
-Suffix
-redirect
-osf
-ms
-mo
-pg
-sepg
-fi
-fs
-ft
-pu
-has
-as
-saa
-po
-pi
-pc
-co
-ci
-p_action
-ll
-p_otype
-p_request
-p_minusimage
-p_plusimage
-p_headerimage
-p_show_banner
-p_show_cancel
-p_open_item
-p_open_items
-p_domain
-p_sub_domain
-p_title
-dest
-user_id
-_csrf_token
-janrain_nonce
-content
-csrfmiddlewaretoken
-back_to
-callbackUrl
-value
-maxAge
-app_type
-page
-redirect_url
-enable_registration
-redirectTo
-referrer_page_location
-RelayState
-client_id
-redirect_uri
-response_type
-scope
-action
-msisdn
-otp
-openid.realm
-openid.ax.value.email
-openid.ax.value.fullname
-openid.ax.value.nickname
-openid.pape.auth_level.nist
-authComplete
-Seq
-HTTP_HOST
-HTTPS
-SERVER_NAME
-dbPath
-RepId
-QUERY_STRING_DECODED
-```
-
-### `paths_account-takeover.txt`
-
-```text
-/login
-/redirect
-/account/profile/edit
-/api/v1/users.info
-/confirm_email
-/fc/access
-/cookies
-/portal/page/portal/TOPLEVELSITE/SearchResults/PerspectiveResults
-/portal/pls/portal/PORTAL.wwexp_render.show_tree
-/accounts/autologin/
-/api.bountypay.h1ctf.com
-/uploads
-/BountyPay.apk
-/api
-/admin/report
-/pre
-/accounts
-/F8gHiqSdpK
-/h1
-/pay/17538771/27cd1393c170e1e97f9507a5351ea1ba
-/statements
-/admin/upgrade
-/api/staff
-/login/
-/users/invite-user.php
-/users/list-users.php
-/transfer_auth
-/signup/email
-/app/bugcrowd-iambull-2_gitlabcom_1/exk1lit3jovMjvewh0h8/sso/saml
-/site/oauth2/authorize
-/users
-/account/register
-/google/verify.phtml
-/documentation/api/v1
-/api/applications
-/domains/new.php
-/forgotpassword/
-/accounts/reset/
-/graphql
-/sign-in
-/MOS/
-/EditUserProfile
-/password
-/password/edit
-/accounts/password
-/admin
-/r/
-/accounts/complete/ubuntu/
-/accounts/profile/
-/training/app-links/deep-linking
-/software.bountypay.h1ctf.com
-/graphql-proxy/admin
-/fabric.html
-/de/cognito/
-/cli/
-/api/auth/facebook
-/advisories/tiktok-account-takeover/
-/google_connect/register
-/profile_sharing
-/CyberChef/
-/rt/users/passwordless-signup
-/upgrade
-/orchestrator/v1/password_reset/start
-/pocs/periscope-oauth-callback-hijack
-/en/articles/9250705-scim-provisioning-for-okta
-/en/articles/8490526-okta-sso-setup-via-saml
-/hpanel/auth/auth-token
-/i/twitter/login
-/hc/en-us
-/blog/account-takeover-kayak/
-/minNightlyPrice/0
-/traveler/profile/edit
-/search/keywords:soissons-france-(xss
-/heapdump
-/env
-/khanacademy/khanacademy
-/signup
-/collabs
-/collabs/find-brands
-/onboarding
-/chapters/
-/advisories/tfh-form_post-xss-ato/
-/api/Account/Login/
-/old/wp-login.php
-/old/wp-admin/setup-config.php
-/old/rce.txt
-/users/auth/bitbucket/callback
-/2.0/repositories/%7B766210f9-9bec-4010-9f4d-917b06661c0c%7D
-/users/sign_out
-/auth
-/mtn_otp/index/verification/
-/CheckPortal.aspx
-/PKI/default.aspx
-/PKI/PassReset.aspx
-/PKI/PassReset1.aspx
-/SessionVerify
-/Me
-/SessionCreate
-/api/2fa
-/api/2fa/verify
-/en/signup/
-/u/user/preferences/account
-/auth/yahoo/callback
-/u/testh1ay/preferences/account
-/auth/yahoo/null
-/account/imports/new
-/session
-/20002/my/access_tokens
-/workspace/victim_ato.cookies
-/40002/users/03frq8zae2a7m9cari0v89xua/edit
-/40002/users/03frq8zae2a7m9cari0v89xua/email_addresses
-/20002/account/cancellation
-/wp-json/wp/v2/users/15
-/www.mtn.com
-/wp
-/v2
-/wp-json
-/852585B6003EBA25/forgotpassword.html
-/__852585b6003eba25.nsf/forgotpassword.html
-/draw
-/api/v1/
-/api/v1/users.list
-/reset-password/%5Breset_hash%5D
-/web/20220126180109/https://hackerone.engineering/
-/badoo.html
-/settings
-/chrome-push-stats
-/name=
-/OmerGil/web-cache-deception-attack
-/X-Discourse-Username
-/users/
-/preferences/email.json
-/x-www-form-urlencoded
-/u/
-/resetpassword
-/invite_links
-/accounts/invitation/accept
-/admin/shops/19596/accounts/5182510
-/admin/shops/19596/accounts/
-/send_invite
-/admin/shops/19596/accounts/5182518
-/authorize
-/mcp-server-portal-xss-to-ato
-/cms/reader/account
-/forgot
-/confirm_device
-/member/updatesecurityquestions
-/████████/default.asp
-/default.asp
-/████/default.asp
-```
-
-## Source skills merged into this topic
-
-- `h1skills` — `hackerone-account-takeover`
-- `hunting` — `account-takeover`
-- `cbh` — `hunt-ato`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 2 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/evidence.md` — corpus technique frequencies, case studies, approach patterns
+- `references/payloads.md` — curated payload bank + upstream payload references
+- `references/wordlists/` — 2 mined paths/params/payload lists
 - `bbhunt-methodology` — orchestrator, state machine and class router

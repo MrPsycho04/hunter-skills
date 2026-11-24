@@ -4,14 +4,13 @@ description: "Recover a single-page app's backend API from its public JS bundles
 agent_created: true
 ---
 
-# SPA hidden API discovery — unified skill
+# SPA hidden API discovery — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### A. Discovery checklist — concrete artifacts, endpoints, patterns, tools to look for
 
 - **Why this play works (Breach Authority 2026):** a SPA ships the browser a map of its entire API surface — routes, base URLs, versioned paths, parameter names, and auth logic. An unauthenticated visitor loading the login page can receive as much API information as an authenticated user exploring every feature; hiding a feature in the UI does not hide its address in the code.
@@ -21,10 +20,7 @@ agent_created: true
 - **Source maps:** always check `<bundle>.map` and `//# sourceMappingURL=` — original source, comments, and internal folder paths make route/role discovery far easier.
 - **Auth/role logic markers:** `role === "admin"`, `isAdmin`, `hasFeature(`, `permission`, `getItem('token')`, `sessionStorage`, `localStorage`, `Authorization: Bearer`. Mandiant (Google Cloud, 2025) identifies routing manipulation, hidden elements, and JavaScript debugging as the three systemic SPA access-control issues.
 - **Tools:** Burp (Site Map, JS Miner "API Endpoints Finder", DOM Invader for canary→request flow), BChecks ("Swagger endpoint found"), `LinkFinder`/`xnLinkFinder`, `jsluice`, `katana -jc`, Param Miner/ffuf for hidden parameters, `feroxbuster --burp`.
-- **OWASP anchors:** A01:2025 Broken Access Control Scenario #3 (all access control in front-end → `curl example.com/app/admin_getappInfo` directly); WSTG client-side testing; OWASP API5:2023 Broken Function Level Authorization for hidden-route testing.
-
-### Techniques, payloads and bypasses
-
+- **OWASP anchors:** A01:2025 Broken Access Control Scenario #3 (all access control in front-end → `curl example.com/app/admin_getappInfo` directly); WSTG client-side testing; OWASP API5:2023 Broken Function Level Authorization for hidden-route testing.### Techniques and bypasses
 ### B. Techniques & bypasses — specific actionable techniques/payload shapes
 
 - **The core test — two accounts, three replays:** for each discovered endpoint: (1) baseline as admin/capture the admin's real request, (2) replay with the low-privilege user's session, (3) replay with no session. Compare *bodies* — an error page with HTTP 200 is not success. Server-side enforcement is the only valid control (OWASP A01:2025).
@@ -35,10 +31,7 @@ agent_created: true
 - **Feature-flag forcing:** flip client-side flags in DevTools to reveal hidden UI, then call the endpoint directly with the original token — a `role === "admin"` check that only hides a button is cosmetic.
 - **SSTI/token tampering adjacency:** SPA JWTs in `localStorage`/`sessionStorage` sent as `Authorization: Bearer` — test signature/claims handling per `crypto-and-secrets` after identifying the token flow.
 - **DOM Invader canary tracing:** inject canaries to identify the exact code path and variable names that build an API request, then set breakpoints/hooks to reveal dynamically constructed hidden paths.
-- **SSR as mitigation signal:** where the SPA uses server-side rendering for page/data access, client-side tampering yields less — adjust impact accordingly rather than assuming the client route is exploitable.
-
-### Validation and proof
-
+- **SSR as mitigation signal:** where the SPA uses server-side rendering for page/data access, client-side tampering yields less — adjust impact accordingly rather than assuming the client route is exploitable.### Validation and proof
 ### C. Validation / proof bar — how to confirm and avoid false positives
 
 - **A path found in a bundle is a lead, not a vulnerability.** The finding exists only when the backend trusts the client or fails authorization. Prove it with the two-account differential and a concrete unauthorized read/action.
@@ -60,10 +53,7 @@ agent_created: true
 - **Keep the PoC reversible:** use a read endpoint with a low-privilege session and record the single request/response that proves the missing check; avoid creating users, orders, or uploads.
 
 - **Chain-out checklist for each confirmed endpoint:** admin-only route → BFLA (no role check); object ID → BOLA/IDOR; hidden body field → mass assignment; internal base URL → SSRF; stale version → `shadow-api`; prefilled token in Swagger UI → `info-disclosure`.
-- **Scope note for "same-named third party" hosts:** many SPAs call a vendor's API on a different domain — verify ownership before testing, and treat vendor-side findings as out of scope unless the program explicitly includes them.
-
-### Escalation and related chains
-
+- **Scope note for "same-named third party" hosts:** many SPAs call a vendor's API on a different domain — verify ownership before testing, and treat vendor-side findings as out of scope unless the program explicitly includes them.### Escalation and related chains
 ### Related Skills & Chains
 
 - **`api-misconfig`** — once the API is mapped, run the broader misconfig matrix (method tampering, mass assignment, JWT alg confusion) per route.
@@ -80,10 +70,7 @@ agent_created: true
 - **`hunt-source-leak`** — sourcemaps (`*.js.map`) reconstruct original source for deeper route/secret extraction; same harvesting muscle.
 - **`hunt-nextjs`** — for Next.js targets, layer the middleware-bypass (`x-middleware-subrequest`) and `/_next/data` route tests on top of this.
 - **`redteam-mindset`** — the data-minimization boundary governs step 5: prove the missing check, don't exfiltrate the table.
-- **`recon-scope-triage`** — verify the API host actually belongs to the target before testing (don't pop a same-named third party's API).
-
-### Sources and related reading
-
+- **`recon-scope-triage`** — verify the API host actually belongs to the target before testing (don't pop a same-named third party's API).### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://www.guidepointsecurity.com/blog/the-secret-life-of-apis-uncovering-hidden-endpoints-and-more (highest-privilege SPA crawl, JS Miner, BCheck Swagger discovery, real-world hidden-admin example)
@@ -95,10 +82,7 @@ agent_created: true
 7. https://safeguard.sh/resources/blog/security-testing-single-page-applications (client-side API exposure methodology for React/Vue/Angular)
 8. https://safeguard.sh/resources/blog/hidden-risks-of-single-page-applications (bundle routes/flags/keys; server-side authorization requirement)
 9. https://blog.nashtechglobal.com/%F0%9F%94%93-hacking-single-page-apps-spas-with-burp-suite (hidden admin export endpoint example, JWT tampering)
-10. https://portswigger.net/web-security/api-testing (API recon, docs paths, Intruder hidden-endpoint/parameter discovery)
-
-### Additional notes
-
+10. https://portswigger.net/web-security/api-testing (API recon, docs paths, Intruder hidden-endpoint/parameter discovery)### Additional notes
 ### When to use this skill
 
 Trigger when:
@@ -232,16 +216,8 @@ grep -ohiE '(AIza[0-9A-Za-z_-]{35}|AKIA[0-9A-Z]{16}|sk_live_[0-9A-Za-z]+|eyJ[A-Z
 grep -oE '[0-9]+:"[a-f0-9]+"' bundles/*main*.js        # {chunkId:"hash"} pairs
 # reconstruct /static/js/<id>.<hash>.chunk.js, download each, re-run route/host/secret harvest
 # asset-manifest.json (if present) lists them all -> hunt-source-leak
-```
+```## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `spa-api`
-- `cbh` — `hunt-spa-api`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

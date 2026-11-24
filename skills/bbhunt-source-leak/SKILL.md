@@ -4,14 +4,13 @@ description: "Hunt source maps, Swagger/OpenAPI, .git/.env exposure, webpack chu
 agent_created: true
 ---
 
-# Source and build-artifact leakage — unified skill
+# Source and build-artifact leakage — unified methodology
 
-> **Complete merged skill.** Everything from 1 upstream skills across cbh is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 1 upstream skills across cbh. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Phase 1 — Quick Wins (Run First)
 
 ```bash
@@ -36,10 +35,7 @@ for PATH in \
 done
 ```
 
----
-
-### Signals and surfaces
-
+---### Signals and surfaces
 ### Crown Jewel Targets
 
 Source map exposing TypeScript source = see all API routes, auth logic, secrets. Swagger/OpenAPI JSON = complete API surface map.
@@ -52,10 +48,7 @@ Source map exposing TypeScript source = see all API routes, auth logic, secrets.
 - **`asset-manifest.json` / `_next/static/`** — all JS bundle paths → systematic source map discovery
 - **`build-info` / `info.json`** — git commit hash, build timestamp, dependency versions → CVE targeting
 
----
-
-### Validation and proof
-
+---### Validation and proof
 ### Validation
 
 ✅ Source map: reconstructed TypeScript source contains API endpoints or hardcoded secrets
@@ -68,10 +61,7 @@ Source map exposing TypeScript source = see all API routes, auth logic, secrets.
 - .git with secrets in history: Critical
 - Source map with secrets: High
 - Swagger with internal routes: Medium-High
-- robots.txt only: Informational
-
-### Escalation and related chains
-
+- robots.txt only: Informational### Escalation and related chains
 ### Chain Table
 
 | Source leak finding | Chain to | Impact |
@@ -83,10 +73,7 @@ Source map exposing TypeScript source = see all API routes, auth logic, secrets.
 | build-info with git hash | CVE targeting exact version | High |
 | .env with DB_PASSWORD | Direct database access | Critical |
 
----
-
-### Tools and wordlists
-
+---### Tools
 ### Tools
 
 ```bash
@@ -105,10 +92,7 @@ npm install -g unwebpack-sourcemap
 trufflehog filesystem /tmp/repo/
 ```
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### Phase 2 — Source Map Discovery
 
 > **Always resolve the CURRENT build hash before testing, and again before
@@ -176,10 +160,7 @@ grep -r "process\.env\." /tmp/sourcemap_extract/ 2>/dev/null | grep -v "NEXT_PUB
 grep -r "http://internal\|localhost\|127\.0\.0\.1\|10\.\|172\.\|192\.168" /tmp/sourcemap_extract/ 2>/dev/null | head -20
 ```
 
----
-
-### Additional notes
-
+---### Additional notes
 ### Phase 3 — Swagger / OpenAPI Discovery
 
 ```bash
@@ -315,15 +296,8 @@ curl -s "https://$TARGET/static/js/main.*.js" | \
 done
 ```
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `cbh` — `hunt-source-leak`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

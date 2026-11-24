@@ -4,13 +4,13 @@ description: "Use for check-then-act flows: balances, limits, coupons, invites, 
 agent_created: true
 ---
 
-# Race Conditions and TOCTOU — unified skill
+# Race Conditions and TOCTOU — unified methodology
 
-> **Complete merged skill.** Everything from 3 upstream skills across cbh, h1skills, hunting and the local HackerOne corpus is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 3 upstream skills across cbh, h1skills, hunting and grounded in 15,259 disclosed HackerOne reports. Payloads, wordlists and supporting data are in `references/`.
 
-## Corpus evidence — 65 valid HackerOne reports (14 paid / 22%)
+## Corpus signal — 65 valid reports (14 paid / 22%)
 
-Every disclosed report is valid; payment is an impact signal, not a validity test.
+Every disclosed report is valid; payment is an impact signal, not a validity test. Full technique frequencies, case studies and approach patterns: `references/evidence.md`.
 
 ### Techniques ranked across ALL valid reports
 
@@ -28,107 +28,6 @@ Every disclosed report is valid; payment is an impact signal, not a validity tes
 | admin / privileged-role context | 7 |
 | subdomain / DNS / cert-transparency recon | 6 |
 | file upload / filename / extension | 6 |
-| OAST / DNS / HTTP callback proof | 5 |
-| API docs / Swagger / introspection | 4 |
-| webhook / OAuth / SAML / integration abuse | 3 |
-| employee / developer public info | 3 |
-| parameter pollution / duplicate keys | 3 |
-| error message / stack trace probing | 3 |
-| HTTP method / verb tampering | 2 |
-| fuzzing / wordlist brute force | 2 |
-| response diff / status / length comparison | 2 |
-| second-order / stored / blind delivery | 1 |
-| browser DevTools / network tab | 1 |
-| unauthenticated / removed-cookie test | 1 |
-| XML / SOAP / SAML / XXE | 1 |
-| cloud metadata / IAM abuse | 1 |
-| third-party data / paste / breach reuse | 1 |
-| JWT / token / base64 decode | 1 |
-| JS bundle / source-map inspection | 1 |
-| deserialization / gadget chain | 1 |
-
-### Parameters observed in writeups
-
-`charset` (5), `max-age` (4), `curl_stub_gss_creds` (2), `refcount` (2), `defid` (1), `direction` (1), `key` (1), `good` (1), `stream` (1), `ref_count` (1), `cookies` (1), `dcurl_use_openssl` (1)
-
-### Bypass primitives observed
-
-`race condition` (68), `content-type` (14), `bypassing` (7), `bypass` (5), `bypassed` (3), `url-encode` (1), `blind` (1)
-
-### Impact language observed
-
-`token` (48), `credential` (19), `payment` (10), `rce` (8), `localhost` (6), `password` (5), `sensitive data` (5), `admin` (3), `arbitrary file` (2), `remote code execution` (2), `arbitrary code` (2), `cloud metadata` (1), `privilege escalation` (1), `sensitive information` (1), `secret` (1)
-
-### Case studies — full excerpts (paid and unpaid)
-
-#### [300305](https://hackerone.com/reports/300305) — Ability to bypass partner email confirmation to take over any store given an employee email
-
-Shopify · $15250 · critical
-
-I told Pete I would take a look at Spotify, hi Pete. **Summary** It's possible to take over any store account through partners given an employee email address. This is possible because I found a way to confirm arbitrary emails. I don't know the Shopify ecosystem well enough to know the other ramifications of such a bug. On #270981 you wrote: > The intention was that, when a partner already had a valid user account on the store, their collaborator account request could be accepted automatically, with the user account converted into a collaborator account. I tested that functionality and confirmed how it works. I realized that if you can somehow create a partner account with a business email that matched that of an employee, you would be able to take over their employee account, then convert it to a collaborator. The problem is that business accounts need emails to be validated, but this can be bypassed with a race condition. The bug works by hitting the email validation endpoint for an email you own, at the same time as changing your email to a victim's. It might take a few tries, but eventually your email will be changed and be validated due to not (properly) using a DB transaction. **Steps to reproduce** 1. Create a store account and invite an employee. 2. Accept the employee invite (maybe not necessary I didn't test). 3. Login to or create a partner account as the attacker. 4
-
-#### [1438052](https://hackerone.com/reports/1438052) — Race condition in faucet when using starport
-
-Cosmos · $5000 · critical
-
-Hi team, I and Aditya sent this bug over email on Wed, 29 Dec, 17:45 IST. Later we noticed that security reports are accepted via the HackerOne program. So, I am sending a copy of the bug report here. ## Summary: We were testing an application and we found a race condition bug in the faucet Implementation of Starport. ## Steps To Reproduce: 1. Start a starport with the below configuration. Note the "coins_max" has been set to 11 tokens and hence a user cannot fetch more after the 11 token limits. 2. Now call the request manually with 5 tokens per request as in our configuration after 2 requests and 10 tokens in total Alice won't be able to fetch more tokens from the faucet Now we can confirm Alice cannot have more than 11 tokens. 3. Now regenerate the server and instead of sending a single request send a concurrent request to fetch tokens in Alice address. We used 50 requests concurrently. {F1563051} 4. Now when we check Alice balance it is 30 which should have not been more than 11 {F1563052} We believe the root cause of the issues is the go mapping which is not advised for concurrency ## Supporting Material/References: ## Impact A malicious user can send concurrent requests to fetch more tokes from faucets than the "max-credit limit" which allows.
-
-#### [1520931](https://hackerone.com/reports/1520931) — Time-of-check to time-of-use vulnerability in the std::fs::remove_dir_all() function of the Rust standard library
-
-Internet Bug Bounty · $4000 · high
-
-The implementation of [`std::fs::remove_dir_all()`]( in the Rust standard library is vulnerable to a time-of-check to time-of-use link replacement attack. This applies to all versions of Rust before 1.58.1. ### Vulnerability details The [documentation of `std::fs::remove_dir_all()`]( guarantees that the function does not follow symbolic links: > Removes a directory at this path, after removing all its contents. Use carefully! > This function does not follow symbolic links and it will simply remove the symbolic link itself. The vulnerable implementation for Windows is in [library/std/src/sys/windows/fs.rs]( For other platforms it is in [library/std/src/sys_common/fs.rs]( Both use a `remove_dir_all_recursive()` helper function which does the actual recursion and deletion. It opens directory by the given path and iterates the directory entries. For each directory entry it checks if the entry is a directory and recurses into it if it is. If it is not it is deleted using `std::fs::remove_file()`. On the way back up the now empty directories are deleted using `std::fs::remove_dir()` There are two problems with this implementation if the attacker has write access to a directory which is being deleted by the privileged process: 1. The type of a directory entry is checked and it is being recursed into if it is a directory. There is a short time window between the check and the opening o
-
-#### [2110030](https://hackerone.com/reports/2110030) — Race Condition Enables Bypassing Verification Check
-
-Tools for Humanity · $3000 · high
-
-A race condition was discovered in the WorldID platform that could enable bypassing the verification check limits under certain conditions. The issue resided in the enforcement of maximum allowed verifications, which was not properly synchronized across parallel requests to the cloud backend service. The fix implemented enforcement of the maximum verifications in the database, making it the source of truth for state. This ensures that only one successful request per nullifier use can occur, even if parallel requests are attempted simultaneously. The vulnerability only affected certain cloud-backed verification flows, not on-chain WorldID applications.
-
-#### [2078571](https://hackerone.com/reports/2078571) — [curl] CVE-2023-32001: fopen race condition
-
-Internet Bug Bounty · $2480 · medium
-
-Hello, I'm reporting for CVE-2023-32001 on curl which was resolved in last Wednesday's curl release. ### Vulnerability explanation: As we can see in the following curl code (line 59-61 ): There is a race condition between the moment "stat(filename, &sb)" is executed and the moment " fopen(filename, FOPEN_WRITETEXT);" is executed. This leads to undesirable behavior such as an attacker tricking a privileged user to overwrite protected files, or since this function (Curl_fopen) is also used for storing cookies an attacker could trick another user to send those cookies that might be very sensible to a file fully owned and controlled by the attacker. ###POC/Steps to reproduce: Before we start, I will be using a little program called "rename". Which simply swaps atomically the names of two files to be able to showcase this race condition. Here is its code : Open two terminals, with two different users. One will be the attacker terminal and the other the victim. In both POCs, the victim will want to execute a command such as "curl --cookie-jar a google.com" thinking the file "a" doesn't exist. ###A) Exploiting this vulnerability to trick a user to overwrite a file they own: Assume the current directory of both attacker(selmelc) and victim (root) looks like this The attacker executes ./rename a b, which will not stop to swap the name of the directory "b" and the symlink "a". The victim
-
-#### [429026](https://hackerone.com/reports/429026) — Race condition in performing retest allows duplicated payments
-
-HackerOne · no bounty — still valid · medium
-
-## Summary There exists a race condition in performing retests. By executing multiple requests to confirm a retest at the same time, a malicious user is paid multiple times for the retest. This allows for stealing money from HackerOne, which could go unnoticed by both HackerOne and the attacker (me). ## Steps to Reproduce 1. Receive a retest request email from HackerOne. 2. Intercept the request to retest the email. Right click the request in Burp Suite and select `Copy as curl command`. 3. Execute the request on the command line in the form `(request) & (request) & ...`. In testing, I executed the command 5 times. 4. Scroll to the bottom of The payment will appear under the `Retest payments` sections and may be repeated. 5. Wait a few weeks. If successful, a callback from HackerOne will be received (in this case from @michiel): {F366191} 6. Check your bank account statements. Observe that a $500 payment was sent from HackerOne 2 weeks ago, demonstrating that the race condition was successful: {F366192} ## Impact This allows an attacker to exploit the retesting feature to steal many times more money. Given that this went unnoticed by both the attacker and HackerOne for over 2 weeks, this has the potential to be exploited multiple times to steal money from HackerOne.
-
-#### [604534](https://hackerone.com/reports/604534) — Race Condition leads to undeletable group member
-
-HackerOne · no bounty — still valid · low
-
-Hi, **Summary:** There exists a Race Condition in which the user can add themselves twice to a group which will make them unremovable from group. They themselves cannot remove themselves from the group as well as the group leader cannot remove that user from the group. Ofcourse this is a low severity as that malicious user first needs to have a valid invitation link, but nevertheless this leads to permanent membeship of group so this needs to be fixed in my opinion. ### Steps To Reproduce We need two accounts to reproduce this. - First account will be leader account - Second account will be a normal account. - Create a group from the first account and create an invitation link. - Join using the invitation link on the second account and intercept the request: Repeat the above requests in parallel. I did it for 5 parallel requests and I was able to add myself 2 times to that group: {F505223} - Now try deleting the user from first account(group leader). No matter how much you try, you won't be able to delete it. This would lead to a state where the group leader will have to delete the group and create a new group if he wants the malicious user to get removed. Thanks, Yash ## Impact Irremovable/permanent member of the group. Even the group leader cannot remove that user.
-
-### Recurring approach patterns from real reports
-
-- 1× the researcher was able to find a misconfiguration in the captcha mechanism which allowed him to reuse any captcha and bypass the uniquness of the same
-- 1× i tested it tonight and was able to authenticate two accounts on one invite for my test company test22 simply by clicking the accept button quickly in two separate browsers with two separately logged in users
-- 1× for example i found the code dallas20
-- 1× hi i want to report an issue that i have found on when a user wants to up vote or down vote a term he simply presses on the up or down button
-- 1× each user can up vote or down vote a term only once but i have found that if a parallel threads do the process of up voting then multiple requests will be accepted
-- 1× i discovered that the federalist api doesn t have rate limiting in place and executes any amount of request to the endpoint in parallel mode
-- 1× this is possible because i found a way to confirm arbitrary emails
-- 1× i tested that functionality and confirmed how it works
-- 1× i realized that if you can somehow create a partner account with a business email that matched that of an employee you would be able to take over their employee account then convert it to a collaborator
-- 1× i tried it a couple times with two unique users sometimes its a race ie times sometimes its a little lower depends on load and latency
-- 1× i only tried it twice to be sure not to dos
-- 1× tool used during poc to the poc i used race the web available at with this tool we can send the requests faster than we could with burp intruder
-- 1× supporting material references screenshots the outcome is shown below f385429 i ve used the trivial flag times and earned invitations
-- 1× note i ve created a new user to do this poc
-- 1× hello description i have found that there is no limit in the number of requests in place of adding suggest which may exploit the vulnerability of the attacker to send a large number of suggestions for example send a million suggest may lead to cause a problem to the server steps to reproduce
-- 1× i did it for parallel requests and i was able to add myself times to that group f505223 now try deleting the user from first account group leader
-- 1× the researcher found that the server side code for handling the unlike function for community pages was vulnerable to a race condition
-- 1× but when user choose to get free day premium he can click get free badoo premium and can enjoy free premium for three days here i found a race condition vulnerability through which i was able to get more than three days of premium
-- 1× before clicking get free badoo premium turn intercept on in your burp suite and then click get free badoo premium intercept this post webapi phtml server promo accepted select any parameter value right click send it to turbo inturer
-- 1× we ve found out that the program s should be able to send feedback only once per report which is very logical
-- 1× the researcher found a race condition to artificially inflate the upvotes of user comments in the restaurant s review section
-- 1× i found a race condition issue at the v2 seats endpoint
-- 1× later we noticed that security reports are accepted via the hackerone program
-- 1× summary we were testing an application and we found a race condition bug in the faucet implementation of starport
 
 ## Corpus-backed method (this class)
 
@@ -156,18 +55,13 @@ Hi, **Summary:** There exists a Race Condition in which the user can add themsel
 - Race on limit -> repeated benefit -> financial/quota bypass.
 - Race on one-time token -> token reuse -> auth impact.
 
-### Probes
-
-- Parallel identical POSTs with a synchronization barrier; bounded repetition with a clean state reset.
-
 ### Veteran tip
 
 A race is a finding only when the invariant violation is demonstrated with a state delta — timing noise is not impact.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
 ### Discovery and hunting method
-
 ### Quick wins
 
 Start here. These are the highest-yield tests for this class.
@@ -245,10 +139,7 @@ Before firing the attack, estimate the race window. This determines whether you 
 - Check **idempotency-key handling** on payment/transfer endpoints: if the server issues or accepts a key client-side, two requests with the same key should collapse to one effect. Test both same-key and distinct-key bursts; a missing uniqueness constraint is a double-charge primitive.
 - **Email/SMS queues widen windows**: any action that enqueues a background job after the HTTP response (verification emails, reset tokens, payouts) is a good collision candidate. Compare the immediate response with the later second-order state (email content, payout ledger).
 - For HTTP/2, read the server's `SETTINGS_MAX_CONCURRENT_STREAMS` and `SETTINGS_INITIAL_WINDOW_SIZE` before choosing N. A small stream cap forces multiple connections and changes the synchronization technique you need; a tiny flow-control window can make your withheld final bytes block unexpectedly.
-- Grep JS bundles and API specs for **one-time-action semantics** (`consume`, `redeem`, `use`, `spend`, `claim`, `apply`, `verify`) plus the uniqueness fields they reference (`usedAt`, `redeemed`, `nonce`, `tokenId`). These are the highest-yield endpoints for limit-overrun races.
-
-### Signals and surfaces
-
+- Grep JS bundles and API specs for **one-time-action semantics** (`consume`, `redeem`, `use`, `spend`, `claim`, `apply`, `verify`) plus the uniqueness fields they reference (`usedAt`, `redeemed`, `nonce`, `tokenId`). These are the highest-yield endpoints for limit-overrun races.### Signals and surfaces
 ### Signal
 
 - Reports: **97** · paid: **18**
@@ -306,10 +197,7 @@ No Cache-Control     # stateful ops not idempotent
 - **Redis counters** without Lua scripts or `INCR` atomicity checks
 - **Message queues** — idempotency keys often missing
 
----
-
-### Techniques, payloads and bypasses
-
+---### Techniques and bypasses
 ### Payloads & probes
 
 - Single-packet attack: 20-30 requests in one HTTP/2 packet
@@ -501,10 +389,7 @@ The race window equals the time between worker N's `SELECT ... FOR UPDATE` and w
 **Defense: "Already used" checks in application code**
 - Bypass: The check and the update are separate. The check passes for both racing requests before either update completes. Only an atomic `UPDATE ... WHERE used=false RETURNING id` truly prevents this.
 
----
-
-### Validation and proof
-
+---### Validation and proof
 ### Reporting bar
 
 - Prove real impact on a second controlled account or a safe callback.
@@ -556,10 +441,7 @@ The Turbo Intruder `engine=Engine.BURP2` implementation guarantees single-packet
 - Rule out session locking before concluding "not vulnerable": repeat with distinct session cookies. Rule out client-side-only state: if the whole flow is a signed JWT emailed to the user, there's nothing to race server-side.
 - For MFA/sub-state claims, prove access to a genuinely authenticated, sensitive endpoint — reaching a neutral page is not impact. For deferred collisions, correlate the second-order observation (email content, changed settings) back to the exact prior request pair.
 - **DoS caution**: high-rate race tooling (HTTP/3 >100k rps, first-sequence-sync 10k requests, Turbo Intruder THREADED) can exhaust a target. Use the smallest batch that proves the concept; only run large bursts where load testing is explicitly authorized.
-- In reports, include the engine/technique (BURP2 single-packet, HTTP/3 single-datagram, QPACK, last-byte sync), connection count, request count, and the before/after state — triagers need to reproduce timing-sensitive bugs exactly.
-
-### Escalation and related chains
-
+- In reports, include the engine/technique (BURP2 single-packet, HTTP/3 single-datagram, QPACK, last-byte sync), connection count, request count, and the before/after state — triagers need to reproduce timing-sensitive bugs exactly.### Escalation and related chains
 ### Escalation chains
 
 - Race -> double spend.
@@ -582,10 +464,7 @@ The Turbo Intruder `engine=Engine.BURP2` implementation guarantees single-packet
 - **`hunt-ato`** — Race conditions on password reset, email change, and account creation enable persistent ATO. Chain primitive: race on email-change endpoint + atomic-update missing → swap victim email + read reset token before user notice.
 - **`hunt-api-misconfig`** — Wallet/balance/credit endpoints without atomic UPDATE are double-spend candidates. Chain primitive: race + atomic-update missing → double-spend balance → withdraw N× user balance.
 - **`security-arsenal`** — Load the Turbo Intruder single-packet template, h2.cl smuggling for atomic submit, and `curl --next` parallel multi-request patterns.
-- **`triage-validation`** — Apply the Statistical-Sampling gate: a single anomalous response is noise; require 1 successful + N duplicate / over-quota / stale-state demonstrations with response screenshots before reporting.
-
-### Tools and wordlists
-
+- **`triage-validation`** — Apply the Statistical-Sampling gate: a single anomalous response is noise; require 1 successful + N duplicate / over-quota / stale-state demonstrations with response screenshots before reporting.### Tools
 ### Tools
 
 `Burp Turbo Intruder` · `race-the-web` · `custom scripts`
@@ -656,10 +535,7 @@ grep -rn "await.*get\|await.*find" --include="*.js" -A2 | grep "await.*update\|a
 
 # Python Django ORM without select_for_update
 grep -rn "\.get(\|\.filter(" --include="*.py" | grep -v "select_for_update"
-```
-
-### Sources and related reading
-
+```### Sources and related reading
 ### Query the corpus
 
 ```sh
@@ -693,10 +569,7 @@ python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class race
 4. https://portswigger.net/research/http3-in-burp-suite
 5. https://www.yeswehack.com/learn-bug-bounty/ultimate-guide-race-condition-vulnerabilities
 6. https://ramis.me/blog/payments-race-condition-double-spend/
-7. https://owasp.org/projects/top-10-for-business-logic-abuse?tab=top10
-
-### Additional notes
-
+7. https://owasp.org/projects/top-10-for-business-logic-abuse?tab=top10### Additional notes
 ### Parameters observed
 
 `client_id` · `redirect_uri` · `code` · `invite` · `client_secret` · `token` · `commit` · `response_type` · `term` · `raw_json` · `id` · `authenticity_token` · `search` · `new` · `dl` · `access_token` · `refresh_token` · `defid` · `direction` · `key`
@@ -1017,305 +890,8 @@ Detect h2.0 viability via `curl -sI --http2 https://target.com | grep -i HTTP/2`
 - `hunt-business-logic` — coupon / wallet / promo state-machine races where single-packet is the enabling primitive
 - Disclosed Report Citations above — citations #4, #11, #12 are the canonical single-packet exemplars (GitLab/Devise CVE-2022-4037, Flatt 10k-req PIN brute-force, nopCommerce CVE-2024-58248)
 
----
-
-## Companion methodology (complete, deduplicated)
-
-Full text of every non-SKILL.md methodology document from the contributing skills.
-
-### Companion: hunting / references/payloads.md
-
-# Race Condition — Combined Field Guide — Payload reference
-
-Moved out of `SKILL.md` to keep the main playbook lean. Load this file when you need concrete payload.
-
----
-
-## Payloads & probes
-
-
-
-- Single-packet attack: 20-30 requests in one HTTP/2 packet
-
-- Last-byte sync: hold final byte, release together
-
-- Repeat the same coupon/withdrawal across parallel connections
-
-
-
-## Payload fragments observed
-
-
-
-Recurring payloads from this class's writeups. Adapt, don't paste blindly.
-
-
-
-| Seen | Fragment |
-
-|---:|---|
-
-| 9× | `Curl_dnscache_add_negative()` |
-
-| 5× | `Curl_dnscache_add()` |
-
-| 5× | `std::fs::remove_dir_all()` |
-
-| 5× | `Curl_fopen()` |
-
-| 4× | `Curl_hash_add()` |
-
-| 4× | `Curl_hsts_save()` |
-
-| 3× | `data:` |
-
-| 3× | `stat()` |
-
-| 3× | `dnscache_lock()` |
-
-| 3× | `dnscache_add_addr()` |
-
-| 3× | `Curl_hsts_parse()` |
-
-| 3× | `curlx_gmtime()` |
-
-| 3× | `Curl_close()` |
-
-| 2× | `x-request: %s` |
-
-| 2× | `Buffer.from()` |
-
-| 2× | `share->cookies` |
-
-| 2× | `remove_dir_all()` |
-
-| 2× | `hsts_out()` |
-
-| 2× | `--hsts <file>` |
-
-| 1× | `https://sandbox.reverb.com/<lang>/redeem` |
-
-
-
-## Parameters observed
-
-
-
-`client_id` · `redirect_uri` · `code` · `invite` · `client_secret` · `token` · `commit` · `response_type` · `term` · `raw_json` · `id` · `authenticity_token` · `search` · `new` · `dl` · `access_token` · `refresh_token` · `defid` · `direction` · `key`
-
-
-
-## Wordlists
-
-
-
-Mined from this class's writeups and ready for `ffuf`/`feroxbuster`. Paths and parameters recur across programs; verify each hit.
-
-
-
-| File | Entries |
-
-|---|---:|
-
-| `~/.local/share/hackerone-reports/wordlists/paths_race-condition.txt` | 61 |
-
-| `~/.local/share/hackerone-reports/wordlists/params_race-condition.txt` | 36 |
-
-| `~/.local/share/hackerone-reports/wordlists/paths.txt` (global) | 500 |
-
-| `~/.local/share/hackerone-reports/wordlists/params.txt` (global) | 400 |
-
-
-
-```sh
-
-W=~/.local/share/hackerone-reports/wordlists
-
-ffuf -u https://target/FUZZ -w $W/paths_race-condition.txt \
-
-     -mc all -fc 404 -fs 0 -rate 40
-
-ffuf -u 'https://target/api?FUZZ=canary' -w $W/params_race-condition.txt \
-
-     -mr 'canary|error|invalid|not found' -rate 40
-
-```
-
-
-
-## Nuclei
-
-
-
-No reliable scanner. Use Turbo Intruder single-packet or last-byte sync on check-then-act flows.
-
-
-
-```sh
-
-nuclei -u https://target -tags race-condition \
-
-       -severity low,medium,high,critical -rl 40 -o nuclei_race-condition.txt
-
-# authenticated surface: add -H 'Cookie: session=...' or -H 'Authorization: Bearer ...'
-
-```
-
-
-
-Triage every hit by hand: a template match is a lead, not a finding. Update templates with `nuclei -update-templates`.
-
-
-
-## Payload & Detection Patterns
-
-
-
-### Turbo Intruder — Basic Parallel Race
-
-```python
-
-# turbo_intruder_race.py
-
-def queueRequests(target, wordlists):
-
-    engine = RequestEngine(endpoint=target.endpoint,
-
-                           concurrentConnections=1,
-
-                           engine=Engine.BURP2)  # HTTP/2 single-packet
-
-    for i in range(20):
-
-        engine.queue(target.req, gate='race1')
-
-    engine.openGate('race1')
-
-
-
-def handleResponse(req, interesting):
-
-    if '200' in req.status:
-
-        table.add(req)
-
-```
-
-
-
-### curl — Parallel Requests (bash)
-
-```bash
-
-# Fire 15 simultaneous vote/redeem requests
-
-for i in $(seq 1 15); do
-
-  curl -s -o /dev/null -w "%{http_code}\n" \
-
-    -X POST "https://target.com/api/vote" \
-
-    -H "Cookie: session=YOUR_SESSION" \
-
-    -H "Content-Type: application/json" \
-
-    -d '{"report_id": "12345", "vote": "up"}' &
-
-done
-
-wait
-
-```
-
-
-
-### Python asyncio Race
-
-```python
-
-import asyncio, aiohttp
-
-
-
-async def race_request(session, url, payload, headers):
-
-    async with session.post(url, json=payload, headers=headers) as r:
-
-        return await r.text()
-
-
-
-async def main():
-
-    url = "https://target.com/redeem"
-
-    payload = {"code": "GIFT50"}
-
-    headers = {"Cookie": "session=XXXXX"}
-
-    
-
-    async with aiohttp.ClientSession() as session:
-
-        tasks = [race_request(session, url, payload, headers) for _ in range(20)]
-
-        results = await asyncio.gather(*tasks)
-
-    
-
-    for r in results:
-
-        print(r[:100])  # print first 100 chars of each response
-
-
-
-asyncio.run(main())
-
-```
-
-
-
-### Grep Patterns for Source Code Auditing
-
-```bash
-
-# Look for read-then-write without locking
-
-grep -rn "find_by\|where.*first" --include="*.rb" | grep -v "lock"
-
-grep -rn "SELECT.*WHERE" --include="*.php" | grep -v "FOR UPDATE"
-
-
-
-# JavaScript async without atomicity
-
-grep -rn "await.*get\|await.*find" --include="*.js" -A2 | grep "await.*update\|await.*save"
-
-
-
-# Python Django ORM without select_for_update
-
-grep -rn "\.get(\|\.filter(" --include="*.py" | grep -v "select_for_update"
-
-```
-
-
-
-### HTTP/2 Single-Packet Check
-
-```bash
-
-# Verify target supports HTTP/2 (prerequisite for single-packet attack)
-
-curl -sI --http2 https://target.com | grep -i "HTTP/2\|h2"
-
-```
-
-
-
----
-
-### Companion: hunting / references/techniques.md
+---### Companion methodology (deduplicated)
+### hunting / references/techniques.md
 
 # Race Condition — Combined Field Guide — Technique reference
 
@@ -1625,127 +1201,13 @@ python3 ~/.local/share/hackerone-reports/h1.py search "reset token" --class race
 
 
 
----
+---## Probes
 
-## Corpus wordlists (mined)
+- Parallel identical POSTs with a synchronization barrier; bounded repetition with a clean state reset.
 
-### `params_race-condition.txt`
+## Supporting data
 
-```text
-client_id
-redirect_uri
-code
-invite
-client_secret
-token
-commit
-response_type
-term
-raw_json
-id
-authenticity_token
-search
-new
-dl
-access_token
-refresh_token
-defid
-direction
-key
-feature
-sr_detail
-expand_srs
-from_detail
-api_type
-always_show_media
-request_timestamp
-package_name
-product_id
-correlation_id
-name
-report_id
-positive
-behavior
-private_feedback
-checksum
-```
-
-### `paths_race-condition.txt`
-
-```text
-/settings
-/docs/http-cookies.html
-/fi/redeem
-/redeem
-/[ID
-/managed_stores
-/product/bounty
-/services
-/product/response
-/product/challenge
-/group/post_join
-/MFvNs99NvnA
-/loyalty/claim/XXXXXX
-/start/domain-for-gravatar/domain-only
-/datacredits/
-/api/data_credits/transfer_dc
-/s/8xuipexpiyz7lp3/2020-09-05%2002-02-41.mkv
-/data/definitions/362.html
-/webapi.phtml
-/graphql
-/oauth/token
-/oauth/revoke
-/api/me
-/html/rfc6749
-/oauth/authorize
-/api/v1/user/email
-/user/settings
-/payload.txt
-/v0/vote
-/define.php
-/api/v2/gold/android/verify_purchase
-/settings/orgs/new
-/ecma262/
-/users/invitation
-/people
-/v2/seats
-/team/memberships
-/secure/data2
-/CN=Fake
-/CN=Legit
-/CN=
-/secure/data1
-/trial/
-/hacker_reviews
-/blog/race-condition-web-applications
-/src
-/v0/me
-/package/express-rate-limit
-/api/internal/graphql/requestAuthEmail
-/security/products/flash-player/apsb14-24.html
-/translate/andors-trail/game-content/ar/
-/std/fs/fn.remove_dir_all.html
-/cabinet/
-/cabinet/stripeapi/v1/projects/298427/emails/folders
-/libcurl/c/multithread.html
-/libcurl/c/threadsafe.html
-/software/gdb/documentation/
-/software/gdb/bugs/
-/security/products/flash-player/apsb15-11.html
-/security/products/flash-player/apsb15-03.html
-/docs/hsts.html
-```
-
-## Source skills merged into this topic
-
-- `h1skills` — `hackerone-race-condition`
-- `hunting` — `race-condition`
-- `cbh` — `hunt-race-condition`
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `references/upstream-assets/` — 2 companion files
-- `../../upstream/` — complete unmodified archives of all five source repositories
+- `references/evidence.md` — corpus technique frequencies, case studies, approach patterns
+- `references/payloads.md` — curated payload bank + upstream payload references
+- `references/wordlists/` — 2 mined paths/params/payload lists
 - `bbhunt-methodology` — orchestrator, state machine and class router

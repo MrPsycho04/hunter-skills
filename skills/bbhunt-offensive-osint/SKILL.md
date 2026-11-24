@@ -4,19 +4,14 @@ description: "Probe/regex/dork arsenal for authorized external reconnaissance. U
 agent_created: true
 ---
 
-# Offensive OSINT arsenal — unified skill
+# Offensive OSINT arsenal — unified methodology
 
-> **Complete merged skill.** Everything from 0 upstream skills across  is contained in this file. Unmodified originals remain in `references/` for provenance only.
+> **Methodology skill.** Merged from 0 upstream skills across . Payloads, wordlists and supporting data are in `references/`.
 
-## Unified upstream methodology (complete, deduplicated)
+## Unified upstream methodology (deduplicated)
 
-## Source skills merged into this topic
+## Probes
 
+## Supporting data
 
-
-## Provenance
-
-- `references/unified-method.md` — same deduplicated union as this file, for tooling
-- `references/upstream-*.md` — unmodified original SKILL.md from each repo
-- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router
