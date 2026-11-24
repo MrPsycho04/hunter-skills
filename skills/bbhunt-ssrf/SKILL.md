@@ -506,5 +506,7 @@ _...and 3 more sections in `references/unified-method.md`._
 
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
+- `references/upstream-assets/` — 2 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `../../upstream/` — complete unmodified archives of all five source repositories
 - `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank
 - `bbhunt-methodology` — orchestrator, state machine and class router

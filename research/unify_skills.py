@@ -20,6 +20,7 @@ import importlib.util
 import json
 import os
 import re
+import shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -95,7 +96,7 @@ ALIASES = {
     "exploit-completion": "exploit-completion",
     "mid-engagement-ir-detection": "mid-engagement-ir-detection",
     "triage-validation": "validate",
-    "report-writing": "report", "bugcrowd-reporting": "report",
+    "report-writing": "report",
     "bb-methodology": "methodology", "bug-bounty": "methodology",
     "hunting": "methodology", "hackerone-hunting": "methodology",
 }
@@ -353,11 +354,20 @@ def build_skill(slug, sources):
                 continue
             buckets[classify(head)].append(f"### {head}\n\n{body}")
 
-    # Preserve full upstream originals.
+    # Clear stale generated references from earlier mapping passes.
+    ref_dir = os.path.join(d, "references")
+    for stale in glob.glob(os.path.join(ref_dir, "upstream-*.md")):
+        os.remove(stale)
+    stale_assets = os.path.join(ref_dir, "upstream-assets")
+    if os.path.exists(stale_assets):
+        shutil.rmtree(stale_assets)
+
+    # Preserve full upstream originals and their companion assets.
     for s in sources:
         with open(os.path.join(d, "references", f"upstream-{s['src']}-{s['name']}.md"), "w") as f:
             f.write(f"# Upstream source: {s['name']} ({s['src']})\n\nOriginal path: `{s['path']}`\n\n"
                     "---\n\n" + s["text"])
+    companions = link_companion_assets(slug, sources)
 
     unified = ["# Unified upstream methodology\n",
                "Collected from every contributing repository skill. Deduplicated by content hash; "
@@ -419,6 +429,12 @@ def build_skill(slug, sources):
         "- `references/unified-method.md` — complete deduplicated union of all upstream sections\n",
         "- `references/upstream-*.md` — full original SKILL.md from each contributing repo\n",
     ]
+    if companions:
+        parts.append(
+            f"- `references/upstream-assets/` — {companions} companion files (payload/technique "
+            "references, scripts, validators and schemas) from the contributing skills\n"
+        )
+    parts.append("- `../../upstream/` — complete unmodified archives of all five source repositories\n")
     if is_class:
         parts.append("- `references/evidence.md` — corpus technique frequencies, parameters, case studies and payload bank\n")
     parts += [
@@ -445,6 +461,83 @@ def build_skill(slug, sources):
     return len(sources)
 
 
+def archive_upstream_repos():
+    """Copy every file from all five repos (excluding .git/.DS_Store) into upstream/."""
+    dest_root = os.path.join(ROOT, "upstream")
+    copied = 0
+    for src, root in SOURCES.items():
+        dest = os.path.join(dest_root, src)
+        if os.path.exists(dest):
+            shutil.rmtree(dest)
+        os.makedirs(dest, exist_ok=True)
+        for path in glob.glob(root + "/**/*", recursive=True):
+            rel = os.path.relpath(path, root)
+            if rel.split(os.sep)[0] == ".git" or os.path.basename(path) == ".DS_Store":
+                continue
+            target = os.path.join(dest, rel)
+            if os.path.isdir(path):
+                os.makedirs(target, exist_ok=True)
+            elif os.path.isfile(path):
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                shutil.copy2(path, target)
+                copied += 1
+    readme = [
+        "# Upstream sources (complete archives)\n",
+        "Full, unmodified file trees of the five repositories used to build this suite. "
+        "Nothing was filtered out — these are byte-for-byte copies excluding only `.git` and `.DS_Store`.\n",
+        "| Directory | Repository | Files |\n|---|---|---:|\n",
+    ]
+    names = {
+        "cloudflare": "cloudflare/security-audit-skill",
+        "h1skills": "MrPsycho04/hackerone-skills",
+        "hunting": "MrPsycho04/Hunting-Agent",
+        "research": "MrPsycho04/Research-Skills",
+        "cbh": "elementalsouls/Claude-BugHunter",
+    }
+    for src in SOURCES:
+        n = sum(1 for f in glob.glob(os.path.join(dest_root, src, "**/*"), recursive=True)
+                if os.path.isfile(f))
+        readme.append(f"| `{src}/` | {names[src]} | {n} |\n")
+    readme += ["\nThe merged, deduplicated view is in `skills/bbhunt-*/references/unified-method.md`; "
+               "each skill's `references/upstream-*.md` files preserve the individual SKILL.md sources.\n"]
+    with open(os.path.join(dest_root, "README.md"), "w") as f:
+        f.writelines(readme)
+    return copied
+
+
+def link_companion_assets(slug, sources):
+    """Copy each contributing skill's non-SKILL.md companions into its unified skill."""
+    dest_root = os.path.join(SKILLS, f"bbhunt-{slug}", "references", "upstream-assets")
+    count = 0
+    if os.path.exists(dest_root):
+        shutil.rmtree(dest_root)
+    for s in sources:
+        skill_dir = os.path.dirname(s["path"])
+        target_dir = os.path.join(dest_root, f"{s['src']}-{s['name']}")
+        for path in glob.glob(skill_dir + "/**/*", recursive=True):
+            rel = os.path.relpath(path, skill_dir)
+            if rel.endswith("SKILL.md") or rel.endswith("skill.md") or rel == ".":
+                continue
+            target = os.path.join(target_dir, rel)
+            if os.path.isdir(path):
+                os.makedirs(target, exist_ok=True)
+            elif os.path.isfile(path):
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                shutil.copy2(path, target)
+                count += 1
+    # Cloudflare's SKILL.md lives beside 15 topical docs and 4 validators — collect them too.
+    for s in sources:
+        if s["src"] == "cloudflare":
+            cf_dir = os.path.dirname(s["path"])
+            target_dir = os.path.join(dest_root, "cloudflare-security-audit-support")
+            for path in glob.glob(cf_dir + "/*"):
+                if os.path.isfile(path) and not path.endswith("SKILL.md"):
+                    os.makedirs(target_dir, exist_ok=True)
+                    shutil.copy2(path, os.path.join(target_dir, os.path.basename(path)))
+                    count += 1
+    return count
+
+
 def main():
     groups = collect_sources()
     # Ensure our 39 existing topics exist even if no upstream maps to them.
@@ -455,6 +548,8 @@ def main():
     for slug in EXTRA:
         groups.setdefault(slug, [])
 
+    total_companions = archive_upstream_repos()
+    print(f"archived upstream files: {total_companions}")
     total_sources = 0
     for slug, sources in sorted(groups.items()):
         total_sources += build_skill(slug, sources)

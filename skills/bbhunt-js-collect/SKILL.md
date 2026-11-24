@@ -90,4 +90,6 @@ Ordered by yield — do these first.
 
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
+- `references/upstream-assets/` — 1 companion files (payload/technique references, scripts, validators and schemas) from the contributing skills
+- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router

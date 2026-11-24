@@ -25,8 +25,10 @@ Each skill directory contains:
 | `references/unified-method.md` | Complete extracted sections from every contributing repo skill, deduplicated by content hash |
 | `references/upstream-*.md` | Full, unmodified original SKILL.md from each contributing repo, with source path and attribution |
 | `references/evidence.md` | Corpus technique frequencies, parameters, bypasses, case studies and payload bank (class topics only) |
+| `references/upstream-assets/` | Companion files from each contributing skill: payload/technique references, scripts and fixtures |
+| `upstream/` (repo root) | Complete unmodified file trees of all five source repositories — 640 files including docs, validators, schemas, wordlists and research scripts |
 
-Nothing from the source repos was discarded — the merge is additive and traceable.
+Nothing from the source repos was discarded — the merge is additive and traceable. The `SKILL.md` files are deliberately short entry points (about 21k lines total); the substance lives in the union (about 52k lines), the preserved originals (about 80k lines) and the full upstream archive.
 
 ## Sources merged
 

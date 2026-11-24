@@ -149,4 +149,5 @@ Defenders watching egress see traffic to a known-good AWS hostname; DLP doesn't 
 
 - `references/unified-method.md` — complete deduplicated union of all upstream sections
 - `references/upstream-*.md` — full original SKILL.md from each contributing repo
+- `../../upstream/` — complete unmodified archives of all five source repositories
 - `bbhunt-methodology` — orchestrator, state machine and class router
